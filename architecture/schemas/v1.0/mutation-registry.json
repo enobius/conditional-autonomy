@@ -1,0 +1,40 @@
+{
+  "mutations": [
+    {
+      "id": "MUT-B0-001",
+      "batch": "batch0",
+      "status": "ACTIVE",
+      "description": "Remove x-access-class from normalizedTime.instant; access lint must fail."
+    },
+    {
+      "id": "MUT-B0-002",
+      "batch": "batch0",
+      "status": "ACTIVE",
+      "description": "Rename normalized_time in the fixture wrapper; valid fixture validation must fail."
+    },
+    {
+      "id": "MUT-B0-003",
+      "batch": "batch0",
+      "status": "ACTIVE",
+      "description": "Change MODEL_CLAIM to MODEL; enum fidelity must fail."
+    },
+    {
+      "id": "MUT-B2-001",
+      "batch": "batch2",
+      "status": "BLOCKED",
+      "description": "Permit COMPENSATABLE with null compensation_action."
+    },
+    {
+      "id": "MUT-B1-001",
+      "batch": "batch1",
+      "status": "BLOCKED",
+      "description": "Permit HARD + UNKNOWN to resolve to EXECUTE."
+    },
+    {
+      "id": "MUT-B2-002",
+      "batch": "batch2",
+      "status": "BLOCKED",
+      "description": "Inline canonical state into a policy-visible observation."
+    }
+  ]
+}

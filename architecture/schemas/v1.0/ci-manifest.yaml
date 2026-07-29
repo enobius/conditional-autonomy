@@ -1,0 +1,18 @@
+{
+  "schema_draft": "2020-12",
+  "schema_package": "v1.0",
+  "primary_validator": {
+    "name": "jsonschema",
+    "version": "4.25.1",
+    "format_assertion": true
+  },
+  "secondary_validator": {
+    "name": "fastjsonschema",
+    "version": "2.21.2",
+    "format_assertion": true,
+    "note": "Portability compilation and fixture validation; unsupported dialect behavior must fail closed."
+  },
+  "python": ">=3.11",
+  "canonical_command": "python scripts/check_schemas.py --batch batch0",
+  "vendor_directory": "../.vendor"
+}

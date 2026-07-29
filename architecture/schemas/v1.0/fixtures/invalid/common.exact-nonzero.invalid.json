@@ -1,0 +1,28 @@
+{
+  "normalized_time": {
+    "instant": "2026-11-26T14:00:00Z",
+    "source_timezone": "America/New_York",
+    "uncertainty": {
+      "kind": "EXACT",
+      "minus_seconds": 1,
+      "plus_seconds": 0
+    }
+  },
+  "provenance": {
+    "provenance_id": "prov:fixture:2",
+    "source": "ENVIRONMENT",
+    "recorded_at": {
+      "instant": "2026-11-26T14:00:00Z",
+      "source_timezone": "America/New_York",
+      "uncertainty": {
+        "kind": "EXACT",
+        "minus_seconds": 0,
+        "plus_seconds": 0
+      }
+    },
+    "access_class": "EVALUATOR_ONLY",
+    "content_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "epistemic_status": "OBSERVED",
+  "version_identifier": "1.0.0"
+}

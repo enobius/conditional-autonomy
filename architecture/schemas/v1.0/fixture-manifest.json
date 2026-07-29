@@ -1,0 +1,46 @@
+{
+  "batch": "batch0",
+  "fixtures": [
+    {
+      "path": "fixtures/valid/common.valid.json",
+      "expected": "valid",
+      "constraints": [
+        "normalized-time-exact",
+        "iana-timezone",
+        "provenance-enum",
+        "epistemic-status-enum",
+        "version-identifier"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/common.exact-nonzero.invalid.json",
+      "expected": "invalid",
+      "constraint": "EXACT requires zero uncertainty bounds"
+    },
+    {
+      "path": "fixtures/invalid/common.unknown-with-instant.invalid.json",
+      "expected": "invalid",
+      "constraint": "UNKNOWN requires null instant"
+    },
+    {
+      "path": "fixtures/invalid/common.timezone.invalid.json",
+      "expected": "invalid",
+      "constraint": "source_timezone must be an IANA timezone"
+    },
+    {
+      "path": "fixtures/invalid/common.datetime-format.invalid.json",
+      "expected": "invalid",
+      "constraint": "instant must satisfy RFC 3339 date-time format"
+    },
+    {
+      "path": "fixtures/invalid/common.provenance-source.invalid.json",
+      "expected": "invalid",
+      "constraint": "provenance source enum is byte-exact"
+    },
+    {
+      "path": "fixtures/invalid/common.version.invalid.json",
+      "expected": "invalid",
+      "constraint": "version identifier format"
+    }
+  ]
+}

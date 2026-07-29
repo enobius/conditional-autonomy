@@ -1,0 +1,3 @@
+architecture/schemas/.vendor/
+__pycache__/
+*.py[cod]

@@ -1,0 +1,357 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/common.defs.schema.json",
+  "title": "Thesis Architecture Shared Definitions",
+  "description": "Batch 0 shared definitions. This schema is infrastructure, not a domain contract.",
+  "$defs": {
+    "stableId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/+-]*$"
+    },
+    "versionIdentifier": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:+-]*$"
+    },
+    "contentHash": {
+      "type": "string",
+      "pattern": "^(sha256:)?[A-Fa-f0-9]{64}$"
+    },
+    "accessClass": {
+      "enum": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY",
+        "PRIVATE_ENVIRONMENT"
+      ]
+    },
+    "accessClassSet": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/accessClass"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "provenanceSource": {
+      "enum": [
+        "USER",
+        "TOOL",
+        "ENVIRONMENT",
+        "DERIVED_RULE",
+        "MODEL_CLAIM",
+        "EVALUATOR"
+      ]
+    },
+    "epistemicStatus": {
+      "enum": [
+        "OBSERVED",
+        "ASSERTED",
+        "INFERRED",
+        "UNKNOWN",
+        "CONTRADICTED",
+        "SUPERSEDED"
+      ]
+    },
+    "validatorStatus": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNKNOWN"
+      ]
+    },
+    "criticality": {
+      "enum": [
+        "HARD",
+        "SOFT"
+      ]
+    },
+    "enforceability": {
+      "enum": [
+        "PREVENTABLE",
+        "PREDICTIVE",
+        "DETECTABLE"
+      ]
+    },
+    "reversibility": {
+      "enum": [
+        "REVERSIBLE",
+        "COMPENSATABLE",
+        "IRREVERSIBLE"
+      ]
+    },
+    "decision": {
+      "enum": [
+        "APPROVE",
+        "REPAIR",
+        "QUERY",
+        "REJECT",
+        "ESCALATE"
+      ]
+    },
+    "uncertaintyKind": {
+      "enum": [
+        "EXACT",
+        "BOUNDED",
+        "ESTIMATED",
+        "UNKNOWN"
+      ]
+    },
+    "normalizedTime": {
+      "type": "object",
+      "required": [
+        "instant",
+        "source_timezone",
+        "uncertainty"
+      ],
+      "properties": {
+        "instant": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "x-access-class": [
+            "POLICY_VISIBLE",
+            "SUPERVISOR_VISIBLE",
+            "VALIDATOR_VISIBLE",
+            "EVALUATOR_ONLY",
+            "PRIVATE_ENVIRONMENT"
+          ]
+        },
+        "source_timezone": {
+          "type": "string",
+          "minLength": 1,
+          "x-access-class": [
+            "POLICY_VISIBLE",
+            "SUPERVISOR_VISIBLE",
+            "VALIDATOR_VISIBLE",
+            "EVALUATOR_ONLY",
+            "PRIVATE_ENVIRONMENT"
+          ]
+        },
+        "uncertainty": {
+          "type": "object",
+          "required": [
+            "kind",
+            "minus_seconds",
+            "plus_seconds"
+          ],
+          "properties": {
+            "kind": {
+              "$ref": "#/$defs/uncertaintyKind",
+              "x-access-class": [
+                "POLICY_VISIBLE",
+                "SUPERVISOR_VISIBLE",
+                "VALIDATOR_VISIBLE",
+                "EVALUATOR_ONLY",
+                "PRIVATE_ENVIRONMENT"
+              ]
+            },
+            "minus_seconds": {
+              "type": "number",
+              "minimum": 0,
+              "x-access-class": [
+                "POLICY_VISIBLE",
+                "SUPERVISOR_VISIBLE",
+                "VALIDATOR_VISIBLE",
+                "EVALUATOR_ONLY",
+                "PRIVATE_ENVIRONMENT"
+              ]
+            },
+            "plus_seconds": {
+              "type": "number",
+              "minimum": 0,
+              "x-access-class": [
+                "POLICY_VISIBLE",
+                "SUPERVISOR_VISIBLE",
+                "VALIDATOR_VISIBLE",
+                "EVALUATOR_ONLY",
+                "PRIVATE_ENVIRONMENT"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "x-access-class": [
+            "POLICY_VISIBLE",
+            "SUPERVISOR_VISIBLE",
+            "VALIDATOR_VISIBLE",
+            "EVALUATOR_ONLY",
+            "PRIVATE_ENVIRONMENT"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "uncertainty": {
+                "properties": {
+                  "kind": {
+                    "const": "EXACT"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "instant": {
+                "type": "string"
+              },
+              "uncertainty": {
+                "properties": {
+                  "minus_seconds": {
+                    "const": 0
+                  },
+                  "plus_seconds": {
+                    "const": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "uncertainty": {
+                "properties": {
+                  "kind": {
+                    "const": "UNKNOWN"
+                  }
+                },
+                "required": [
+                  "kind"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "instant": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "provenance_id",
+        "source",
+        "recorded_at",
+        "access_class"
+      ],
+      "properties": {
+        "provenance_id": {
+          "$ref": "#/$defs/stableId",
+          "x-access-class": [
+            "SUPERVISOR_VISIBLE",
+            "VALIDATOR_VISIBLE",
+            "EVALUATOR_ONLY"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/provenanceSource",
+          "x-access-class": [
+            "SUPERVISOR_VISIBLE",
+            "VALIDATOR_VISIBLE",
+            "EVALUATOR_ONLY"
+          ]
+        },
+        "recorded_at": {
+          "$ref": "#/$defs/normalizedTime",
+          "x-access-class": [
+            "SUPERVISOR_VISIBLE",
+            "VALIDATOR_VISIBLE",
+            "EVALUATOR_ONLY"
+          ]
+        },
+        "access_class": {
+          "$ref": "#/$defs/accessClass",
+          "x-access-class": [
+            "VALIDATOR_VISIBLE",
+            "EVALUATOR_ONLY"
+          ]
+        },
+        "content_hash": {
+          "$ref": "#/$defs/contentHash",
+          "x-access-class": [
+            "VALIDATOR_VISIBLE",
+            "EVALUATOR_ONLY"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidenceRef": {
+      "type": "object",
+      "required": [
+        "ref_id",
+        "source",
+        "access_class"
+      ],
+      "properties": {
+        "ref_id": {
+          "$ref": "#/$defs/stableId",
+          "x-access-class": [
+            "SUPERVISOR_VISIBLE",
+            "VALIDATOR_VISIBLE",
+            "EVALUATOR_ONLY"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/provenanceSource",
+          "x-access-class": [
+            "SUPERVISOR_VISIBLE",
+            "VALIDATOR_VISIBLE",
+            "EVALUATOR_ONLY"
+          ]
+        },
+        "access_class": {
+          "$ref": "#/$defs/accessClass",
+          "x-access-class": [
+            "VALIDATOR_VISIBLE",
+            "EVALUATOR_ONLY"
+          ]
+        },
+        "uri": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "x-access-class": [
+            "VALIDATOR_VISIBLE",
+            "EVALUATOR_ONLY"
+          ]
+        },
+        "content_hash": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/contentHash"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "x-access-class": [
+            "VALIDATOR_VISIBLE",
+            "EVALUATOR_ONLY"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
