@@ -1,23 +1,25 @@
 # Workstream 1A Ticket Registry
 
-All downstream tickets are filed but blocked on `B0-1`.
+`B0-1` passed the technical gate and was persisted in commit `6fb0289`.
+Batch 1 and Batch 2 are ready for assignment. Batch 3 remains blocked on
+the contract schemas it composes.
 
 | Ticket | Tier | Artifact | Specification | Status | Depends on |
 |---|---|---|---|---|---|
-| B0-1 | Lead | Batch 0 conventions, checker, lint, mutations, CI | Amendment §§1-3, 7-10 | IN PROGRESS | - |
-| B1-1 | Base | `validator-result.schema.json` | Spec §10.1 | BLOCKED | B0-1 |
-| B1-2 | Base | `supervisor-decision.schema.json` | Spec §10.2 | BLOCKED | B0-1 |
-| B1-3 | Base | `tool-outcome.schema.json` | Spec §§2.4, 10 | BLOCKED | B0-1 |
-| B1-4 | Base | `outcome-vector.schema.json` | Spec §10.3 | BLOCKED | B0-1 |
-| B1-5 | Base | `user-model.schema.json` | Spec §3.4 | BLOCKED | B0-1 |
-| B1-6 | Base | `instance-manifest.schema.json` | Spec §8.4 | BLOCKED | B0-1 |
-| B1-7 | Base | `adapter-manifest.schema.json` | Spec §6 | BLOCKED | B0-1 |
-| B1-8 | Base | `event.schema.json` | Spec §§2.1-2.4 | BLOCKED | B0-1 |
-| B2-1 | Mid | `action-proposal.schema.json` | Spec §2.3 | BLOCKED | B0-1 |
-| B2-2 | Mid | `canonical-state.schema.json` | Spec §2.2 | BLOCKED | B0-1 |
-| B2-3 | Mid | `access-scoped-observation.schema.json` | Spec §§2.1, 4 | BLOCKED | B0-1 |
+| B0-1 | Lead | Batch 0 conventions, checker, lint, mutations, CI | Amendment §§1–3, 7–10 | DONE | - |
+| B1-1 | Base | `validator-result.schema.json` | Spec §10.1 | READY | B0-1 (satisfied) |
+| B1-2 | Base | `supervisor-decision.schema.json` | Spec §10.2 | READY | B0-1 (satisfied) |
+| B1-3 | Base | `tool-outcome.schema.json` | Spec §§2.4, 10 | READY | B0-1 (satisfied) |
+| B1-4 | Base | `outcome-vector.schema.json` | Spec §10.3 | READY | B0-1 (satisfied) |
+| B1-5 | Base | `user-model.schema.json` | Spec §3.4 | READY | B0-1 (satisfied) |
+| B1-6 | Base | `instance-manifest.schema.json` | Spec §8.4 | READY | B0-1 (satisfied) |
+| B1-7 | Base | `adapter-manifest.schema.json` | Spec §6 | READY | B0-1 (satisfied) |
+| B1-8 | Base | `event.schema.json` | Spec §§2.1–2.4 | READY | B0-1 (satisfied) |
+| B2-1 | Mid | `action-proposal.schema.json` | Spec §2.3 | READY | B0-1 (satisfied) |
+| B2-2 | Mid | `canonical-state.schema.json` | Spec §2.2 | READY | B0-1 (satisfied) |
+| B2-3 | Mid | `access-scoped-observation.schema.json` | Spec §§2.1, 4 | READY | B0-1 (satisfied) |
 | B3-1 | Mid | `trace-step.schema.json` | Spec §4 | BLOCKED | B1-1..8, B2-1..3 |
-| B3-2 | Mid | `episode.schema.json` | Spec §§4-5 | BLOCKED | B3-1 |
+| B3-2 | Mid | `episode.schema.json` | Spec §§4–5 | BLOCKED | B3-1 |
 
 ## Required ticket content
 
@@ -33,4 +35,5 @@ Every downstream ticket must include:
 8. Independent specification-fidelity review.
 9. Deferred runtime invariants created or updated.
 
-No blocked ticket may merge before B0-1 is green and persisted in the repository.
+`READY` authorizes implementation but not merge. Each ticket must satisfy the
+required content above and pass the package gate before merge.
