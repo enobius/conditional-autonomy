@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/tool-outcome.schema.json",
+  "title": "Tool Outcome",
+  "type": "object",
+  "required": [
+    "outcome_id",
+    "action_id",
+    "tool_id",
+    "tool_version",
+    "status",
+    "started_at",
+    "completed_at",
+    "raw_result_ref",
+    "normalized_effects",
+    "verified_effects",
+    "state_version_before"
+  ],
+  "properties": {
+    "outcome_id": {
+      "type": "string"
+    },
+    "action_id": {
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    },
+    "tool_version": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "SUCCEEDED",
+        "FAILED",
+        "PARTIAL",
+        "TIMED_OUT",
+        "UNKNOWN"
+      ]
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "raw_result_ref": {
+      "$ref": "common.schema.json#/$defs/evidenceRef"
+    },
+    "normalized_effects": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "verified_effects": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "state_version_before": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "state_version_after": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "error_code": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "idempotency_key": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

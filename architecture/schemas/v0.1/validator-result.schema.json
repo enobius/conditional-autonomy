@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/validator-result.schema.json",
+  "title": "Validator Result",
+  "type": "object",
+  "required": [
+    "validator_id",
+    "validator_version",
+    "status",
+    "criticality",
+    "enforceability",
+    "constraint_ids",
+    "evidence_refs",
+    "observed_state_version",
+    "permitted_resolution",
+    "explanation_code",
+    "repair_hints",
+    "timestamp"
+  ],
+  "properties": {
+    "validator_id": {
+      "type": "string"
+    },
+    "validator_version": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "UNKNOWN"
+      ]
+    },
+    "criticality": {
+      "enum": [
+        "HARD",
+        "SOFT"
+      ]
+    },
+    "enforceability": {
+      "enum": [
+        "PREVENTABLE",
+        "PREDICTIVE",
+        "DETECTABLE"
+      ]
+    },
+    "constraint_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/evidenceRef"
+      }
+    },
+    "observed_state_version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "uncertainty_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "permitted_resolution": {
+      "enum": [
+        "EXECUTE",
+        "REPAIR",
+        "QUERY",
+        "REJECT",
+        "ESCALATE"
+      ]
+    },
+    "explanation_code": {
+      "type": "string"
+    },
+    "repair_hints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "criticality": {
+            "const": "HARD"
+          },
+          "status": {
+            "const": "UNKNOWN"
+          }
+        },
+        "required": [
+          "criticality",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "permitted_resolution": {
+            "enum": [
+              "QUERY",
+              "ESCALATE"
+            ]
+          },
+          "uncertainty_reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "uncertainty_reason"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "PASS"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "permitted_resolution": {
+            "const": "EXECUTE"
+          }
+        }
+      }
+    }
+  ]
+}

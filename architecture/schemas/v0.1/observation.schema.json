@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/observation.schema.json",
+  "title": "Observation",
+  "type": "object",
+  "required": [
+    "observation_id",
+    "episode_id",
+    "state_version",
+    "actor_id",
+    "access_class",
+    "visible_facts",
+    "goal_refs",
+    "generated_at"
+  ],
+  "properties": {
+    "observation_id": {
+      "type": "string"
+    },
+    "episode_id": {
+      "type": "string"
+    },
+    "state_version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "actor_id": {
+      "type": "string"
+    },
+    "access_class": {
+      "const": "POLICY_VISIBLE"
+    },
+    "visible_facts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "fact_id",
+          "value",
+          "epistemic_status",
+          "evidence_refs"
+        ],
+        "properties": {
+          "fact_id": {
+            "type": "string"
+          },
+          "value": {},
+          "epistemic_status": {
+            "enum": [
+              "OBSERVED",
+              "ASSERTED",
+              "INFERRED",
+              "UNKNOWN",
+              "CONTRADICTED",
+              "SUPERSEDED"
+            ]
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "common.schema.json#/$defs/evidenceRef"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "goal_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "context_budget_tokens": {
+      "type": "integer",
+      "minimum": 1
+    }
+  },
+  "additionalProperties": false
+}

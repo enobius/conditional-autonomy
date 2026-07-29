@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/user-model.schema.json",
+  "title": "User Model",
+  "type": "object",
+  "required": [
+    "user_model_id",
+    "version",
+    "private_world_state_ref",
+    "answerable_facts",
+    "response_policy",
+    "ambiguity_policy",
+    "correction_policy",
+    "noise_policy",
+    "maximum_turns",
+    "oracle_access_rules",
+    "template_family",
+    "seed"
+  ],
+  "properties": {
+    "user_model_id": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "private_world_state_ref": {
+      "type": "object",
+      "required": [
+        "ref_id",
+        "access_class"
+      ],
+      "properties": {
+        "ref_id": {
+          "type": "string"
+        },
+        "access_class": {
+          "const": "PRIVATE_ENVIRONMENT"
+        }
+      },
+      "additionalProperties": false
+    },
+    "answerable_facts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "response_policy": {
+      "enum": [
+        "DETERMINISTIC_ORACLE",
+        "NATURALISTIC",
+        "ADVERSARIAL_NOISY"
+      ]
+    },
+    "ambiguity_policy": {
+      "type": "object"
+    },
+    "correction_policy": {
+      "type": "object"
+    },
+    "noise_policy": {
+      "type": "object"
+    },
+    "maximum_turns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "oracle_access_rules": {
+      "type": "object"
+    },
+    "template_family": {
+      "type": "string"
+    },
+    "seed": {
+      "type": "integer"
+    }
+  },
+  "additionalProperties": false
+}

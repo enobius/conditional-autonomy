@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/episode.schema.json",
+  "title": "Episode",
+  "type": "object",
+  "required": [
+    "episode_id",
+    "schema_version",
+    "environment_version",
+    "generator_manifest_ref",
+    "user_model_ref",
+    "policy_versions",
+    "started_at",
+    "status",
+    "steps",
+    "final_outcome"
+  ],
+  "properties": {
+    "episode_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "environment_version": {
+      "type": "string"
+    },
+    "generator_manifest_ref": {
+      "type": "string"
+    },
+    "user_model_ref": {
+      "type": "string"
+    },
+    "policy_versions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ended_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "status": {
+      "enum": [
+        "RUNNING",
+        "COMPLETED",
+        "FAILED",
+        "ESCALATED",
+        "ABORTED"
+      ]
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "trace-step.schema.json"
+      }
+    },
+    "final_outcome": {
+      "$ref": "outcome-vector.schema.json"
+    },
+    "event_log_hash": {
+      "type": "string"
+    },
+    "split": {
+      "enum": [
+        "TRAIN",
+        "DEVELOPMENT",
+        "TEST",
+        "TRANSFER",
+        "PROTECTED_REGRESSION"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

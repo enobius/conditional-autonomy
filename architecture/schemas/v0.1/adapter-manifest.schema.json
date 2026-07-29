@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/adapter-manifest.schema.json",
+  "title": "Adapter Manifest",
+  "type": "object",
+  "required": [
+    "adapter_id",
+    "base_model_hash",
+    "training_data_version",
+    "domain",
+    "capability_scope",
+    "rank",
+    "target_modules",
+    "eval_report_ref",
+    "known_failures",
+    "incompatibilities",
+    "fallback_adapter",
+    "status"
+  ],
+  "properties": {
+    "adapter_id": {
+      "type": "string"
+    },
+    "base_model_hash": {
+      "type": "string"
+    },
+    "training_data_version": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "capability_scope": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rank": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "target_modules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "router_features": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "eval_report_ref": {
+      "type": "string"
+    },
+    "known_failures": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "incompatibilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "fallback_adapter": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "status": {
+      "enum": [
+        "CANDIDATE",
+        "PROMOTED",
+        "QUARANTINED",
+        "RETIRED"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

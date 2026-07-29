@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/outcome-vector.schema.json",
+  "title": "Outcome Vector",
+  "type": "object",
+  "required": [
+    "goal_success",
+    "constraint_score",
+    "hard_violation_count",
+    "optimality_gap",
+    "recovery_success",
+    "execution_cost",
+    "latency_ms",
+    "token_count",
+    "tool_calls",
+    "user_interventions",
+    "clarification_total",
+    "clarification_necessary",
+    "clarification_unnecessary",
+    "clarification_insufficient",
+    "clarification_repeated",
+    "clarification_incorrect_scope",
+    "evaluator_disagreement"
+  ],
+  "properties": {
+    "goal_success": {
+      "type": "boolean"
+    },
+    "constraint_score": {
+      "type": "number"
+    },
+    "hard_violation_count": {
+      "$ref": "common.schema.json#/$defs/count"
+    },
+    "optimality_gap": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "recovery_success": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "execution_cost": {
+      "type": "number",
+      "minimum": 0
+    },
+    "latency_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "token_count": {
+      "$ref": "common.schema.json#/$defs/count"
+    },
+    "tool_calls": {
+      "$ref": "common.schema.json#/$defs/count"
+    },
+    "user_interventions": {
+      "$ref": "common.schema.json#/$defs/count"
+    },
+    "clarification_total": {
+      "$ref": "common.schema.json#/$defs/count"
+    },
+    "clarification_necessary": {
+      "$ref": "common.schema.json#/$defs/count"
+    },
+    "clarification_unnecessary": {
+      "$ref": "common.schema.json#/$defs/count"
+    },
+    "clarification_insufficient": {
+      "$ref": "common.schema.json#/$defs/count"
+    },
+    "clarification_repeated": {
+      "$ref": "common.schema.json#/$defs/count"
+    },
+    "clarification_incorrect_scope": {
+      "$ref": "common.schema.json#/$defs/count"
+    },
+    "evaluator_disagreement": {
+      "type": "number",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "properties": {
+        "clarification_total": {
+          "minimum": 0
+        }
+      }
+    }
+  ]
+}

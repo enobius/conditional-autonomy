@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/instance-manifest.schema.json",
+  "title": "Instance Manifest",
+  "type": "object",
+  "required": [
+    "generator_id",
+    "generator_version",
+    "scenario_family",
+    "seed",
+    "difficulty_parameters",
+    "constraint_graph_hash",
+    "entity_graph_hash",
+    "disruption_schedule_hash",
+    "user_model_version",
+    "source_dataset_lineage",
+    "feasibility_oracle_version",
+    "split_assignment"
+  ],
+  "properties": {
+    "generator_id": {
+      "type": "string"
+    },
+    "generator_version": {
+      "type": "string"
+    },
+    "scenario_family": {
+      "enum": [
+        "P6",
+        "P9",
+        "J1",
+        "J2",
+        "MICRO",
+        "EXTENSION"
+      ]
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "difficulty_parameters": {
+      "type": "object"
+    },
+    "constraint_graph_hash": {
+      "type": "string"
+    },
+    "entity_graph_hash": {
+      "type": "string"
+    },
+    "disruption_schedule_hash": {
+      "type": "string"
+    },
+    "user_model_version": {
+      "type": "string"
+    },
+    "source_dataset_lineage": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "feasibility_oracle_version": {
+      "type": "string"
+    },
+    "split_assignment": {
+      "enum": [
+        "TRAIN",
+        "DEVELOPMENT",
+        "TEST",
+        "TRANSFER",
+        "PROTECTED_REGRESSION"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

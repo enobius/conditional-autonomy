@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/supervisor-decision.schema.json",
+  "title": "Supervisor Decision",
+  "type": "object",
+  "required": [
+    "decision_id",
+    "action_id",
+    "decision",
+    "confidence",
+    "violated_constraint_ids",
+    "uncertainty_reasons",
+    "requested_information",
+    "evidence_refs",
+    "supervisor_model_version",
+    "timestamp"
+  ],
+  "properties": {
+    "decision_id": {
+      "type": "string"
+    },
+    "action_id": {
+      "type": "string"
+    },
+    "decision": {
+      "enum": [
+        "APPROVE",
+        "REPAIR",
+        "QUERY",
+        "REJECT",
+        "ESCALATE"
+      ]
+    },
+    "confidence": {
+      "$ref": "common.schema.json#/$defs/probability"
+    },
+    "violated_constraint_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "uncertainty_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "requested_information": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "proposed_repair": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/evidenceRef"
+      }
+    },
+    "supervisor_model_version": {
+      "type": "string"
+    },
+    "adapter_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "additionalProperties": false
+}

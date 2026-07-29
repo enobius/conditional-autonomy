@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/common.schema.json",
+  "title": "Common definitions",
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "accessClass": {
+      "enum": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY",
+        "PRIVATE_ENVIRONMENT"
+      ]
+    },
+    "evidenceRef": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://thesis.local/schemas/v0.1/evidence-ref.schema.json",
+      "title": "Evidence Ref",
+      "type": "object",
+      "required": [
+        "ref_id",
+        "source_type",
+        "access_class"
+      ],
+      "properties": {
+        "ref_id": {
+          "$ref": "#/$defs/id"
+        },
+        "source_type": {
+          "enum": [
+            "USER",
+            "TOOL",
+            "ENVIRONMENT",
+            "DERIVED_RULE",
+            "MODEL_CLAIM",
+            "EVALUATOR"
+          ]
+        },
+        "access_class": {
+          "$ref": "#/$defs/accessClass"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "content_hash": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "probability": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "jsonValue": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {}
+        },
+        {
+          "type": "object"
+        }
+      ]
+    }
+  }
+}

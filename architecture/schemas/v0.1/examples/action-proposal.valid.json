@@ -1,0 +1,42 @@
+{
+  "action_id": "act:1",
+  "plan_id": "plan:1",
+  "actor_id": "worker:1",
+  "state_version": 3,
+  "action_type": "start_oven",
+  "arguments": {
+    "temperature_f": 350
+  },
+  "expected_preconditions": [
+    {
+      "oven": "available"
+    }
+  ],
+  "expected_effects": [
+    {
+      "oven": "heating"
+    }
+  ],
+  "required_capabilities": [
+    "oven.control"
+  ],
+  "risk_class": "MODERATE",
+  "reversibility": "COMPENSATABLE",
+  "compensation_action": {
+    "action_type": "stop_oven",
+    "arguments": {},
+    "required_capabilities": [
+      "oven.control"
+    ],
+    "prevalidation_id": "preval:1"
+  },
+  "postconditions": [
+    {
+      "oven": "heating"
+    }
+  ],
+  "audit_deadline": "2026-11-26T15:05:00Z",
+  "evidence_refs": [],
+  "confidence": 0.91,
+  "idempotency_key": "idem:act:1"
+}

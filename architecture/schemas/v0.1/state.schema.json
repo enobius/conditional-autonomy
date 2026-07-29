@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/state.schema.json",
+  "title": "State",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "episode_id",
+    "state_version",
+    "logical_clock",
+    "entities",
+    "resources",
+    "obligations",
+    "dependencies",
+    "deadlines",
+    "permissions",
+    "active_plan",
+    "completed_actions",
+    "pending_questions",
+    "exogenous_events",
+    "provenance",
+    "revision_chain"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string"
+    },
+    "episode_id": {
+      "type": "string"
+    },
+    "state_version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "logical_clock": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "timezone": {
+      "type": "string"
+    },
+    "entities": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object"
+      }
+    },
+    "obligations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "deadlines": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "active_plan": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "completed_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pending_questions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "exogenous_events": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "provenance": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/evidenceRef"
+      }
+    },
+    "revision_chain": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  },
+  "additionalProperties": false
+}

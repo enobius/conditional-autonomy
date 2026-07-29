@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/trace-step.schema.json",
+  "title": "Trace Step",
+  "type": "object",
+  "required": [
+    "trace_step_id",
+    "episode_id",
+    "step_index",
+    "canonical_state_ref",
+    "actor_observation",
+    "goal_refs",
+    "policy_version",
+    "proposal",
+    "supervisor_decision",
+    "validator_results",
+    "transition_diff",
+    "outcome_vector",
+    "provenance"
+  ],
+  "properties": {
+    "trace_step_id": {
+      "type": "string"
+    },
+    "episode_id": {
+      "type": "string"
+    },
+    "step_index": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "canonical_state_ref": {
+      "type": "object",
+      "required": [
+        "ref_id",
+        "access_class"
+      ],
+      "properties": {
+        "ref_id": {
+          "type": "string"
+        },
+        "access_class": {
+          "const": "EVALUATOR_ONLY"
+        }
+      },
+      "additionalProperties": false
+    },
+    "actor_observation": {
+      "$ref": "observation.schema.json"
+    },
+    "goal_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "policy_version": {
+      "type": "string"
+    },
+    "adapter_version": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "proposal": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "action-proposal.schema.json"
+        }
+      ]
+    },
+    "supervisor_decision": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "supervisor-decision.schema.json"
+        }
+      ]
+    },
+    "validator_results": {
+      "type": "array",
+      "items": {
+        "$ref": "validator-result.schema.json"
+      }
+    },
+    "tool_result": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "tool-outcome.schema.json"
+        }
+      ]
+    },
+    "transition_diff": {
+      "type": "object"
+    },
+    "outcome_vector": {
+      "$ref": "outcome-vector.schema.json"
+    },
+    "evaluator_labels": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "provenance": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/evidenceRef"
+      }
+    }
+  },
+  "additionalProperties": false
+}

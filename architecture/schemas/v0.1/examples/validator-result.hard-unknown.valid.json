@@ -1,0 +1,19 @@
+{
+  "validator_id": "resource_validator",
+  "validator_version": "0.1",
+  "status": "UNKNOWN",
+  "criticality": "HARD",
+  "enforceability": "PREVENTABLE",
+  "constraint_ids": [
+    "oven_supervision"
+  ],
+  "evidence_refs": [],
+  "observed_state_version": 3,
+  "uncertainty_reason": "Supervisor location is unknown",
+  "permitted_resolution": "QUERY",
+  "explanation_code": "MISSING_REQUIRED_FACT",
+  "repair_hints": [
+    "Ask who remains home"
+  ],
+  "timestamp": "2026-11-26T14:00:00Z"
+}

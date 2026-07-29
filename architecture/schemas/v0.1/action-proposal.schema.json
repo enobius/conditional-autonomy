@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/action-proposal.schema.json",
+  "title": "Action Proposal",
+  "type": "object",
+  "required": [
+    "action_id",
+    "plan_id",
+    "actor_id",
+    "state_version",
+    "action_type",
+    "arguments",
+    "expected_preconditions",
+    "expected_effects",
+    "required_capabilities",
+    "risk_class",
+    "reversibility",
+    "postconditions",
+    "evidence_refs",
+    "confidence",
+    "idempotency_key"
+  ],
+  "properties": {
+    "action_id": {
+      "type": "string"
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "actor_id": {
+      "type": "string"
+    },
+    "state_version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "action_type": {
+      "type": "string"
+    },
+    "arguments": {
+      "type": "object"
+    },
+    "expected_preconditions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "expected_effects": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "required_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "risk_class": {
+      "enum": [
+        "LOW",
+        "MODERATE",
+        "HIGH",
+        "CRITICAL"
+      ]
+    },
+    "reversibility": {
+      "enum": [
+        "REVERSIBLE",
+        "COMPENSATABLE",
+        "IRREVERSIBLE"
+      ]
+    },
+    "compensation_action": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "action_type",
+            "arguments",
+            "required_capabilities"
+          ],
+          "properties": {
+            "action_type": {
+              "type": "string"
+            },
+            "arguments": {
+              "type": "object"
+            },
+            "required_capabilities": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            },
+            "prevalidation_id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "postconditions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "audit_deadline": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/evidenceRef"
+      }
+    },
+    "confidence": {
+      "$ref": "common.schema.json#/$defs/probability"
+    },
+    "idempotency_key": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "reversibility": {
+            "const": "COMPENSATABLE"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "compensation_action",
+          "audit_deadline"
+        ],
+        "properties": {
+          "compensation_action": {
+            "type": "object"
+          },
+          "audit_deadline": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "reversibility": {
+            "const": "IRREVERSIBLE"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "compensation_action": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "user_model_id": "user:p6:oracle",
+  "version": "0.1",
+  "private_world_state_ref": {
+    "ref_id": "state:private:1",
+    "access_class": "PRIVATE_ENVIRONMENT"
+  },
+  "answerable_facts": [
+    "driver_availability",
+    "supervisor_location"
+  ],
+  "response_policy": "DETERMINISTIC_ORACLE",
+  "ambiguity_policy": {},
+  "correction_policy": {},
+  "noise_policy": {},
+  "maximum_turns": 3,
+  "oracle_access_rules": {
+    "reveal_only_requested": true
+  },
+  "template_family": "p6-oracle-a",
+  "seed": 42
+}

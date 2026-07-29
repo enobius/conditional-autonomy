@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v0.1/event.schema.json",
+  "title": "Event",
+  "type": "object",
+  "required": [
+    "event_id",
+    "episode_id",
+    "event_type",
+    "logical_clock",
+    "timestamp",
+    "source",
+    "payload",
+    "access_class"
+  ],
+  "properties": {
+    "event_id": {
+      "type": "string"
+    },
+    "episode_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "enum": [
+        "INITIALIZE",
+        "OBSERVE",
+        "PROPOSE",
+        "AUTHORIZE",
+        "VALIDATE",
+        "EXECUTE",
+        "TOOL_RESULT",
+        "RECONCILE",
+        "COMMIT",
+        "COMPENSATE",
+        "REPAIR",
+        "QUERY",
+        "USER_RESPONSE",
+        "REJECT",
+        "ESCALATE",
+        "REVISE",
+        "CANCEL",
+        "EXOGENOUS"
+      ]
+    },
+    "logical_clock": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "access_class": {
+      "$ref": "common.schema.json#/$defs/accessClass"
+    },
+    "supersedes_event_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "content_hash": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,3 +1,5 @@
 architecture/schemas/.vendor/
 __pycache__/
 *.py[cod]
+work/pdfs/
+outputs/*.zip
