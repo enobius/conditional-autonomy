@@ -1,0 +1,46 @@
+{
+  "outcome_id": "outcome:1",
+  "action_id": "action:1",
+  "tool_id": "tool:calendar",
+  "tool_version": "2.1",
+  "status": "SUCCEEDED",
+  "started_at": {
+    "instant": "2026-11-26T14:00:00Z",
+    "source_timezone": "America/New_York",
+    "uncertainty": {
+      "kind": "EXACT",
+      "minus_seconds": 0,
+      "plus_seconds": 0
+    }
+  },
+  "completed_at": {
+    "instant": "2026-11-26T14:00:01Z",
+    "source_timezone": "America/New_York",
+    "uncertainty": {
+      "kind": "EXACT",
+      "minus_seconds": 0,
+      "plus_seconds": 0
+    }
+  },
+  "raw_result_ref": {
+    "ref_id": "evidence:1",
+    "source": "TOOL",
+    "access_class": "EVALUATOR_ONLY",
+    "uri": null,
+    "content_hash": null
+  },
+  "normalized_effects": [
+    {
+      "reservation_status": "confirmed"
+    }
+  ],
+  "verified_effects": [
+    {
+      "reservation_status": "confirmed"
+    }
+  ],
+  "state_version_before": -1,
+  "state_version_after": 4,
+  "error_code": null,
+  "idempotency_key": "idem:action:1"
+}

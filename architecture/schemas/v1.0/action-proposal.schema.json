@@ -1,0 +1,312 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/action-proposal.schema.json",
+  "title": "Action Proposal",
+  "type": "object",
+  "required": [
+    "action_id",
+    "plan_id",
+    "actor_id",
+    "state_version",
+    "action_type",
+    "arguments",
+    "expected_preconditions",
+    "expected_effects",
+    "required_capabilities",
+    "risk_class",
+    "reversibility",
+    "compensation_action",
+    "postconditions",
+    "audit_deadline",
+    "evidence_refs",
+    "confidence",
+    "idempotency_key"
+  ],
+  "properties": {
+    "action_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "plan_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "actor_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "state_version": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "action_type": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "arguments": {
+      "type": "object",
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "expected_preconditions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "expected_effects": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "required_capabilities": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "risk_class": {
+      "enum": [
+        "LOW",
+        "MODERATE",
+        "HIGH",
+        "CRITICAL"
+      ],
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "reversibility": {
+      "$ref": "common.defs.schema.json#/$defs/reversibility",
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "compensation_action": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "action_type",
+            "arguments",
+            "required_capabilities",
+            "prevalidation_id"
+          ],
+          "properties": {
+            "action_type": {
+              "$ref": "common.defs.schema.json#/$defs/stableId",
+              "x-access-class": [
+                "POLICY_VISIBLE",
+                "SUPERVISOR_VISIBLE",
+                "VALIDATOR_VISIBLE",
+                "EVALUATOR_ONLY"
+              ]
+            },
+            "arguments": {
+              "type": "object",
+              "x-access-class": [
+                "POLICY_VISIBLE",
+                "SUPERVISOR_VISIBLE",
+                "VALIDATOR_VISIBLE",
+                "EVALUATOR_ONLY"
+              ]
+            },
+            "required_capabilities": {
+              "type": "array",
+              "items": {
+                "$ref": "common.defs.schema.json#/$defs/stableId"
+              },
+              "minItems": 1,
+              "uniqueItems": true,
+              "x-access-class": [
+                "POLICY_VISIBLE",
+                "SUPERVISOR_VISIBLE",
+                "VALIDATOR_VISIBLE",
+                "EVALUATOR_ONLY"
+              ]
+            },
+            "prevalidation_id": {
+              "$ref": "common.defs.schema.json#/$defs/stableId",
+              "x-access-class": [
+                "SUPERVISOR_VISIBLE",
+                "VALIDATOR_VISIBLE",
+                "EVALUATOR_ONLY"
+              ]
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "postconditions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "audit_deadline": {
+      "oneOf": [
+        {
+          "$ref": "common.defs.schema.json#/$defs/normalizedTime"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/evidenceRef"
+      },
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "idempotency_key": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "reversibility": {
+            "const": "COMPENSATABLE"
+          }
+        },
+        "required": [
+          "reversibility"
+        ]
+      },
+      "then": {
+        "properties": {
+          "compensation_action": {
+            "type": "object"
+          },
+          "audit_deadline": {
+            "$ref": "common.defs.schema.json#/$defs/normalizedTime"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "reversibility": {
+            "const": "IRREVERSIBLE"
+          }
+        },
+        "required": [
+          "reversibility"
+        ]
+      },
+      "then": {
+        "properties": {
+          "compensation_action": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ]
+}

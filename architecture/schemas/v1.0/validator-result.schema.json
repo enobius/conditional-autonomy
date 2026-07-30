@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/validator-result.schema.json",
+  "title": "Validator Result",
+  "type": "object",
+  "required": [
+    "validator_id",
+    "validator_version",
+    "status",
+    "criticality",
+    "enforceability",
+    "constraint_ids",
+    "evidence_refs",
+    "observed_state_version",
+    "uncertainty_reason",
+    "permitted_resolution",
+    "explanation_code",
+    "repair_hints",
+    "timestamp"
+  ],
+  "properties": {
+    "validator_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "validator_version": {
+      "$ref": "common.defs.schema.json#/$defs/versionIdentifier",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "status": {
+      "$ref": "common.defs.schema.json#/$defs/validatorStatus",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "criticality": {
+      "$ref": "common.defs.schema.json#/$defs/criticality",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "enforceability": {
+      "$ref": "common.defs.schema.json#/$defs/enforceability",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "constraint_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/evidenceRef"
+      },
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "observed_state_version": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "uncertainty_reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "permitted_resolution": {
+      "enum": [
+        "EXECUTE",
+        "REPAIR",
+        "QUERY",
+        "REJECT",
+        "ESCALATE"
+      ],
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "explanation_code": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "repair_hints": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true,
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "timestamp": {
+      "$ref": "common.defs.schema.json#/$defs/normalizedTime",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "criticality": {
+            "const": "HARD"
+          },
+          "status": {
+            "const": "UNKNOWN"
+          }
+        },
+        "required": [
+          "criticality",
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "permitted_resolution": {
+            "enum": [
+              "QUERY",
+              "ESCALATE"
+            ]
+          },
+          "uncertainty_reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "PASS"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "permitted_resolution": {
+            "const": "EXECUTE"
+          },
+          "uncertainty_reason": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ]
+}

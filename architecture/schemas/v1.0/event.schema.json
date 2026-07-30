@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/event.schema.json",
+  "title": "Event",
+  "type": "object",
+  "required": [
+    "event_id",
+    "episode_id",
+    "event_type",
+    "logical_clock",
+    "timestamp",
+    "source",
+    "access_class",
+    "payload",
+    "provenance",
+    "content_hash"
+  ],
+  "properties": {
+    "event_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "episode_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "event_type": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "logical_clock": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "timestamp": {
+      "$ref": "common.defs.schema.json#/$defs/normalizedTime",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "source": {
+      "$ref": "common.defs.schema.json#/$defs/provenanceSource",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "access_class": {
+      "$ref": "common.defs.schema.json#/$defs/accessClass",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "provenance": {
+      "$ref": "common.defs.schema.json#/$defs/provenance",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "content_hash": {
+      "$ref": "common.defs.schema.json#/$defs/contentHash",
+      "x-access-class": [
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "supersedes_event_id": {
+      "oneOf": [
+        {
+          "$ref": "common.defs.schema.json#/$defs/stableId"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

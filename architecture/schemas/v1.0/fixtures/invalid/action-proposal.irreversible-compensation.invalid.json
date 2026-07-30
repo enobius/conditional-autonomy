@@ -1,0 +1,53 @@
+{
+  "action_id": "action:1",
+  "plan_id": "plan:1",
+  "actor_id": "worker:1",
+  "state_version": 3,
+  "action_type": "calendar:create-reservation",
+  "arguments": {
+    "slot": "14:00"
+  },
+  "expected_preconditions": [
+    {
+      "resource": "room:1",
+      "available": true
+    }
+  ],
+  "expected_effects": [
+    {
+      "reservation": "created"
+    }
+  ],
+  "required_capabilities": [
+    "calendar:write"
+  ],
+  "risk_class": "MODERATE",
+  "reversibility": "IRREVERSIBLE",
+  "compensation_action": {
+    "action_type": "calendar:cancel-reservation",
+    "arguments": {
+      "reservation_ref": "pending"
+    },
+    "required_capabilities": [
+      "calendar:write"
+    ],
+    "prevalidation_id": "prevalidation:1"
+  },
+  "postconditions": [
+    {
+      "reservation": "confirmed"
+    }
+  ],
+  "audit_deadline": {
+    "instant": "2026-11-26T14:05:00Z",
+    "source_timezone": "America/New_York",
+    "uncertainty": {
+      "kind": "EXACT",
+      "minus_seconds": 0,
+      "plus_seconds": 0
+    }
+  },
+  "evidence_refs": [],
+  "confidence": 0.91,
+  "idempotency_key": "idem:action:1"
+}

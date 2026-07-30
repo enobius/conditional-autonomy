@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/tool-outcome.schema.json",
+  "title": "Tool Outcome",
+  "type": "object",
+  "required": [
+    "outcome_id",
+    "action_id",
+    "tool_id",
+    "tool_version",
+    "status",
+    "started_at",
+    "completed_at",
+    "raw_result_ref",
+    "normalized_effects",
+    "verified_effects",
+    "state_version_before",
+    "state_version_after",
+    "error_code",
+    "idempotency_key"
+  ],
+  "properties": {
+    "outcome_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "action_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "tool_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "tool_version": {
+      "$ref": "common.defs.schema.json#/$defs/versionIdentifier",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "status": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "started_at": {
+      "$ref": "common.defs.schema.json#/$defs/normalizedTime",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "completed_at": {
+      "$ref": "common.defs.schema.json#/$defs/normalizedTime",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "raw_result_ref": {
+      "$ref": "common.defs.schema.json#/$defs/evidenceRef",
+      "x-access-class": [
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "normalized_effects": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "verified_effects": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "state_version_before": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "state_version_after": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0,
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "error_code": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "idempotency_key": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

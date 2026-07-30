@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/outcome-vector.schema.json",
+  "title": "Outcome Vector",
+  "type": "object",
+  "required": [
+    "goal_success",
+    "constraint_score",
+    "hard_violation_count",
+    "optimality_gap",
+    "recovery_success",
+    "execution_cost",
+    "latency",
+    "token_count",
+    "tool_calls",
+    "user_interventions",
+    "clarification_total",
+    "clarification_necessary",
+    "clarification_unnecessary",
+    "clarification_insufficient",
+    "clarification_repeated",
+    "clarification_incorrect_scope",
+    "evaluator_disagreement"
+  ],
+  "properties": {
+    "goal_success": {
+      "type": "boolean",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "constraint_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "hard_violation_count": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "optimality_gap": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "recovery_success": {
+      "type": [
+        "boolean",
+        "null"
+      ],
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "execution_cost": {
+      "type": "number",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "latency": {
+      "type": "number",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "token_count": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "tool_calls": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "user_interventions": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "clarification_total": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "clarification_necessary": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "clarification_unnecessary": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "clarification_insufficient": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "clarification_repeated": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "clarification_incorrect_scope": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "evaluator_disagreement": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/canonical-state.schema.json",
+  "title": "Canonical State",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "episode_id",
+    "state_version",
+    "logical_clock",
+    "entities",
+    "resources",
+    "obligations",
+    "dependencies",
+    "deadlines",
+    "permissions",
+    "active_plan",
+    "completed_actions",
+    "pending_questions",
+    "exogenous_events",
+    "provenance",
+    "revision_chain"
+  ],
+  "properties": {
+    "schema_version": {
+      "$ref": "common.defs.schema.json#/$defs/versionIdentifier",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "episode_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "state_version": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "logical_clock": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "entities": {
+      "type": "object",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "resources": {
+      "type": "object",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "obligations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "deadlines": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "active_plan": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "completed_actions": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "uniqueItems": true,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "pending_questions": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "exogenous_events": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "uniqueItems": true,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "provenance": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/evidenceRef"
+      },
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "revision_chain": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "uniqueItems": true,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

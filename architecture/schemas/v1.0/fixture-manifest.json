@@ -1,5 +1,5 @@
 {
-  "batch": "batch0",
+  "batch": "batches0-2",
   "fixtures": [
     {
       "path": "fixtures/valid/common.valid.json",
@@ -10,37 +10,311 @@
         "provenance-enum",
         "epistemic-status-enum",
         "version-identifier"
-      ]
+      ],
+      "batch": "batch0"
     },
     {
       "path": "fixtures/invalid/common.exact-nonzero.invalid.json",
       "expected": "invalid",
-      "constraint": "EXACT requires zero uncertainty bounds"
+      "constraint": "EXACT requires zero uncertainty bounds",
+      "batch": "batch0"
     },
     {
       "path": "fixtures/invalid/common.unknown-with-instant.invalid.json",
       "expected": "invalid",
-      "constraint": "UNKNOWN requires null instant"
+      "constraint": "UNKNOWN requires null instant",
+      "batch": "batch0"
     },
     {
       "path": "fixtures/invalid/common.timezone.invalid.json",
       "expected": "invalid",
-      "constraint": "source_timezone must be an IANA timezone"
+      "constraint": "source_timezone must be an IANA timezone",
+      "batch": "batch0"
     },
     {
       "path": "fixtures/invalid/common.datetime-format.invalid.json",
       "expected": "invalid",
-      "constraint": "instant must satisfy RFC 3339 date-time format"
+      "constraint": "instant must satisfy RFC 3339 date-time format",
+      "batch": "batch0"
     },
     {
       "path": "fixtures/invalid/common.provenance-source.invalid.json",
       "expected": "invalid",
-      "constraint": "provenance source enum is byte-exact"
+      "constraint": "provenance source enum is byte-exact",
+      "batch": "batch0"
     },
     {
       "path": "fixtures/invalid/common.version.invalid.json",
       "expected": "invalid",
-      "constraint": "version identifier format"
+      "constraint": "version identifier format",
+      "batch": "batch0"
+    },
+    {
+      "path": "fixtures/valid/validator-result.valid.json",
+      "schema": "validator-result.schema.json",
+      "batch": "batch1",
+      "expected": "valid",
+      "constraints": [
+        "ticket valid representative"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/validator-result.hard-unknown-execute.invalid.json",
+      "schema": "validator-result.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "validator-result.hard-unknown-execute"
+    },
+    {
+      "path": "fixtures/invalid/validator-result.pass-repair.invalid.json",
+      "schema": "validator-result.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "validator-result.pass-repair"
+    },
+    {
+      "path": "fixtures/valid/supervisor-decision.valid.json",
+      "schema": "supervisor-decision.schema.json",
+      "batch": "batch1",
+      "expected": "valid",
+      "constraints": [
+        "ticket valid representative"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/supervisor-decision.confidence.invalid.json",
+      "schema": "supervisor-decision.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "supervisor-decision.confidence"
+    },
+    {
+      "path": "fixtures/invalid/supervisor-decision.query-empty.invalid.json",
+      "schema": "supervisor-decision.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "supervisor-decision.query-empty"
+    },
+    {
+      "path": "fixtures/valid/tool-outcome.valid.json",
+      "schema": "tool-outcome.schema.json",
+      "batch": "batch1",
+      "expected": "valid",
+      "constraints": [
+        "ticket valid representative"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/tool-outcome.missing-version.invalid.json",
+      "schema": "tool-outcome.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "tool-outcome.missing-version"
+    },
+    {
+      "path": "fixtures/invalid/tool-outcome.state-version.invalid.json",
+      "schema": "tool-outcome.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "tool-outcome.state-version"
+    },
+    {
+      "path": "fixtures/valid/outcome-vector.valid.json",
+      "schema": "outcome-vector.schema.json",
+      "batch": "batch1",
+      "expected": "valid",
+      "constraints": [
+        "ticket valid representative"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/outcome-vector.negative-count.invalid.json",
+      "schema": "outcome-vector.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "outcome-vector.negative-count"
+    },
+    {
+      "path": "fixtures/invalid/outcome-vector.score-range.invalid.json",
+      "schema": "outcome-vector.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "outcome-vector.score-range"
+    },
+    {
+      "path": "fixtures/valid/user-model.valid.json",
+      "schema": "user-model.schema.json",
+      "batch": "batch1",
+      "expected": "valid",
+      "constraints": [
+        "ticket valid representative"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/user-model.private-leak.invalid.json",
+      "schema": "user-model.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "user-model.private-leak"
+    },
+    {
+      "path": "fixtures/invalid/user-model.turn-bound.invalid.json",
+      "schema": "user-model.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "user-model.turn-bound"
+    },
+    {
+      "path": "fixtures/valid/instance-manifest.valid.json",
+      "schema": "instance-manifest.schema.json",
+      "batch": "batch1",
+      "expected": "valid",
+      "constraints": [
+        "ticket valid representative"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/instance-manifest.hash.invalid.json",
+      "schema": "instance-manifest.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "instance-manifest.hash"
+    },
+    {
+      "path": "fixtures/invalid/instance-manifest.empty-lineage.invalid.json",
+      "schema": "instance-manifest.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "instance-manifest.empty-lineage"
+    },
+    {
+      "path": "fixtures/valid/adapter-manifest.valid.json",
+      "schema": "adapter-manifest.schema.json",
+      "batch": "batch1",
+      "expected": "valid",
+      "constraints": [
+        "ticket valid representative"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/adapter-manifest.rank.invalid.json",
+      "schema": "adapter-manifest.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "adapter-manifest.rank"
+    },
+    {
+      "path": "fixtures/invalid/adapter-manifest.empty-targets.invalid.json",
+      "schema": "adapter-manifest.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "adapter-manifest.empty-targets"
+    },
+    {
+      "path": "fixtures/valid/event.valid.json",
+      "schema": "event.schema.json",
+      "batch": "batch1",
+      "expected": "valid",
+      "constraints": [
+        "ticket valid representative"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/event.logical-clock.invalid.json",
+      "schema": "event.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "event.logical-clock"
+    },
+    {
+      "path": "fixtures/invalid/event.hash.invalid.json",
+      "schema": "event.schema.json",
+      "batch": "batch1",
+      "expected": "invalid",
+      "constraint": "event.hash"
+    },
+    {
+      "path": "fixtures/valid/action-proposal.valid.json",
+      "schema": "action-proposal.schema.json",
+      "batch": "batch2",
+      "expected": "valid",
+      "constraints": [
+        "ticket valid representative"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/action-proposal.compensation-null.invalid.json",
+      "schema": "action-proposal.schema.json",
+      "batch": "batch2",
+      "expected": "invalid",
+      "constraint": "action-proposal.compensation-null"
+    },
+    {
+      "path": "fixtures/invalid/action-proposal.audit-null.invalid.json",
+      "schema": "action-proposal.schema.json",
+      "batch": "batch2",
+      "expected": "invalid",
+      "constraint": "action-proposal.audit-null"
+    },
+    {
+      "path": "fixtures/invalid/action-proposal.irreversible-compensation.invalid.json",
+      "schema": "action-proposal.schema.json",
+      "batch": "batch2",
+      "expected": "invalid",
+      "constraint": "action-proposal.irreversible-compensation"
+    },
+    {
+      "path": "fixtures/valid/canonical-state.valid.json",
+      "schema": "canonical-state.schema.json",
+      "batch": "batch2",
+      "expected": "valid",
+      "constraints": [
+        "ticket valid representative"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/canonical-state.state-version.invalid.json",
+      "schema": "canonical-state.schema.json",
+      "batch": "batch2",
+      "expected": "invalid",
+      "constraint": "canonical-state.state-version"
+    },
+    {
+      "path": "fixtures/invalid/canonical-state.extra-field.invalid.json",
+      "schema": "canonical-state.schema.json",
+      "batch": "batch2",
+      "expected": "invalid",
+      "constraint": "canonical-state.extra-field"
+    },
+    {
+      "path": "fixtures/valid/access-scoped-observation.valid.json",
+      "schema": "access-scoped-observation.schema.json",
+      "batch": "batch2",
+      "expected": "valid",
+      "constraints": [
+        "ticket valid representative"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/access-scoped-observation.private-field.invalid.json",
+      "schema": "access-scoped-observation.schema.json",
+      "batch": "batch2",
+      "expected": "invalid",
+      "constraint": "access-scoped-observation.private-field"
+    },
+    {
+      "path": "fixtures/invalid/access-scoped-observation.evaluator-field.invalid.json",
+      "schema": "access-scoped-observation.schema.json",
+      "batch": "batch2",
+      "expected": "invalid",
+      "constraint": "access-scoped-observation.evaluator-field"
+    },
+    {
+      "path": "fixtures/invalid/access-scoped-observation.access-class.invalid.json",
+      "schema": "access-scoped-observation.schema.json",
+      "batch": "batch2",
+      "expected": "invalid",
+      "constraint": "access-scoped-observation.access-class"
     }
   ]
 }

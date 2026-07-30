@@ -1,0 +1,29 @@
+{
+  "observation_id": "observation:1",
+  "episode_id": "episode:1",
+  "state_version": 3,
+  "actor_id": "worker:1",
+  "access_class": "EVALUATOR_ONLY",
+  "visible_facts": [
+    {
+      "fact_id": "fact:driver-availability",
+      "value": "available",
+      "epistemic_status": "OBSERVED",
+      "evidence_refs": [],
+      "access_class": "POLICY_VISIBLE"
+    }
+  ],
+  "goal_refs": [
+    "goal:transport"
+  ],
+  "generated_at": {
+    "instant": "2026-11-26T14:00:00Z",
+    "source_timezone": "America/New_York",
+    "uncertainty": {
+      "kind": "EXACT",
+      "minus_seconds": 0,
+      "plus_seconds": 0
+    }
+  },
+  "context_budget_tokens": 2048
+}

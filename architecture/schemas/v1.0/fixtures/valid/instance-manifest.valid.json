@@ -1,0 +1,18 @@
+{
+  "generator_id": "generator:realm",
+  "generator_version": "1.0",
+  "scenario_family": "P6",
+  "seed": 42,
+  "difficulty_parameters": {
+    "entities": 8
+  },
+  "constraint_graph_hash": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "entity_graph_hash": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "disruption_schedule_hash": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "user_model_version": "1.0",
+  "source_dataset_lineage": [
+    "dataset:realm-p6"
+  ],
+  "feasibility_oracle_version": "solver.1.0",
+  "split_assignment": "TEST"
+}

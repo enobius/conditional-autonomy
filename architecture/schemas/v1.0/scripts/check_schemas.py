@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Portable Workstream 1A schema gate.
 
-Batch 0 checks only Batch 0 artifacts. Downstream contracts remain blocked
-until their tickets add schemas, fixtures, and mutation cases.
+Each batch can be checked independently; ``--batch all`` validates the
+integrated Batch 0-2 package. Batch 3 remains dependency-blocked.
 """
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from urllib.parse import urldefrag
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
@@ -24,6 +25,24 @@ if VENDOR.exists():
 
 from jsonschema import Draft202012Validator, FormatChecker  # noqa: E402
 import fastjsonschema  # noqa: E402
+from referencing import Registry, Resource  # noqa: E402
+
+
+BATCH1_SCHEMAS = [
+    "validator-result.schema.json",
+    "supervisor-decision.schema.json",
+    "tool-outcome.schema.json",
+    "outcome-vector.schema.json",
+    "user-model.schema.json",
+    "instance-manifest.schema.json",
+    "adapter-manifest.schema.json",
+    "event.schema.json",
+]
+BATCH2_SCHEMAS = [
+    "action-proposal.schema.json",
+    "canonical-state.schema.json",
+    "access-scoped-observation.schema.json",
+]
 
 
 EXPECTED_ENUMS = {
@@ -84,19 +103,35 @@ def load_json(path: Path):
         raise GateFailure(f"JSON parse failed: {path}: {exc}") from exc
 
 
-def batch0_schema_files() -> list[Path]:
-    return [ROOT / "common.defs.schema.json"]
+def schema_files(batch: str) -> list[Path]:
+    names = ["common.defs.schema.json"]
+    if batch in {"batch1", "all"}:
+        names.extend(BATCH1_SCHEMAS)
+    if batch in {"batch2", "all"}:
+        names.extend(BATCH2_SCHEMAS)
+    return [ROOT / name for name in names]
 
 
-def all_batch0_json_files() -> list[Path]:
+def fixture_entries(batch: str, expected: str | None = None) -> list[dict]:
+    manifest = load_json(ROOT / "fixture-manifest.json")
+    batches = {"batch0", "batch1", "batch2"} if batch == "all" else {batch}
+    return [
+        item
+        for item in manifest["fixtures"]
+        if item.get("batch", "batch0") in batches
+        and (expected is None or item["expected"] == expected)
+    ]
+
+
+def json_files(batch: str) -> list[Path]:
     return sorted(
-        [
-            ROOT / "common.defs.schema.json",
+        {
+            *schema_files(batch),
             ROOT / "ci-manifest.yaml",
             ROOT / "fixture-manifest.json",
             ROOT / "mutation-registry.json",
-            *ROOT.glob("fixtures/**/*.json"),
-        ]
+            *(ROOT / item["path"] for item in fixture_entries(batch)),
+        }
     )
 
 
@@ -211,28 +246,28 @@ def timezone_errors(instance: object) -> list[str]:
     return errors
 
 
-def check_json_parsing() -> str:
-    for path in all_batch0_json_files():
+def check_json_parsing(batch: str) -> str:
+    for path in json_files(batch):
         load_json(path)
-    return f"{len(all_batch0_json_files())} JSON/YAML-compatible files parsed"
+    return f"{len(json_files(batch))} JSON/YAML-compatible files parsed"
 
 
-def check_meta_schema() -> str:
-    for path in batch0_schema_files():
+def check_meta_schema(batch: str) -> str:
+    for path in schema_files(batch):
         Draft202012Validator.check_schema(load_json(path))
-    return "Batch 0 schemas pass the Draft 2020-12 meta-schema"
+    return f"{len(schema_files(batch))} schemas pass the Draft 2020-12 meta-schema"
 
 
-def check_ids() -> str:
-    schemas = [load_json(path) for path in batch0_schema_files()]
+def check_ids(batch: str) -> str:
+    schemas = [load_json(path) for path in schema_files(batch)]
     ids = [item.get("$id") for item in schemas]
     if None in ids or len(ids) != len(set(ids)):
         raise GateFailure(f"Schema IDs missing or duplicated: {ids}")
     return f"{len(ids)} unique absolute schema ID"
 
 
-def check_reference_closure() -> str:
-    by_name = {path.name: load_json(path) for path in batch0_schema_files()}
+def check_reference_closure(batch: str) -> str:
+    by_name = {path.name: load_json(path) for path in schema_files(batch)}
     count = 0
     for filename, schema in by_name.items():
         for ref in walk_refs(schema):
@@ -249,13 +284,13 @@ def check_reference_closure() -> str:
     return f"{count} references resolve"
 
 
-def check_access_annotations() -> str:
+def check_access_annotations(batch: str) -> str:
     errors = []
-    for path in batch0_schema_files():
+    for path in schema_files(batch):
         errors.extend(access_lint_errors(load_json(path), path.name))
     if errors:
         raise GateFailure("Access lint failed:\n- " + "\n- ".join(errors))
-    return "Every Batch 0 object property has a valid x-access-class annotation"
+    return "Every declared object property has a valid x-access-class annotation"
 
 
 def check_enum_fidelity() -> str:
@@ -265,12 +300,40 @@ def check_enum_fidelity() -> str:
     return f"{len(EXPECTED_ENUMS)} enum sets match the approved contract"
 
 
-def validators():
-    common = load_json(ROOT / "common.defs.schema.json")
-    wrapper = fixture_wrapper(common)
-    primary = Draft202012Validator(wrapper, format_checker=FormatChecker())
-    secondary = fastjsonschema.compile(wrapper, use_formats=True)
-    return wrapper, primary, secondary
+def validator_bundle(schema_name: str | None):
+    available = {
+        path.name: load_json(path)
+        for path in [ROOT / "common.defs.schema.json", *[ROOT / name for name in BATCH1_SCHEMAS + BATCH2_SCHEMAS]]
+        if path.exists()
+    }
+    if schema_name is None:
+        target = fixture_wrapper(available["common.defs.schema.json"])
+    else:
+        target = available[schema_name]
+
+    resources = [
+        (item["$id"], Resource.from_contents(item))
+        for item in available.values()
+    ]
+    registry = Registry().with_resources(resources)
+    primary = Draft202012Validator(
+        target,
+        format_checker=FormatChecker(),
+        registry=registry,
+    )
+
+    by_id = {item["$id"]: item for item in available.values()}
+
+    def retrieve(uri: str):
+        base_uri, _ = urldefrag(uri)
+        if base_uri not in by_id:
+            raise GateFailure(f"Secondary validator requested unknown schema {uri}")
+        return by_id[base_uri]
+
+    # fastjsonschema asserts its built-in formats by default.  The pinned
+    # 2.21.2 compile API has no ``use_formats`` keyword.
+    secondary = fastjsonschema.compile(target, handlers={"https": retrieve})
+    return target, primary, secondary
 
 
 def primary_errors(primary, instance: object) -> list[str]:
@@ -289,15 +352,10 @@ def secondary_errors(secondary, instance: object) -> list[str]:
     return errors
 
 
-def fixture_entries(expected: str) -> list[dict]:
-    manifest = load_json(ROOT / "fixture-manifest.json")
-    return [item for item in manifest["fixtures"] if item["expected"] == expected]
-
-
-def check_positive_fixtures() -> str:
-    _, primary, secondary = validators()
-    entries = fixture_entries("valid")
+def check_positive_fixtures(batch: str) -> str:
+    entries = fixture_entries(batch, "valid")
     for item in entries:
+        _, primary, secondary = validator_bundle(item.get("schema"))
         instance = load_json(ROOT / item["path"])
         p_errors = primary_errors(primary, instance)
         s_errors = secondary_errors(secondary, instance)
@@ -308,10 +366,10 @@ def check_positive_fixtures() -> str:
     return f"{len(entries)} positive fixture passes both validators"
 
 
-def check_negative_fixtures() -> str:
-    _, primary, secondary = validators()
-    entries = fixture_entries("invalid")
+def check_negative_fixtures(batch: str) -> str:
+    entries = fixture_entries(batch, "invalid")
     for item in entries:
+        _, primary, secondary = validator_bundle(item.get("schema"))
         instance = load_json(ROOT / item["path"])
         p_errors = primary_errors(primary, instance)
         s_errors = secondary_errors(secondary, instance)
@@ -323,40 +381,98 @@ def check_negative_fixtures() -> str:
     return f"{len(entries)} negative fixtures fail both validators as intended"
 
 
-def check_mutations() -> str:
+def check_mutations(batch: str) -> str:
     registry = load_json(ROOT / "mutation-registry.json")
-    active = [m for m in registry["mutations"] if m["status"] == "ACTIVE"]
+    batches = {"batch0", "batch1", "batch2"} if batch == "all" else {batch}
+    active = [
+        m
+        for m in registry["mutations"]
+        if m["status"] == "ACTIVE" and m["batch"] in batches
+    ]
     blocked = [m for m in registry["mutations"] if m["status"] == "BLOCKED"]
     common = load_json(ROOT / "common.defs.schema.json")
 
-    missing_access = copy.deepcopy(common)
-    del missing_access["$defs"]["normalizedTime"]["properties"]["instant"][
-        "x-access-class"
-    ]
-    if not access_lint_errors(missing_access):
-        raise GateFailure("MUT-B0-001 was not detected")
+    if "batch0" in batches:
+        missing_access = copy.deepcopy(common)
+        del missing_access["$defs"]["normalizedTime"]["properties"]["instant"][
+            "x-access-class"
+        ]
+        if not access_lint_errors(missing_access):
+            raise GateFailure("MUT-B0-001 was not detected")
 
-    wrapper, primary, _ = validators()
-    renamed = copy.deepcopy(wrapper)
-    renamed["properties"]["normalized_timestamp"] = renamed["properties"].pop(
-        "normalized_time"
+        wrapper, _, _ = validator_bundle(None)
+        renamed = copy.deepcopy(wrapper)
+        renamed["properties"]["normalized_timestamp"] = renamed["properties"].pop(
+            "normalized_time"
+        )
+        renamed_validator = Draft202012Validator(
+            renamed, format_checker=FormatChecker()
+        )
+        valid_fixture = load_json(ROOT / "fixtures/valid/common.valid.json")
+        if not list(renamed_validator.iter_errors(valid_fixture)):
+            raise GateFailure("MUT-B0-002 was not detected")
+
+        wrong_enum = copy.deepcopy(common)
+        values = wrong_enum["$defs"]["provenanceSource"]["enum"]
+        values[values.index("MODEL_CLAIM")] = "MODEL"
+        if not enum_fidelity_errors(wrong_enum):
+            raise GateFailure("MUT-B0-003 was not detected")
+
+    if "batch1" in batches:
+        hard_unknown = load_json(
+            ROOT
+            / "fixtures/invalid/validator-result.hard-unknown-execute.invalid.json"
+        )
+        validator_schema = load_json(ROOT / "validator-result.schema.json")
+        validator_schema["allOf"] = validator_schema["allOf"][1:]
+        resources = Registry().with_resource(
+            common["$id"], Resource.from_contents(common)
+        )
+        mutant = Draft202012Validator(validator_schema, registry=resources)
+        if list(mutant.iter_errors(hard_unknown)):
+            raise GateFailure("MUT-B1-001 did not isolate the HARD + UNKNOWN guard")
+
+    if "batch2" in batches:
+        action_fixture = load_json(
+            ROOT / "fixtures/invalid/action-proposal.compensation-null.invalid.json"
+        )
+        action_schema = load_json(ROOT / "action-proposal.schema.json")
+        action_schema["allOf"] = action_schema["allOf"][1:]
+        resources = Registry().with_resource(
+            common["$id"], Resource.from_contents(common)
+        )
+        action_mutant = Draft202012Validator(action_schema, registry=resources)
+        if list(action_mutant.iter_errors(action_fixture)):
+            raise GateFailure("MUT-B2-001 did not isolate the compensation guard")
+
+        observation_fixture = load_json(
+            ROOT
+            / "fixtures/invalid/access-scoped-observation.private-field.invalid.json"
+        )
+        observation_schema = load_json(ROOT / "access-scoped-observation.schema.json")
+        observation_schema["properties"]["private_world_state_ref"] = {
+            "type": "object",
+            "x-access-class": ["POLICY_VISIBLE"],
+        }
+        observation_mutant = Draft202012Validator(
+            observation_schema, registry=resources
+        )
+        if list(observation_mutant.iter_errors(observation_fixture)):
+            raise GateFailure("MUT-B2-002 did not isolate observation leakage")
+
+    expected = sum(
+        1
+        for mutation in registry["mutations"]
+        if mutation["batch"] in batches
     )
-    renamed_validator = Draft202012Validator(
-        renamed, format_checker=FormatChecker()
+    if len(active) != expected:
+        raise GateFailure(
+            f"Expected {expected} active mutations for {batch}, found {len(active)}"
+        )
+    return (
+        f"{len(active)} active mutations detected; "
+        f"{len(blocked)} mutations remain blocked"
     )
-    valid_fixture = load_json(ROOT / "fixtures/valid/common.valid.json")
-    if not list(renamed_validator.iter_errors(valid_fixture)):
-        raise GateFailure("MUT-B0-002 was not detected")
-
-    wrong_enum = copy.deepcopy(common)
-    values = wrong_enum["$defs"]["provenanceSource"]["enum"]
-    values[values.index("MODEL_CLAIM")] = "MODEL"
-    if not enum_fidelity_errors(wrong_enum):
-        raise GateFailure("MUT-B0-003 was not detected")
-
-    if len(active) != 3:
-        raise GateFailure(f"Expected 3 active Batch 0 mutations, found {len(active)}")
-    return f"{len(active)} active mutations detected; {len(blocked)} downstream mutations remain blocked"
 
 
 def parse_yaml_blocks(markdown: str) -> list[dict[str, str]]:
@@ -415,21 +531,23 @@ def check_manifest_versions() -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch", choices=["batch0"], default="batch0")
+    parser.add_argument(
+        "--batch",
+        choices=["batch0", "batch1", "batch2", "all"],
+        default="batch0",
+    )
     args = parser.parse_args()
-    if args.batch != "batch0":
-        raise GateFailure("Only Batch 0 is currently unblocked")
 
     checks = [
-        ("1 JSON parsing", check_json_parsing),
-        ("2 Meta-schema", check_meta_schema),
-        ("3 Schema IDs", check_ids),
-        ("4 Reference closure", check_reference_closure),
-        ("5 Access lint", check_access_annotations),
+        ("1 JSON parsing", lambda: check_json_parsing(args.batch)),
+        ("2 Meta-schema", lambda: check_meta_schema(args.batch)),
+        ("3 Schema IDs", lambda: check_ids(args.batch)),
+        ("4 Reference closure", lambda: check_reference_closure(args.batch)),
+        ("5 Access lint", lambda: check_access_annotations(args.batch)),
         ("6 Enum fidelity", check_enum_fidelity),
-        ("7 Positive fixtures", check_positive_fixtures),
-        ("8 Negative fixtures", check_negative_fixtures),
-        ("9 Mutation harness", check_mutations),
+        ("7 Positive fixtures", lambda: check_positive_fixtures(args.batch)),
+        ("8 Negative fixtures", lambda: check_negative_fixtures(args.batch)),
+        ("9 Mutation harness", lambda: check_mutations(args.batch)),
         ("10 Deferred register", check_deferred_register),
         ("Manifest validator pins", check_manifest_versions),
     ]
@@ -442,7 +560,7 @@ def main() -> int:
             print(f"FAIL {label}: {exc}")
             return 1
         print(f"PASS {label}: {detail}")
-    print("BATCH 0 TECHNICAL GATE: GREEN")
+    print(f"{args.batch.upper()} TECHNICAL GATE: GREEN")
     return 0
 
 

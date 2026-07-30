@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/adapter-manifest.schema.json",
+  "title": "Adapter Manifest",
+  "type": "object",
+  "required": [
+    "adapter_id",
+    "base_model_hash",
+    "training_data_version",
+    "domain",
+    "capability_scope",
+    "rank",
+    "target_modules",
+    "router_features",
+    "eval_report",
+    "known_failures",
+    "incompatibilities",
+    "fallback_adapter",
+    "status"
+  ],
+  "properties": {
+    "adapter_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "base_model_hash": {
+      "$ref": "common.defs.schema.json#/$defs/contentHash",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "training_data_version": {
+      "$ref": "common.defs.schema.json#/$defs/versionIdentifier",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "domain": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "capability_scope": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "rank": {
+      "type": "integer",
+      "minimum": 1,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "target_modules": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "router_features": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "uniqueItems": true,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "eval_report": {
+      "$ref": "common.defs.schema.json#/$defs/evidenceRef",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "known_failures": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "uniqueItems": true,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "incompatibilities": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "uniqueItems": true,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "fallback_adapter": {
+      "oneOf": [
+        {
+          "$ref": "common.defs.schema.json#/$defs/stableId"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "status": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

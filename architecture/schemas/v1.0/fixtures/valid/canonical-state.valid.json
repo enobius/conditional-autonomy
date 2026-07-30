@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "episode_id": "episode:1",
+  "state_version": 3,
+  "logical_clock": 7,
+  "entities": {
+    "person:1": {
+      "role": "driver"
+    }
+  },
+  "resources": {
+    "vehicle:1": {
+      "capacity": 4
+    }
+  },
+  "obligations": [],
+  "dependencies": [],
+  "deadlines": [],
+  "permissions": [],
+  "active_plan": {
+    "plan_id": "plan:1"
+  },
+  "completed_actions": [
+    "action:0"
+  ],
+  "pending_questions": [],
+  "exogenous_events": [
+    "event:weather"
+  ],
+  "provenance": [],
+  "revision_chain": [
+    "state:2"
+  ]
+}

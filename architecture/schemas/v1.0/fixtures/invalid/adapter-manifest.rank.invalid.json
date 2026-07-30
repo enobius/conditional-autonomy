@@ -1,0 +1,27 @@
+{
+  "adapter_id": "adapter:p6",
+  "base_model_hash": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+  "training_data_version": "dataset.1.0",
+  "domain": "realm:p6",
+  "capability_scope": [
+    "capability:planning"
+  ],
+  "rank": 0,
+  "target_modules": [
+    "module:q_proj"
+  ],
+  "router_features": [
+    "feature:scenario-family"
+  ],
+  "eval_report": {
+    "ref_id": "report:adapter-p6",
+    "source": "EVALUATOR",
+    "access_class": "EVALUATOR_ONLY",
+    "uri": null,
+    "content_hash": null
+  },
+  "known_failures": [],
+  "incompatibilities": [],
+  "fallback_adapter": null,
+  "status": "CANDIDATE"
+}

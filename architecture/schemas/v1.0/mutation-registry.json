@@ -21,19 +21,19 @@
     {
       "id": "MUT-B2-001",
       "batch": "batch2",
-      "status": "BLOCKED",
+      "status": "ACTIVE",
       "description": "Permit COMPENSATABLE with null compensation_action."
     },
     {
       "id": "MUT-B1-001",
       "batch": "batch1",
-      "status": "BLOCKED",
+      "status": "ACTIVE",
       "description": "Permit HARD + UNKNOWN to resolve to EXECUTE."
     },
     {
       "id": "MUT-B2-002",
       "batch": "batch2",
-      "status": "BLOCKED",
+      "status": "ACTIVE",
       "description": "Inline canonical state into a policy-visible observation."
     }
   ]

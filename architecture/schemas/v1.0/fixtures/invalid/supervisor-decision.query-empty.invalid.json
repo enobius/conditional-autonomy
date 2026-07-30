@@ -1,0 +1,13 @@
+{
+  "decision": "QUERY",
+  "confidence": 0.74,
+  "violated_constraint_ids": [],
+  "uncertainty_reasons": [
+    "Driver availability is unknown."
+  ],
+  "requested_information": [],
+  "proposed_repair": null,
+  "evidence_refs": [],
+  "supervisor_model_version": "supervisor.1.0",
+  "adapter_version": null
+}

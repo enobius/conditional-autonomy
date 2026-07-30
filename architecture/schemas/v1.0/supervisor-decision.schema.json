@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/supervisor-decision.schema.json",
+  "title": "Supervisor Decision",
+  "type": "object",
+  "required": [
+    "decision",
+    "confidence",
+    "violated_constraint_ids",
+    "uncertainty_reasons",
+    "requested_information",
+    "proposed_repair",
+    "evidence_refs",
+    "supervisor_model_version",
+    "adapter_version"
+  ],
+  "properties": {
+    "decision": {
+      "$ref": "common.defs.schema.json#/$defs/decision",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "violated_constraint_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "uniqueItems": true,
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "uncertainty_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "requested_information": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "proposed_repair": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/evidenceRef"
+      },
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "supervisor_model_version": {
+      "$ref": "common.defs.schema.json#/$defs/versionIdentifier",
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "adapter_version": {
+      "oneOf": [
+        {
+          "$ref": "common.defs.schema.json#/$defs/versionIdentifier"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "QUERY"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "requested_information": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "decision": {
+            "const": "REPAIR"
+          }
+        },
+        "required": [
+          "decision"
+        ]
+      },
+      "then": {
+        "properties": {
+          "proposed_repair": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  ]
+}

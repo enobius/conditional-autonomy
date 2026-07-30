@@ -7,9 +7,10 @@ state, post-training feedback loops, and specialist LoRA adapters.
 
 ## Current status
 
-Workstream 1A is defining the machine-readable contracts for the architecture.
-Batch 0 is validated and committed. Batch 1 and Batch 2 schema tickets are
-ready for implementation; Batch 3 remains dependency-blocked.
+Workstream 1A defines the machine-readable contracts for the architecture.
+Batch 0 is validated and committed. Batch 1 and Batch 2 are technically green
+and have completed independent specification-fidelity review. Batch 3 remains
+dependency-blocked pending integration of its required contracts.
 
 ## Authoritative materials
 
@@ -30,18 +31,21 @@ ready for implementation; Batch 3 remains dependency-blocked.
   generated locally and ignored by Git.
 - Generated ZIP packages are ignored by Git.
 
-## Validate Batch 0
+## Validate the schema package
 
 Install the pinned validators:
 
 ```powershell
-python -m pip install -r architecture\schemas\requirements-schema.txt
+python -m pip install --target architecture\schemas\.vendor -r architecture\schemas\requirements-schema.txt
 ```
 
 Run the gate:
 
 ```powershell
-python architecture\schemas\v1.0\scripts\check_schemas.py
+python architecture\schemas\v1.0\scripts\check_schemas.py --batch batch0
+python architecture\schemas\v1.0\scripts\check_schemas.py --batch batch1
+python architecture\schemas\v1.0\scripts\check_schemas.py --batch batch2
+python architecture\schemas\v1.0\scripts\check_schemas.py --batch all
 ```
 
 The gate must remain green after every schema integration.

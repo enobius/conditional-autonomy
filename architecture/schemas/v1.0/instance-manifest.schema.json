@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/instance-manifest.schema.json",
+  "title": "Instance Manifest",
+  "type": "object",
+  "required": [
+    "generator_id",
+    "generator_version",
+    "scenario_family",
+    "seed",
+    "difficulty_parameters",
+    "constraint_graph_hash",
+    "entity_graph_hash",
+    "disruption_schedule_hash",
+    "user_model_version",
+    "source_dataset_lineage",
+    "feasibility_oracle_version",
+    "split_assignment"
+  ],
+  "properties": {
+    "generator_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "generator_version": {
+      "$ref": "common.defs.schema.json#/$defs/versionIdentifier",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "scenario_family": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "seed": {
+      "type": "integer",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "difficulty_parameters": {
+      "type": "object",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "constraint_graph_hash": {
+      "$ref": "common.defs.schema.json#/$defs/contentHash",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "entity_graph_hash": {
+      "$ref": "common.defs.schema.json#/$defs/contentHash",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "disruption_schedule_hash": {
+      "$ref": "common.defs.schema.json#/$defs/contentHash",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "user_model_version": {
+      "$ref": "common.defs.schema.json#/$defs/versionIdentifier",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "source_dataset_lineage": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "feasibility_oracle_version": {
+      "$ref": "common.defs.schema.json#/$defs/versionIdentifier",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "split_assignment": {
+      "enum": [
+        "TRAIN",
+        "DEVELOPMENT",
+        "TEST",
+        "TRANSFER",
+        "PROTECTED_REGRESSION"
+      ],
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

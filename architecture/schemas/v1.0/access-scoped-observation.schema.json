@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/access-scoped-observation.schema.json",
+  "title": "Access-Scoped Observation",
+  "type": "object",
+  "required": [
+    "observation_id",
+    "episode_id",
+    "state_version",
+    "actor_id",
+    "access_class",
+    "visible_facts",
+    "goal_refs",
+    "generated_at"
+  ],
+  "properties": {
+    "observation_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "POLICY_VISIBLE"
+      ]
+    },
+    "episode_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "POLICY_VISIBLE"
+      ]
+    },
+    "state_version": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "POLICY_VISIBLE"
+      ]
+    },
+    "actor_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "POLICY_VISIBLE"
+      ]
+    },
+    "access_class": {
+      "const": "POLICY_VISIBLE",
+      "x-access-class": [
+        "POLICY_VISIBLE"
+      ]
+    },
+    "visible_facts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "fact_id",
+          "value",
+          "epistemic_status",
+          "evidence_refs",
+          "access_class"
+        ],
+        "properties": {
+          "fact_id": {
+            "$ref": "common.defs.schema.json#/$defs/stableId",
+            "x-access-class": [
+              "POLICY_VISIBLE"
+            ]
+          },
+          "value": {
+            "x-access-class": [
+              "POLICY_VISIBLE"
+            ]
+          },
+          "epistemic_status": {
+            "$ref": "common.defs.schema.json#/$defs/epistemicStatus",
+            "x-access-class": [
+              "POLICY_VISIBLE"
+            ]
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "ref_id",
+                "source",
+                "access_class"
+              ],
+              "properties": {
+                "ref_id": {
+                  "$ref": "common.defs.schema.json#/$defs/stableId",
+                  "x-access-class": [
+                    "POLICY_VISIBLE"
+                  ]
+                },
+                "source": {
+                  "$ref": "common.defs.schema.json#/$defs/provenanceSource",
+                  "x-access-class": [
+                    "POLICY_VISIBLE"
+                  ]
+                },
+                "access_class": {
+                  "const": "POLICY_VISIBLE",
+                  "x-access-class": [
+                    "POLICY_VISIBLE"
+                  ]
+                },
+                "uri": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "x-access-class": [
+                    "POLICY_VISIBLE"
+                  ]
+                },
+                "content_hash": {
+                  "oneOf": [
+                    {
+                      "$ref": "common.defs.schema.json#/$defs/contentHash"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "x-access-class": [
+                    "POLICY_VISIBLE"
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            "x-access-class": [
+              "POLICY_VISIBLE"
+            ]
+          },
+          "access_class": {
+            "const": "POLICY_VISIBLE",
+            "x-access-class": [
+              "POLICY_VISIBLE"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "x-access-class": [
+        "POLICY_VISIBLE"
+      ]
+    },
+    "goal_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "uniqueItems": true,
+      "x-access-class": [
+        "POLICY_VISIBLE"
+      ]
+    },
+    "generated_at": {
+      "$ref": "common.defs.schema.json#/$defs/normalizedTime",
+      "x-access-class": [
+        "POLICY_VISIBLE"
+      ]
+    },
+    "context_budget_tokens": {
+      "type": "integer",
+      "minimum": 1,
+      "x-access-class": [
+        "POLICY_VISIBLE"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

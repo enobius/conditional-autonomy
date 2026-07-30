@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/user-model.schema.json",
+  "title": "User Model",
+  "type": "object",
+  "required": [
+    "user_model_id",
+    "version",
+    "private_world_state_ref",
+    "answerable_facts",
+    "response_policy",
+    "ambiguity_policy",
+    "correction_policy",
+    "noise_policy",
+    "maximum_turns",
+    "oracle_access_rules",
+    "template_family",
+    "seed"
+  ],
+  "properties": {
+    "user_model_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "version": {
+      "$ref": "common.defs.schema.json#/$defs/versionIdentifier",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "private_world_state_ref": {
+      "type": "object",
+      "required": [
+        "ref_id",
+        "access_class"
+      ],
+      "properties": {
+        "ref_id": {
+          "$ref": "common.defs.schema.json#/$defs/stableId",
+          "x-access-class": [
+            "PRIVATE_ENVIRONMENT"
+          ]
+        },
+        "access_class": {
+          "const": "PRIVATE_ENVIRONMENT",
+          "x-access-class": [
+            "PRIVATE_ENVIRONMENT"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "x-access-class": [
+        "PRIVATE_ENVIRONMENT"
+      ]
+    },
+    "answerable_facts": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/stableId"
+      },
+      "uniqueItems": true,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "response_policy": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "ambiguity_policy": {
+      "type": "object",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "correction_policy": {
+      "type": "object",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "noise_policy": {
+      "type": "object",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "maximum_turns": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "oracle_access_rules": {
+      "type": "object",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "template_family": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "seed": {
+      "type": "integer",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

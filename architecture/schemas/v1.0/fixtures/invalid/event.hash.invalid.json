@@ -1,0 +1,36 @@
+{
+  "event_id": "event:1",
+  "episode_id": "episode:1",
+  "event_type": "OBSERVE",
+  "logical_clock": 1,
+  "timestamp": {
+    "instant": "2026-11-26T14:00:00Z",
+    "source_timezone": "America/New_York",
+    "uncertainty": {
+      "kind": "EXACT",
+      "minus_seconds": 0,
+      "plus_seconds": 0
+    }
+  },
+  "source": "ENVIRONMENT",
+  "access_class": "EVALUATOR_ONLY",
+  "payload": {
+    "observation_ref": "observation:1"
+  },
+  "provenance": {
+    "provenance_id": "provenance:1",
+    "source": "ENVIRONMENT",
+    "recorded_at": {
+      "instant": "2026-11-26T14:00:00Z",
+      "source_timezone": "America/New_York",
+      "uncertainty": {
+        "kind": "EXACT",
+        "minus_seconds": 0,
+        "plus_seconds": 0
+      }
+    },
+    "access_class": "EVALUATOR_ONLY",
+    "content_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "content_hash": "555555555555555555555555555555555555555555555555555555555555555"
+}

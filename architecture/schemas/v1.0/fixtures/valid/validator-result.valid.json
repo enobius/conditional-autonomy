@@ -1,0 +1,27 @@
+{
+  "validator_id": "validator:capability",
+  "validator_version": "1.0",
+  "status": "UNKNOWN",
+  "criticality": "HARD",
+  "enforceability": "PREVENTABLE",
+  "constraint_ids": [
+    "constraint:capability"
+  ],
+  "evidence_refs": [],
+  "observed_state_version": 3,
+  "uncertainty_reason": "Capability grant is not present in the observation.",
+  "permitted_resolution": "QUERY",
+  "explanation_code": "MISSING_CAPABILITY_EVIDENCE",
+  "repair_hints": [
+    "Request a scoped capability grant."
+  ],
+  "timestamp": {
+    "instant": "2026-11-26T14:00:00Z",
+    "source_timezone": "America/New_York",
+    "uncertainty": {
+      "kind": "EXACT",
+      "minus_seconds": 0,
+      "plus_seconds": 0
+    }
+  }
+}
