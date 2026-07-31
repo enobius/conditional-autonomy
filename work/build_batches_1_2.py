@@ -1059,14 +1059,19 @@ def main() -> None:
         )
 
     fixture_manifest = json.loads((ROOT / "fixture-manifest.json").read_text(encoding="utf-8"))
+    batch3_fixtures = [
+        entry
+        for entry in fixture_manifest["fixtures"]
+        if entry.get("batch") == "batch3"
+    ]
     fixture_manifest["fixtures"] = [
         entry
         for entry in fixture_manifest["fixtures"]
-        if entry.get("batch", "batch0") == "batch0"
+        if entry.get("batch", "batch0") not in {"batch1", "batch2", "batch3"}
     ]
     for entry in fixture_manifest["fixtures"]:
-        entry["batch"] = "batch0"
-    fixture_manifest["batch"] = "batches0-2"
+        entry.setdefault("batch", "batch0")
+    fixture_manifest["batch"] = "batches0-3" if batch3_fixtures else "batches0-2"
     for ticket, (name, _) in TICKETS.items():
         batch = "batch1" if ticket.startswith("B1") else "batch2"
         fixture_manifest["fixtures"].append(
@@ -1088,6 +1093,7 @@ def main() -> None:
                     "constraint": filename.removesuffix(".invalid.json"),
                 }
             )
+    fixture_manifest["fixtures"].extend(batch3_fixtures)
     write_json(ROOT / "fixture-manifest.json", fixture_manifest)
 
     mutation_registry = json.loads((ROOT / "mutation-registry.json").read_text(encoding="utf-8"))

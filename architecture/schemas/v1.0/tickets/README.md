@@ -21,7 +21,7 @@ remains blocked on B3-1 integration.
 | B2-2 | Mid | `canonical-state.schema.json` | Spec §§2.1–2.2, 2.4 | DONE | B0-1 (satisfied) |
 | B2-3 | Mid | `access-scoped-observation.schema.json` | Spec §§2.1, 4 | DONE | B0-1 (satisfied) |
 | B3-1 | Mid | `trace-step.schema.json` | Spec §4 | DONE | B1-1..8, B2-1..3 (satisfied) |
-| B3-2 | Mid | `episode.schema.json` | Spec §§4–5 | BLOCKED | B3-1 integration pending |
+| B3-2 | Mid | `episode.schema.json` | Spec §§4–5 | READY | B3-1 (integrated) |
 
 ## Required ticket content
 
