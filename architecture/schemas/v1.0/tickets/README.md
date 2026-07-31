@@ -3,8 +3,8 @@
 `B0-1` passed the technical gate and was persisted in commit `6fb0289`.
 Batch 1 and Batch 2 have passed their technical gates and independent
 specification-fidelity review and are committed on `main`. B3-1 has passed
-its technical gate and independent specification-fidelity review. B3-2
-remains blocked on B3-1 integration.
+its technical gate and independent specification-fidelity review. B3-2 is
+ready for implementation.
 
 | Ticket | Tier | Artifact | Specification | Status | Depends on |
 |---|---|---|---|---|---|
