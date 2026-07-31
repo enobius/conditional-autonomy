@@ -9,8 +9,9 @@ state, post-training feedback loops, and specialist LoRA adapters.
 
 Workstream 1A defines the machine-readable contracts for the architecture.
 Batch 0 is validated and committed. Batch 1 and Batch 2 are technically green
-and have completed independent specification-fidelity review. Batch 3 remains
-dependency-blocked pending integration of its required contracts.
+and have completed independent specification-fidelity review. B3-1 has passed
+its technical gate and independent specification-fidelity review. B3-2 remains
+dependency-blocked pending B3-1 integration.
 
 ## Authoritative materials
 

@@ -1,5 +1,5 @@
 {
-  "batch": "batches0-2",
+  "batch": "batches0-3",
   "fixtures": [
     {
       "path": "fixtures/valid/common.valid.json",
@@ -315,6 +315,64 @@
       "batch": "batch2",
       "expected": "invalid",
       "constraint": "access-scoped-observation.access-class"
+    },
+    {
+      "path": "fixtures/valid/trace-step.valid.json",
+      "schema": "trace-step.schema.json",
+      "batch": "batch3",
+      "expected": "valid",
+      "constraints": [
+        "composite trace-step representative"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/trace-step.canonical-ref-access.invalid.json",
+      "schema": "trace-step.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "trace-step.canonical-ref-access"
+    },
+    {
+      "path": "fixtures/invalid/trace-step.canonical-state-embedded.invalid.json",
+      "schema": "trace-step.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "trace-step.canonical-state-embedded"
+    },
+    {
+      "path": "fixtures/invalid/trace-step.observation-private-leak.invalid.json",
+      "schema": "trace-step.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "trace-step.observation-private-leak"
+    },
+    {
+      "path": "fixtures/invalid/trace-step.observation-evaluator-leak.invalid.json",
+      "schema": "trace-step.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "trace-step.observation-evaluator-leak"
+    },
+    {
+      "path": "fixtures/invalid/trace-step.missing-policy-version.invalid.json",
+      "schema": "trace-step.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "trace-step.missing-policy-version"
+    },
+    {
+      "path": "fixtures/invalid/trace-step.step-index.invalid.json",
+      "schema": "trace-step.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "trace-step.step-index"
+    },
+    {
+      "path": "fixtures/invalid/trace-step.nested-validator-guard.invalid.json",
+      "schema": "trace-step.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "trace-step.nested-validator-guard"
     }
   ]
 }

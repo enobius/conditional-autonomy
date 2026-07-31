@@ -35,6 +35,12 @@
       "batch": "batch2",
       "status": "ACTIVE",
       "description": "Inline canonical state into a policy-visible observation."
+    },
+    {
+      "id": "MUT-B3-001",
+      "batch": "batch3",
+      "status": "ACTIVE",
+      "description": "Permit canonical_state_ref to be POLICY_VISIBLE; the trace leakage fixture must fail."
     }
   ]
 }

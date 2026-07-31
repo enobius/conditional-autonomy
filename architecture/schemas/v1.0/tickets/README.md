@@ -2,8 +2,9 @@
 
 `B0-1` passed the technical gate and was persisted in commit `6fb0289`.
 Batch 1 and Batch 2 have passed their technical gates and independent
-specification-fidelity review. Batch 3 remains blocked on its required
-integrations and its own review.
+specification-fidelity review and are committed on `main`. B3-1 has passed
+its technical gate and independent specification-fidelity review. B3-2
+remains blocked on B3-1 integration.
 
 | Ticket | Tier | Artifact | Specification | Status | Depends on |
 |---|---|---|---|---|---|
@@ -19,8 +20,8 @@ integrations and its own review.
 | B2-1 | Mid | `action-proposal.schema.json` | Spec §§2.3–2.4 | DONE | B0-1 (satisfied) |
 | B2-2 | Mid | `canonical-state.schema.json` | Spec §§2.1–2.2, 2.4 | DONE | B0-1 (satisfied) |
 | B2-3 | Mid | `access-scoped-observation.schema.json` | Spec §§2.1, 4 | DONE | B0-1 (satisfied) |
-| B3-1 | Mid | `trace-step.schema.json` | Spec §4 | BLOCKED | B1-1..8, B2-1..3 |
-| B3-2 | Mid | `episode.schema.json` | Spec §§4–5 | BLOCKED | B3-1 |
+| B3-1 | Mid | `trace-step.schema.json` | Spec §4 | DONE | B1-1..8, B2-1..3 (satisfied) |
+| B3-2 | Mid | `episode.schema.json` | Spec §§4–5 | BLOCKED | B3-1 integration pending |
 
 ## Required ticket content
 
@@ -47,5 +48,6 @@ merge or unblock Batch 3.
 python scripts/check_schemas.py --batch batch0
 python scripts/check_schemas.py --batch batch1
 python scripts/check_schemas.py --batch batch2
+python scripts/check_schemas.py --batch batch3
 python scripts/check_schemas.py --batch all
 ```

@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/trace-step.schema.json",
+  "title": "Trace Step",
+  "type": "object",
+  "required": [
+    "trace_step_id",
+    "episode_id",
+    "step_index",
+    "canonical_state_ref",
+    "actor_observation",
+    "goal_ref",
+    "policy_version",
+    "adapter_version",
+    "proposal",
+    "supervisor_decision",
+    "validator_results",
+    "tool_result",
+    "transition_diff",
+    "outcome_vector",
+    "evaluator_labels",
+    "provenance"
+  ],
+  "properties": {
+    "trace_step_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "episode_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "step_index": {
+      "type": "integer",
+      "minimum": 0,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "canonical_state_ref": {
+      "type": "object",
+      "required": [
+        "ref_id",
+        "access_class"
+      ],
+      "properties": {
+        "ref_id": {
+          "$ref": "common.defs.schema.json#/$defs/stableId",
+          "x-access-class": [
+            "EVALUATOR_ONLY"
+          ]
+        },
+        "access_class": {
+          "const": "EVALUATOR_ONLY",
+          "x-access-class": [
+            "EVALUATOR_ONLY"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "actor_observation": {
+      "$ref": "access-scoped-observation.schema.json",
+      "x-access-class": [
+        "POLICY_VISIBLE"
+      ]
+    },
+    "goal_ref": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "POLICY_VISIBLE"
+      ]
+    },
+    "policy_version": {
+      "$ref": "common.defs.schema.json#/$defs/versionIdentifier",
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "adapter_version": {
+      "oneOf": [
+        {
+          "$ref": "common.defs.schema.json#/$defs/versionIdentifier"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "proposal": {
+      "oneOf": [
+        {
+          "$ref": "action-proposal.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "x-access-class": [
+        "POLICY_VISIBLE",
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "supervisor_decision": {
+      "oneOf": [
+        {
+          "$ref": "supervisor-decision.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "validator_results": {
+      "type": "array",
+      "items": {
+        "$ref": "validator-result.schema.json"
+      },
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "tool_result": {
+      "oneOf": [
+        {
+          "$ref": "tool-outcome.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "x-access-class": [
+        "SUPERVISOR_VISIBLE",
+        "VALIDATOR_VISIBLE",
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "transition_diff": {
+      "type": "object",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "outcome_vector": {
+      "$ref": "outcome-vector.schema.json",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "evaluator_labels": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "provenance": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/evidenceRef"
+      },
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

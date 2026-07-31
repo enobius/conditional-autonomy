@@ -2,7 +2,7 @@
 """Portable Workstream 1A schema gate.
 
 Each batch can be checked independently; ``--batch all`` validates the
-integrated Batch 0-2 package. Batch 3 remains dependency-blocked.
+integrated package through B3-1. B3-2 remains dependency-blocked.
 """
 
 from __future__ import annotations
@@ -43,6 +43,7 @@ BATCH2_SCHEMAS = [
     "canonical-state.schema.json",
     "access-scoped-observation.schema.json",
 ]
+BATCH3_SCHEMAS = ["trace-step.schema.json"]
 
 
 EXPECTED_ENUMS = {
@@ -105,16 +106,22 @@ def load_json(path: Path):
 
 def schema_files(batch: str) -> list[Path]:
     names = ["common.defs.schema.json"]
-    if batch in {"batch1", "all"}:
+    if batch in {"batch1", "batch3", "all"}:
         names.extend(BATCH1_SCHEMAS)
-    if batch in {"batch2", "all"}:
+    if batch in {"batch2", "batch3", "all"}:
         names.extend(BATCH2_SCHEMAS)
+    if batch in {"batch3", "all"}:
+        names.extend(BATCH3_SCHEMAS)
     return [ROOT / name for name in names]
 
 
 def fixture_entries(batch: str, expected: str | None = None) -> list[dict]:
     manifest = load_json(ROOT / "fixture-manifest.json")
-    batches = {"batch0", "batch1", "batch2"} if batch == "all" else {batch}
+    batches = (
+        {"batch0", "batch1", "batch2", "batch3"}
+        if batch == "all"
+        else {batch}
+    )
     return [
         item
         for item in manifest["fixtures"]
@@ -303,7 +310,13 @@ def check_enum_fidelity() -> str:
 def validator_bundle(schema_name: str | None):
     available = {
         path.name: load_json(path)
-        for path in [ROOT / "common.defs.schema.json", *[ROOT / name for name in BATCH1_SCHEMAS + BATCH2_SCHEMAS]]
+        for path in [
+            ROOT / "common.defs.schema.json",
+            *[
+                ROOT / name
+                for name in BATCH1_SCHEMAS + BATCH2_SCHEMAS + BATCH3_SCHEMAS
+            ],
+        ]
         if path.exists()
     }
     if schema_name is None:
@@ -383,7 +396,11 @@ def check_negative_fixtures(batch: str) -> str:
 
 def check_mutations(batch: str) -> str:
     registry = load_json(ROOT / "mutation-registry.json")
-    batches = {"batch0", "batch1", "batch2"} if batch == "all" else {batch}
+    batches = (
+        {"batch0", "batch1", "batch2", "batch3"}
+        if batch == "all"
+        else {batch}
+    )
     active = [
         m
         for m in registry["mutations"]
@@ -460,6 +477,38 @@ def check_mutations(batch: str) -> str:
         if list(observation_mutant.iter_errors(observation_fixture)):
             raise GateFailure("MUT-B2-002 did not isolate observation leakage")
 
+    if "batch3" in batches:
+        trace_fixture = load_json(
+            ROOT / "fixtures/invalid/trace-step.canonical-ref-access.invalid.json"
+        )
+        trace_schema = load_json(ROOT / "trace-step.schema.json")
+        trace_schema["properties"]["canonical_state_ref"]["properties"][
+            "access_class"
+        ]["enum"] = ["EVALUATOR_ONLY", "POLICY_VISIBLE"]
+        del trace_schema["properties"]["canonical_state_ref"]["properties"][
+            "access_class"
+        ]["const"]
+        dependency_documents = [
+            load_json(ROOT / name)
+            for name in BATCH1_SCHEMAS + BATCH2_SCHEMAS
+        ]
+        trace_resources = Registry().with_resources(
+            [
+                (common["$id"], Resource.from_contents(common)),
+                *[
+                    (document["$id"], Resource.from_contents(document))
+                    for document in dependency_documents
+                ],
+            ]
+        )
+        trace_mutant = Draft202012Validator(
+            trace_schema, registry=trace_resources
+        )
+        if list(trace_mutant.iter_errors(trace_fixture)):
+            raise GateFailure(
+                "MUT-B3-001 did not isolate canonical-state reference leakage"
+            )
+
     expected = sum(
         1
         for mutation in registry["mutations"]
@@ -533,7 +582,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--batch",
-        choices=["batch0", "batch1", "batch2", "all"],
+        choices=["batch0", "batch1", "batch2", "batch3", "all"],
         default="batch0",
     )
     args = parser.parse_args()
