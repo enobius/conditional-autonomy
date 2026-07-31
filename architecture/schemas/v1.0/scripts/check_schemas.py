@@ -2,7 +2,7 @@
 """Portable Workstream 1A schema gate.
 
 Each batch can be checked independently; ``--batch all`` validates the
-integrated package through B3-1. B3-2 remains dependency-blocked.
+integrated v1.0 package through B3-2.
 """
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ BATCH2_SCHEMAS = [
     "canonical-state.schema.json",
     "access-scoped-observation.schema.json",
 ]
-BATCH3_SCHEMAS = ["trace-step.schema.json"]
+BATCH3_SCHEMAS = ["trace-step.schema.json", "episode.schema.json"]
 
 
 EXPECTED_ENUMS = {
@@ -509,6 +509,23 @@ def check_mutations(batch: str) -> str:
                 "MUT-B3-001 did not isolate canonical-state reference leakage"
             )
 
+        episode_fixture = load_json(
+            ROOT / "fixtures/invalid/episode.empty-steps.invalid.json"
+        )
+        episode_schema = load_json(ROOT / "episode.schema.json")
+        del episode_schema["properties"]["steps"]["minItems"]
+        trace_document = load_json(ROOT / "trace-step.schema.json")
+        episode_resources = trace_resources.with_resource(
+            trace_document["$id"], Resource.from_contents(trace_document)
+        )
+        episode_mutant = Draft202012Validator(
+            episode_schema, registry=episode_resources
+        )
+        if list(episode_mutant.iter_errors(episode_fixture)):
+            raise GateFailure(
+                "MUT-B3-002 did not isolate the non-empty episode guard"
+            )
+
     expected = sum(
         1
         for mutation in registry["mutations"]
@@ -543,8 +560,8 @@ def parse_yaml_blocks(markdown: str) -> list[dict[str, str]]:
 def check_deferred_register() -> str:
     text = (ROOT / "deferred-invariants.md").read_text(encoding="utf-8")
     records = parse_yaml_blocks(text)
-    if len(records) != 15:
-        raise GateFailure(f"Expected 15 deferred invariants, found {len(records)}")
+    if len(records) != 16:
+        raise GateFailure(f"Expected 16 deferred invariants, found {len(records)}")
     ids = []
     for record in records:
         missing = DEFERRED_KEYS - set(record)
@@ -557,7 +574,7 @@ def check_deferred_register() -> str:
         ids.append(record["invariant_id"])
     if len(ids) != len(set(ids)):
         raise GateFailure("Deferred invariant IDs are not unique")
-    return "15 deferred invariants have complete ownership and test records"
+    return "16 deferred invariants have complete ownership and test records"
 
 
 def check_manifest_versions() -> str:

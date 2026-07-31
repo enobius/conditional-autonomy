@@ -41,6 +41,12 @@
       "batch": "batch3",
       "status": "ACTIVE",
       "description": "Permit canonical_state_ref to be POLICY_VISIBLE; the trace leakage fixture must fail."
+    },
+    {
+      "id": "MUT-B3-002",
+      "batch": "batch3",
+      "status": "ACTIVE",
+      "description": "Permit an episode with no trace steps; the empty-steps fixture must fail."
     }
   ]
 }

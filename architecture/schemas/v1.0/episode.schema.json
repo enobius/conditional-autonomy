@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://thesis.local/schemas/v1.0/episode.schema.json",
+  "title": "Episode",
+  "type": "object",
+  "required": [
+    "episode_id",
+    "environment_version",
+    "schema_version",
+    "generator_manifest_ref",
+    "user_model_ref",
+    "policy_versions",
+    "steps",
+    "final_outcome",
+    "split_assignment",
+    "event_log_hash",
+    "terminal_status"
+  ],
+  "properties": {
+    "episode_id": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "environment_version": {
+      "$ref": "common.defs.schema.json#/$defs/versionIdentifier",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "schema_version": {
+      "$ref": "common.defs.schema.json#/$defs/versionIdentifier",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "generator_manifest_ref": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "user_model_ref": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "policy_versions": {
+      "type": "array",
+      "items": {
+        "$ref": "common.defs.schema.json#/$defs/versionIdentifier"
+      },
+      "minItems": 1,
+      "uniqueItems": true,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "trace-step.schema.json"
+      },
+      "minItems": 1,
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "final_outcome": {
+      "$ref": "outcome-vector.schema.json",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "split_assignment": {
+      "enum": [
+        "TRAIN",
+        "DEVELOPMENT",
+        "TEST",
+        "TRANSFER",
+        "PROTECTED_REGRESSION"
+      ],
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "event_log_hash": {
+      "$ref": "common.defs.schema.json#/$defs/contentHash",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    },
+    "terminal_status": {
+      "$ref": "common.defs.schema.json#/$defs/stableId",
+      "x-access-class": [
+        "EVALUATOR_ONLY"
+      ]
+    }
+  },
+  "additionalProperties": false
+}

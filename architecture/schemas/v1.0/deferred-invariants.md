@@ -196,3 +196,16 @@ positive_test: INV-015-P
 negative_test: INV-015-N
 status: OPEN
 ```
+
+```yaml
+invariant_id: INV-016
+statement: Episode trace steps belong to the declared episode and have unique contiguous step_index values in ascending order.
+reason_deferred: Membership, uniqueness, contiguity, and ordering are cross-item sequence properties.
+owner: Workstream 1C
+validator: episode_trace_order_check
+enforcement_phase: replay
+failure_resolution: QUARANTINE
+positive_test: INV-016-P
+negative_test: INV-016-N
+status: OPEN
+```

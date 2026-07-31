@@ -373,6 +373,71 @@
       "batch": "batch3",
       "expected": "invalid",
       "constraint": "trace-step.nested-validator-guard"
+    },
+    {
+      "path": "fixtures/valid/episode.valid.json",
+      "schema": "episode.schema.json",
+      "batch": "batch3",
+      "expected": "valid",
+      "constraints": [
+        "composite episode representative"
+      ]
+    },
+    {
+      "path": "fixtures/invalid/episode.empty-steps.invalid.json",
+      "schema": "episode.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "episode.empty-steps"
+    },
+    {
+      "path": "fixtures/invalid/episode.trace-canonical-access.invalid.json",
+      "schema": "episode.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "episode.trace-canonical-access"
+    },
+    {
+      "path": "fixtures/invalid/episode.final-outcome-count.invalid.json",
+      "schema": "episode.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "episode.final-outcome-count"
+    },
+    {
+      "path": "fixtures/invalid/episode.event-log-hash.invalid.json",
+      "schema": "episode.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "episode.event-log-hash"
+    },
+    {
+      "path": "fixtures/invalid/episode.missing-environment-version.invalid.json",
+      "schema": "episode.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "episode.missing-environment-version"
+    },
+    {
+      "path": "fixtures/invalid/episode.empty-policy-versions.invalid.json",
+      "schema": "episode.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "episode.empty-policy-versions"
+    },
+    {
+      "path": "fixtures/invalid/episode.split-assignment.invalid.json",
+      "schema": "episode.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "episode.split-assignment"
+    },
+    {
+      "path": "fixtures/invalid/episode.additional-field.invalid.json",
+      "schema": "episode.schema.json",
+      "batch": "batch3",
+      "expected": "invalid",
+      "constraint": "episode.additional-field"
     }
   ]
 }

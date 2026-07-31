@@ -2,9 +2,9 @@
 
 `B0-1` passed the technical gate and was persisted in commit `6fb0289`.
 Batch 1 and Batch 2 have passed their technical gates and independent
-specification-fidelity review and are committed on `main`. B3-1 has passed
-its technical gate and independent specification-fidelity review. B3-2 is
-ready for implementation.
+specification-fidelity review and are committed on `main`. B3-1 and B3-2 have
+passed their technical gates and independent specification-fidelity review.
+Workstream 1A's schema ticket set is complete.
 
 | Ticket | Tier | Artifact | Specification | Status | Depends on |
 |---|---|---|---|---|---|
@@ -21,7 +21,7 @@ ready for implementation.
 | B2-2 | Mid | `canonical-state.schema.json` | Spec §§2.1–2.2, 2.4 | DONE | B0-1 (satisfied) |
 | B2-3 | Mid | `access-scoped-observation.schema.json` | Spec §§2.1, 4 | DONE | B0-1 (satisfied) |
 | B3-1 | Mid | `trace-step.schema.json` | Spec §4 | DONE | B1-1..8, B2-1..3 (satisfied) |
-| B3-2 | Mid | `episode.schema.json` | Spec §§4–5 | READY | B3-1 (integrated) |
+| B3-2 | Mid | `episode.schema.json` | Spec §§4–5 | DONE | B3-1 (integrated) |
 
 ## Required ticket content
 
