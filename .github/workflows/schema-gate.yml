@@ -1,0 +1,44 @@
+name: schema-gate
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/schema-gate.yml"
+      - "architecture/schemas/**"
+      - "work/build_batch*.py"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/schema-gate.yml"
+      - "architecture/schemas/**"
+      - "work/build_batch*.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  schema-gate:
+    name: schema-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: architecture/schemas/requirements-schema.txt
+
+      - name: Install pinned schema validators
+        run: >-
+          python -m pip install
+          --target architecture/schemas/.vendor
+          -r architecture/schemas/requirements-schema.txt
+
+      - name: Run complete schema gate
+        run: python architecture/schemas/v1.0/scripts/check_schemas.py --batch all

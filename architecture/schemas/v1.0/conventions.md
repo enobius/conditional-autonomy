@@ -100,7 +100,7 @@ Deferral is not deletion. Every deferred invariant has an owner, enforcement pha
 Run:
 
 ```powershell
-python scripts/check_schemas.py --batch batch0
+python scripts/check_schemas.py --batch all
 ```
 
 `make check` or another task runner may wrap this command, but the Python entrypoint is canonical.
