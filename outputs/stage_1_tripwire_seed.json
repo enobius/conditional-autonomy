@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0",
+  "stage": "Stage 1",
+  "source": "outputs/Stage_1_Runtime_Issue_Set_Review.md",
+  "period": "weekly",
+  "threshold": 3,
+  "threshold_action": "trigger-decomposition-review",
+  "tracking_comment_url": "https://github.com/enobius/conditional-autonomy/issues/20#issuecomment-5201251400",
+  "measurement_note": "Diagnostic orchestration signals; never worker-performance scores.",
+  "counters": {
+    "unresolved_query_blockers_over_two_days": 0,
+    "second_review_failures": 0,
+    "scope_violations": 0
+  },
+  "last_updated": null,
+  "events": []
+}
