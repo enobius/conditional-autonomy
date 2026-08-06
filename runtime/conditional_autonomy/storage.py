@@ -38,6 +38,19 @@ class IntegrityError(StorageError):
     """Stored bytes or a declared hash do not match canonical content."""
 
 
+class ArtifactTypeMismatchError(IntegrityError):
+    """An artifact exists but does not have the caller's declared type."""
+
+    def __init__(self, artifact_id: str, actual_type: str, expected_type: str) -> None:
+        self.artifact_id = artifact_id
+        self.actual_type = actual_type
+        self.expected_type = expected_type
+        super().__init__(
+            f"artifact {artifact_id!r} has type {actual_type!r}, "
+            f"not {expected_type!r}"
+        )
+
+
 class DuplicateEventIdError(StorageError):
     """An event ID already exists in the durable event log."""
 
@@ -118,6 +131,19 @@ def canonical_json_bytes(value: Any) -> bytes:
 
 def _hash_bytes(content: bytes) -> str:
     return f"sha256:{hashlib.sha256(content).hexdigest()}"
+
+
+def _reject_nonfinite_json_constant(value: str) -> None:
+    raise ValueError(f"non-finite JSON number is forbidden: {value}")
+
+
+def _load_persisted_json(content: bytes, description: str) -> Any:
+    """Parse persisted bytes as strict JSON and normalize failures."""
+
+    try:
+        return json.loads(content, parse_constant=_reject_nonfinite_json_constant)
+    except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+        raise IntegrityError(f"{description} is not valid strict JSON") from exc
 
 
 def _hash_value(hash_value: str) -> str:
@@ -220,9 +246,8 @@ class AppendOnlyStore:
 
         record = self._read_artifact_record(artifact_id)
         if expected_type is not None and record["artifact_type"] != expected_type:
-            raise IntegrityError(
-                f"artifact {artifact_id!r} has type {record['artifact_type']!r}, "
-                f"not {expected_type!r}"
+            raise ArtifactTypeMismatchError(
+                artifact_id, record["artifact_type"], expected_type
             )
         return deepcopy(record["content"])
 
@@ -300,10 +325,7 @@ class AppendOnlyStore:
             stored_bytes = destination.read_bytes()
         except FileNotFoundError:
             raise KeyError(artifact_id) from None
-        try:
-            record = json.loads(stored_bytes)
-        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-            raise IntegrityError(f"artifact {artifact_id!r} is not valid JSON") from exc
+        record = _load_persisted_json(stored_bytes, f"artifact {artifact_id!r}")
         if not isinstance(record, dict) or set(record) != {
             "artifact_id",
             "artifact_type",
@@ -334,16 +356,16 @@ class AppendOnlyStore:
         events: list[dict[str, Any]] = []
         seen_ids: set[str] = set()
         for line_number, line in enumerate(stored_bytes.splitlines(), start=1):
-            try:
-                event = json.loads(line)
-            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-                raise IntegrityError(f"event log line {line_number} is not valid JSON") from exc
+            event = _load_persisted_json(line, f"event log line {line_number}")
             if not isinstance(event, dict):
                 raise IntegrityError(f"event log line {line_number} is not an object")
             if line != canonical_json_bytes(event):
                 raise IntegrityError(f"event log line {line_number} is not canonical JSON")
             event_id = event.get("event_id")
-            self._require_identifier("event_id", event_id)
+            if not isinstance(event_id, str) or not event_id:
+                raise IntegrityError(
+                    f"event log line {line_number} has an invalid event_id"
+                )
             if event_id in seen_ids:
                 raise IntegrityError(f"duplicate durable event ID: {event_id}")
             seen_ids.add(event_id)

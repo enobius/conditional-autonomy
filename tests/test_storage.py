@@ -298,6 +298,14 @@ class AppendOnlyStoreTests(unittest.TestCase):
         with self.assertRaisesRegex(IntegrityError, "content hash mismatch"):
             self.store.verify_artifact("state:1")
 
+    def test_nonfinite_persisted_artifact_is_integrity_error(self) -> None:
+        self.store.put_artifact("state:1", "canonical-state", {"value": 1})
+        artifact_path = next((self.root / "artifacts").glob("*.json"))
+        artifact_path.write_text('{"value":NaN}', encoding="utf-8")
+
+        with self.assertRaisesRegex(IntegrityError, "not valid strict JSON"):
+            self.store.get_artifact("state:1")
+
     def test_event_append_rejects_duplicate_id_from_durable_log(self) -> None:
         first = event("event:1", 1)
         self.store.append_event(first)
@@ -349,6 +357,12 @@ class AppendOnlyStoreTests(unittest.TestCase):
         item = event("event:1", 1)
         (self.root / "events.jsonl").write_text(json.dumps(item), encoding="utf-8")
         with self.assertRaisesRegex(IntegrityError, "partial record"):
+            self.store.events()
+
+    def test_nonfinite_persisted_event_is_integrity_error(self) -> None:
+        (self.root / "events.jsonl").write_bytes(b'{"event_id":"event:1","x":NaN}\n')
+
+        with self.assertRaisesRegex(IntegrityError, "not valid strict JSON"):
             self.store.events()
 
 
