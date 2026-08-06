@@ -1,0 +1,512 @@
+{
+  "format_version": "1.0",
+  "cases": [
+    {
+      "test_id": "INV-001-P",
+      "invariant_id": "INV-001",
+      "validator": "compensation_prevalidation_check",
+      "enforcement_phase": "pre-execution",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {
+        "action": {"action_id": "action-001", "reversibility": "COMPENSATABLE", "compensation_prevalidation_id": "prevalidation-001"},
+        "authorization": {"authorized_at_logical_clock": 12},
+        "prevalidations": [{"prevalidation_id": "prevalidation-001", "action_id": "action-001", "status": "PASS", "logical_clock": 11}]
+      }
+    },
+    {
+      "test_id": "INV-001-N",
+      "invariant_id": "INV-001",
+      "validator": "compensation_prevalidation_check",
+      "enforcement_phase": "pre-execution",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "REJECT"},
+      "input": {
+        "action": {"action_id": "action-001", "reversibility": "COMPENSATABLE", "compensation_prevalidation_id": "prevalidation-001"},
+        "authorization": {"authorized_at_logical_clock": 12},
+        "prevalidations": [{"prevalidation_id": "prevalidation-001", "action_id": "action-001", "status": "PASS", "logical_clock": 13}]
+      }
+    },
+    {
+      "test_id": "INV-002-P",
+      "invariant_id": "INV-002",
+      "validator": "compensation_current_authority_check",
+      "enforcement_phase": "reconciliation",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {
+        "compensation": {"action_id": "compensation-001", "required_capabilities": ["inventory-write"], "authorized_state_version": 8},
+        "current_context": {"state_version": 8, "granted_capabilities": ["inventory-write"], "preconditions_hold": true}
+      }
+    },
+    {
+      "test_id": "INV-002-N",
+      "invariant_id": "INV-002",
+      "validator": "compensation_current_authority_check",
+      "enforcement_phase": "reconciliation",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "ESCALATE"},
+      "input": {
+        "compensation": {"action_id": "compensation-001", "required_capabilities": ["inventory-write"], "authorized_state_version": 8},
+        "current_context": {"state_version": 8, "granted_capabilities": [], "preconditions_hold": true}
+      }
+    },
+    {
+      "test_id": "INV-003-P",
+      "invariant_id": "INV-003",
+      "validator": "artifact_reference_check",
+      "enforcement_phase": "ingest",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {
+        "references": [{"ref_id": "event-001", "declared_type": "event"}],
+        "artifacts": [{"artifact_id": "event-001", "artifact_type": "event"}]
+      }
+    },
+    {
+      "test_id": "INV-003-N",
+      "invariant_id": "INV-003",
+      "validator": "artifact_reference_check",
+      "enforcement_phase": "ingest",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {
+        "references": [{"ref_id": "event-001", "declared_type": "event"}],
+        "artifacts": [{"artifact_id": "event-001", "artifact_type": "action-proposal"}]
+      }
+    },
+    {
+      "test_id": "INV-004-P",
+      "invariant_id": "INV-004",
+      "validator": "current_version_check",
+      "enforcement_phase": "pre-execution",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {
+        "authorization": {"state_version": 7, "plan_id": "plan-001", "plan_version": 3},
+        "current": {"state_version": 7, "plan_id": "plan-001", "plan_version": 3}
+      }
+    },
+    {
+      "test_id": "INV-004-N",
+      "invariant_id": "INV-004",
+      "validator": "current_version_check",
+      "enforcement_phase": "pre-execution",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "REPAIR"},
+      "input": {
+        "authorization": {"state_version": 7, "plan_id": "plan-001", "plan_version": 3},
+        "current": {"state_version": 8, "plan_id": "plan-001", "plan_version": 3}
+      }
+    },
+    {
+      "test_id": "INV-005-P",
+      "invariant_id": "INV-005",
+      "validator": "event_id_uniqueness_check",
+      "enforcement_phase": "ingest",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {"existing_event_ids": ["event-001", "event-002"], "candidate_event_id": "event-003"}
+    },
+    {
+      "test_id": "INV-005-N",
+      "invariant_id": "INV-005",
+      "validator": "event_id_uniqueness_check",
+      "enforcement_phase": "ingest",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"existing_event_ids": ["event-001", "event-002"], "candidate_event_id": "event-002"}
+    },
+    {
+      "test_id": "INV-006-P",
+      "invariant_id": "INV-006",
+      "validator": "logical_clock_order_check",
+      "enforcement_phase": "replay",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {"concurrency_policy": "TOTAL_ORDER", "events": [{"event_id": "event-001", "logical_clock": 1}, {"event_id": "event-002", "logical_clock": 3}]}
+    },
+    {
+      "test_id": "INV-006-N",
+      "invariant_id": "INV-006",
+      "validator": "logical_clock_order_check",
+      "enforcement_phase": "replay",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"concurrency_policy": "TOTAL_ORDER", "events": [{"event_id": "event-001", "logical_clock": 3}, {"event_id": "event-002", "logical_clock": 3}]}
+    },
+    {
+      "test_id": "INV-007-P",
+      "invariant_id": "INV-007",
+      "validator": "state_version_transition_check",
+      "enforcement_phase": "replay",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {"transitions": [{"event_id": "event-001", "from_state_version": 0, "to_state_version": 1}, {"event_id": "event-002", "from_state_version": 1, "to_state_version": 2}]}
+    },
+    {
+      "test_id": "INV-007-N",
+      "invariant_id": "INV-007",
+      "validator": "state_version_transition_check",
+      "enforcement_phase": "replay",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"transitions": [{"event_id": "event-001", "from_state_version": 0, "to_state_version": 1}, {"event_id": "event-002", "from_state_version": 1, "to_state_version": 3}]}
+    },
+    {
+      "test_id": "INV-008-P",
+      "invariant_id": "INV-008",
+      "validator": "deterministic_replay_check",
+      "enforcement_phase": "replay",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {
+        "initial_state": {"state_version": 0, "resources": {"chairs": 4}},
+        "ordered_events": [{"event_id": "event-001", "logical_clock": 1, "operation": "SET", "path": "/resources/chairs", "value": 6}],
+        "recorded_state": {"state_version": 1, "resources": {"chairs": 6}}
+      }
+    },
+    {
+      "test_id": "INV-008-N",
+      "invariant_id": "INV-008",
+      "validator": "deterministic_replay_check",
+      "enforcement_phase": "replay",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {
+        "initial_state": {"state_version": 0, "resources": {"chairs": 4}},
+        "ordered_events": [{"event_id": "event-001", "logical_clock": 1, "operation": "SET", "path": "/resources/chairs", "value": 6}],
+        "recorded_state": {"state_version": 1, "resources": {"chairs": 5}}
+      }
+    },
+    {
+      "test_id": "INV-009-P",
+      "invariant_id": "INV-009",
+      "validator": "verified_effect_check",
+      "enforcement_phase": "reconciliation",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {
+        "tool_outcome": {"normalized_effects": [{"effect_id": "effect-001"}], "verified_effects": [{"effect_id": "effect-001", "evidence_ref": "evidence-001"}]},
+        "canonical_fact_effect_ids": ["effect-001"]
+      }
+    },
+    {
+      "test_id": "INV-009-N",
+      "invariant_id": "INV-009",
+      "validator": "verified_effect_check",
+      "enforcement_phase": "reconciliation",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "REPAIR"},
+      "input": {
+        "tool_outcome": {"normalized_effects": [{"effect_id": "effect-001"}], "verified_effects": []},
+        "canonical_fact_effect_ids": ["effect-001"]
+      }
+    },
+    {
+      "test_id": "INV-010-P",
+      "invariant_id": "INV-010",
+      "validator": "audit_deadline_check",
+      "enforcement_phase": "reconciliation",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {"audit_deadline": "2026-11-26T18:00:00Z", "observed_at": "2026-11-26T17:59:00Z", "audit": {"status": "VERIFIED", "evidence_ref": "audit-evidence-001"}}
+    },
+    {
+      "test_id": "INV-010-N",
+      "invariant_id": "INV-010",
+      "validator": "audit_deadline_check",
+      "enforcement_phase": "reconciliation",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "ESCALATE"},
+      "input": {"audit_deadline": "2026-11-26T18:00:00Z", "observed_at": "2026-11-26T18:01:00Z", "audit": {"status": "VERIFIED", "evidence_ref": "audit-evidence-001"}}
+    },
+    {
+      "test_id": "INV-011-P",
+      "invariant_id": "INV-011",
+      "validator": "clarification_counter_reconciliation",
+      "enforcement_phase": "promotion",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {
+        "classified_events": [{"event_id": "event-001", "classification": "QUERY"}, {"event_id": "event-002", "classification": "USER_RESPONSE"}, {"event_id": "event-003", "classification": "ACTION"}],
+        "recorded_counters": {"queries": 1, "user_responses": 1}
+      }
+    },
+    {
+      "test_id": "INV-011-N",
+      "invariant_id": "INV-011",
+      "validator": "clarification_counter_reconciliation",
+      "enforcement_phase": "promotion",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {
+        "classified_events": [{"event_id": "event-001", "classification": "QUERY"}, {"event_id": "event-002", "classification": "USER_RESPONSE"}, {"event_id": "event-003", "classification": "ACTION"}],
+        "recorded_counters": {"queries": 0, "user_responses": 1}
+      }
+    },
+    {
+      "test_id": "INV-012-P",
+      "invariant_id": "INV-012",
+      "validator": "adapter_compatibility_check",
+      "enforcement_phase": "pre-execution",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {
+        "adapter": {"adapter_id": "adapter-001", "base_model_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "target_modules": ["q_proj", "v_proj"], "incompatibilities": []},
+        "runtime": {"base_model_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "available_modules": ["q_proj", "v_proj"], "runtime_version": "runtime-1.0"}
+      }
+    },
+    {
+      "test_id": "INV-012-N",
+      "invariant_id": "INV-012",
+      "validator": "adapter_compatibility_check",
+      "enforcement_phase": "pre-execution",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "REJECT"},
+      "input": {
+        "adapter": {"adapter_id": "adapter-001", "base_model_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "target_modules": ["q_proj", "v_proj"], "incompatibilities": []},
+        "runtime": {"base_model_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "available_modules": ["q_proj", "v_proj"], "runtime_version": "runtime-1.0"}
+      }
+    },
+    {
+      "test_id": "INV-013-P",
+      "invariant_id": "INV-013",
+      "validator": "split_leakage_check",
+      "enforcement_phase": "promotion",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {
+        "prohibited_dimensions": ["seed", "template_family", "constraint_graph_hash", "disruption_composition_hash"],
+        "manifests": [
+          {"instance_id": "instance-train-001", "split": "TRAIN", "seed": 101, "template_family": "template-a", "constraint_graph_hash": "graph-a", "disruption_composition_hash": "disruption-a"},
+          {"instance_id": "instance-test-001", "split": "TEST", "seed": 202, "template_family": "template-b", "constraint_graph_hash": "graph-b", "disruption_composition_hash": "disruption-b"}
+        ]
+      }
+    },
+    {
+      "test_id": "INV-013-N",
+      "invariant_id": "INV-013",
+      "validator": "split_leakage_check",
+      "enforcement_phase": "promotion",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {
+        "prohibited_dimensions": ["seed", "template_family", "constraint_graph_hash", "disruption_composition_hash"],
+        "manifests": [
+          {"instance_id": "instance-train-001", "split": "TRAIN", "seed": 101, "template_family": "template-a", "constraint_graph_hash": "graph-a", "disruption_composition_hash": "disruption-a"},
+          {"instance_id": "instance-test-001", "split": "TEST", "seed": 101, "template_family": "template-b", "constraint_graph_hash": "graph-b", "disruption_composition_hash": "disruption-b"}
+        ]
+      }
+    },
+    {
+      "test_id": "INV-014-P",
+      "invariant_id": "INV-014",
+      "validator": "policy_input_leakage_check",
+      "enforcement_phase": "ingest",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {
+        "training_example": {"visible_facts": [{"fact_id": "guest-count", "value": 8, "access_class": "POLICY_VISIBLE"}]},
+        "projection_lineage": [{"output_path": "/visible_facts/0", "source_access_class": "POLICY_VISIBLE"}]
+      }
+    },
+    {
+      "test_id": "INV-014-N",
+      "invariant_id": "INV-014",
+      "validator": "policy_input_leakage_check",
+      "enforcement_phase": "ingest",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {
+        "training_example": {"visible_facts": [{"fact_id": "guest-count", "value": 8, "access_class": "PRIVATE_ENVIRONMENT"}]},
+        "projection_lineage": [{"output_path": "/visible_facts/0", "source_access_class": "PRIVATE_ENVIRONMENT"}]
+      }
+    },
+    {
+      "test_id": "INV-015-P",
+      "invariant_id": "INV-015",
+      "validator": "artifact_integrity_check",
+      "enforcement_phase": "ingest",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {
+        "canonicalization": "STAGE1_CANONICAL_JSON_V1",
+        "artifacts": [{"content": {"artifact_id": "artifact-001", "value": "approved"}, "content_hash": "sha256:8ce10d6afdaff7f5c4904b656fcf2a42639a6422d4ff7bd4e99b1909535069ab"}],
+        "event_log": {"serialization": "CANONICAL_JSONL_WITH_FINAL_NEWLINE", "events": [{"event_id": "event-001", "logical_clock": 1}, {"event_id": "event-002", "logical_clock": 3}], "integrity_hash": "sha256:2e3658f93ef63d46f48e38f948ef98a2a7a1c54f392de271b3b50aaea3944036"}
+      }
+    },
+    {
+      "test_id": "INV-015-N",
+      "invariant_id": "INV-015",
+      "validator": "artifact_integrity_check",
+      "enforcement_phase": "ingest",
+      "coverage_clause": "artifact content hash matches canonical serialized content",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {
+        "canonicalization": "STAGE1_CANONICAL_JSON_V1",
+        "artifacts": [{"content": {"artifact_id": "artifact-001", "value": "approvee"}, "content_hash": "sha256:8ce10d6afdaff7f5c4904b656fcf2a42639a6422d4ff7bd4e99b1909535069ab"}],
+        "event_log": {"serialization": "CANONICAL_JSONL_WITH_FINAL_NEWLINE", "events": [{"event_id": "event-001", "logical_clock": 1}, {"event_id": "event-002", "logical_clock": 3}], "integrity_hash": "sha256:2e3658f93ef63d46f48e38f948ef98a2a7a1c54f392de271b3b50aaea3944036"}
+      }
+    },
+    {
+      "test_id": "INV-016-P",
+      "invariant_id": "INV-016",
+      "validator": "episode_trace_order_check",
+      "enforcement_phase": "replay",
+      "expected": {"verdict": "PASS", "expected_failure_resolution": null},
+      "input": {"episode_id": "episode-001", "steps": [{"trace_step_id": "step-001", "episode_id": "episode-001", "step_index": 0}, {"trace_step_id": "step-002", "episode_id": "episode-001", "step_index": 1}]}
+    },
+    {
+      "test_id": "INV-016-N",
+      "invariant_id": "INV-016",
+      "validator": "episode_trace_order_check",
+      "enforcement_phase": "replay",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"episode_id": "episode-001", "steps": [{"trace_step_id": "step-001", "episode_id": "episode-001", "step_index": 0}, {"trace_step_id": "step-002", "episode_id": "episode-002", "step_index": 1}]}
+    },
+    {
+      "test_id": "INV-003-N.dangling",
+      "invariant_id": "INV-003",
+      "validator": "artifact_reference_check",
+      "enforcement_phase": "ingest",
+      "coverage_clause": "referenced artifact exists",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"references": [{"ref_id": "event-missing", "declared_type": "event"}], "artifacts": [{"artifact_id": "event-001", "artifact_type": "event"}]}
+    },
+    {
+      "test_id": "INV-004-N.plan-version",
+      "invariant_id": "INV-004",
+      "validator": "current_version_check",
+      "enforcement_phase": "pre-execution",
+      "coverage_clause": "authorized plan version equals current plan version",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "REPAIR"},
+      "input": {"authorization": {"state_version": 7, "plan_id": "plan-001", "plan_version": 3}, "current": {"state_version": 7, "plan_id": "plan-001", "plan_version": 4}}
+    },
+    {
+      "test_id": "INV-010-N.unverifiable-audit",
+      "invariant_id": "INV-010",
+      "validator": "audit_deadline_check",
+      "enforcement_phase": "reconciliation",
+      "coverage_clause": "audit is independently verifiable",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "ESCALATE"},
+      "input": {"audit_deadline": "2026-11-26T18:00:00Z", "observed_at": "2026-11-26T17:59:00Z", "audit": {"status": "UNVERIFIABLE", "evidence_ref": null}}
+    },
+    {
+      "test_id": "INV-012-N.target-modules",
+      "invariant_id": "INV-012",
+      "validator": "adapter_compatibility_check",
+      "enforcement_phase": "pre-execution",
+      "coverage_clause": "all adapter target modules exist in the runtime",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "REJECT"},
+      "input": {"adapter": {"adapter_id": "adapter-001", "base_model_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "target_modules": ["q_proj", "v_proj"], "incompatibilities": []}, "runtime": {"base_model_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "available_modules": ["q_proj"], "runtime_version": "runtime-1.0"}}
+    },
+    {
+      "test_id": "INV-012-N.runtime",
+      "invariant_id": "INV-012",
+      "validator": "adapter_compatibility_check",
+      "enforcement_phase": "pre-execution",
+      "coverage_clause": "runtime version is not declared incompatible",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "REJECT"},
+      "input": {"adapter": {"adapter_id": "adapter-001", "base_model_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "target_modules": ["q_proj", "v_proj"], "incompatibilities": ["runtime-1.0"]}, "runtime": {"base_model_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "available_modules": ["q_proj", "v_proj"], "runtime_version": "runtime-1.0"}}
+    },
+    {
+      "test_id": "INV-013-N.template",
+      "invariant_id": "INV-013",
+      "validator": "split_leakage_check",
+      "enforcement_phase": "promotion",
+      "coverage_clause": "template families do not overlap across prohibited splits",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"prohibited_dimensions": ["seed", "template_family", "constraint_graph_hash", "disruption_composition_hash"], "manifests": [{"instance_id": "instance-train-001", "split": "TRAIN", "seed": 101, "template_family": "template-a", "constraint_graph_hash": "graph-a", "disruption_composition_hash": "disruption-a"}, {"instance_id": "instance-test-001", "split": "TEST", "seed": 202, "template_family": "template-a", "constraint_graph_hash": "graph-b", "disruption_composition_hash": "disruption-b"}]}
+    },
+    {
+      "test_id": "INV-013-N.graph",
+      "invariant_id": "INV-013",
+      "validator": "split_leakage_check",
+      "enforcement_phase": "promotion",
+      "coverage_clause": "graph structures do not overlap across prohibited splits",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"prohibited_dimensions": ["seed", "template_family", "constraint_graph_hash", "disruption_composition_hash"], "manifests": [{"instance_id": "instance-train-001", "split": "TRAIN", "seed": 101, "template_family": "template-a", "constraint_graph_hash": "graph-a", "disruption_composition_hash": "disruption-a"}, {"instance_id": "instance-test-001", "split": "TEST", "seed": 202, "template_family": "template-b", "constraint_graph_hash": "graph-a", "disruption_composition_hash": "disruption-b"}]}
+    },
+    {
+      "test_id": "INV-013-N.disruption",
+      "invariant_id": "INV-013",
+      "validator": "split_leakage_check",
+      "enforcement_phase": "promotion",
+      "coverage_clause": "disruption compositions do not overlap across prohibited splits",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"prohibited_dimensions": ["seed", "template_family", "constraint_graph_hash", "disruption_composition_hash"], "manifests": [{"instance_id": "instance-train-001", "split": "TRAIN", "seed": 101, "template_family": "template-a", "constraint_graph_hash": "graph-a", "disruption_composition_hash": "disruption-a"}, {"instance_id": "instance-test-001", "split": "TEST", "seed": 202, "template_family": "template-b", "constraint_graph_hash": "graph-b", "disruption_composition_hash": "disruption-a"}]}
+    },
+    {
+      "test_id": "INV-014-N.evaluator-only",
+      "invariant_id": "INV-014",
+      "validator": "policy_input_leakage_check",
+      "enforcement_phase": "ingest",
+      "coverage_clause": "EVALUATOR_ONLY fields and lineage are absent from policy inputs",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"training_example": {"visible_facts": [{"fact_id": "guest-count", "value": 8, "access_class": "EVALUATOR_ONLY"}]}, "projection_lineage": [{"output_path": "/visible_facts/0", "source_access_class": "EVALUATOR_ONLY"}]}
+    },
+    {
+      "test_id": "INV-014-N.validator-visible",
+      "invariant_id": "INV-014",
+      "validator": "policy_input_leakage_check",
+      "enforcement_phase": "ingest",
+      "coverage_clause": "VALIDATOR_VISIBLE fields and lineage are absent from policy inputs",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"training_example": {"visible_facts": [{"fact_id": "guest-count", "value": 8, "access_class": "VALIDATOR_VISIBLE"}]}, "projection_lineage": [{"output_path": "/visible_facts/0", "source_access_class": "VALIDATOR_VISIBLE"}]}
+    },
+    {
+      "test_id": "INV-015-N.event-log-hash",
+      "invariant_id": "INV-015",
+      "validator": "artifact_integrity_check",
+      "enforcement_phase": "ingest",
+      "coverage_clause": "event-log hash matches canonical JSONL bytes including final newline",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"canonicalization": "STAGE1_CANONICAL_JSON_V1", "artifacts": [{"content": {"artifact_id": "artifact-001", "value": "approved"}, "content_hash": "sha256:8ce10d6afdaff7f5c4904b656fcf2a42639a6422d4ff7bd4e99b1909535069ab"}], "event_log": {"serialization": "CANONICAL_JSONL_WITH_FINAL_NEWLINE", "events": [{"event_id": "event-001", "logical_clock": 1}, {"event_id": "event-002", "logical_clock": 3}], "integrity_hash": "sha256:3e3658f93ef63d46f48e38f948ef98a2a7a1c54f392de271b3b50aaea3944036"}}
+    },
+    {
+      "test_id": "INV-016-N.uniqueness",
+      "invariant_id": "INV-016",
+      "validator": "episode_trace_order_check",
+      "enforcement_phase": "replay",
+      "coverage_clause": "step_index values are unique",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"episode_id": "episode-001", "steps": [{"trace_step_id": "step-001", "episode_id": "episode-001", "step_index": 0}, {"trace_step_id": "step-002", "episode_id": "episode-001", "step_index": 0}]}
+    },
+    {
+      "test_id": "INV-016-N.contiguity",
+      "invariant_id": "INV-016",
+      "validator": "episode_trace_order_check",
+      "enforcement_phase": "replay",
+      "coverage_clause": "step_index values are contiguous",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"episode_id": "episode-001", "steps": [{"trace_step_id": "step-001", "episode_id": "episode-001", "step_index": 0}, {"trace_step_id": "step-002", "episode_id": "episode-001", "step_index": 2}]}
+    },
+    {
+      "test_id": "INV-016-N.ascending-order",
+      "invariant_id": "INV-016",
+      "validator": "episode_trace_order_check",
+      "enforcement_phase": "replay",
+      "coverage_clause": "step_index values appear in ascending order",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"episode_id": "episode-001", "steps": [{"trace_step_id": "step-001", "episode_id": "episode-001", "step_index": 1}, {"trace_step_id": "step-002", "episode_id": "episode-001", "step_index": 0}]}
+    },
+    {
+      "test_id": "INV-002-N.stale-state-version",
+      "invariant_id": "INV-002",
+      "validator": "compensation_current_authority_check",
+      "enforcement_phase": "reconciliation",
+      "coverage_clause": "compensation authorization is valid against the current state version",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "ESCALATE"},
+      "input": {"compensation": {"action_id": "compensation-001", "required_capabilities": ["inventory-write"], "authorized_state_version": 8}, "current_context": {"state_version": 9, "granted_capabilities": ["inventory-write"], "preconditions_hold": true}}
+    },
+    {
+      "test_id": "INV-002-N.precondition",
+      "invariant_id": "INV-002",
+      "validator": "compensation_current_authority_check",
+      "enforcement_phase": "reconciliation",
+      "coverage_clause": "compensation preconditions hold when recovery begins",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "ESCALATE"},
+      "input": {"compensation": {"action_id": "compensation-001", "required_capabilities": ["inventory-write"], "authorized_state_version": 8}, "current_context": {"state_version": 8, "granted_capabilities": ["inventory-write"], "preconditions_hold": false}}
+    },
+    {
+      "test_id": "INV-004-N.plan-id",
+      "invariant_id": "INV-004",
+      "validator": "current_version_check",
+      "enforcement_phase": "pre-execution",
+      "coverage_clause": "authorization names the current executable plan",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "REPAIR"},
+      "input": {"authorization": {"state_version": 7, "plan_id": "plan-001", "plan_version": 3}, "current": {"state_version": 7, "plan_id": "plan-002", "plan_version": 3}}
+    },
+    {
+      "test_id": "INV-010-N.missing-audit",
+      "invariant_id": "INV-010",
+      "validator": "audit_deadline_check",
+      "enforcement_phase": "reconciliation",
+      "coverage_clause": "audit exists by the deadline",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "ESCALATE"},
+      "input": {"audit_deadline": "2026-11-26T18:00:00Z", "observed_at": "2026-11-26T17:59:00Z", "audit": {"status": "MISSING", "evidence_ref": null}}
+    },
+    {
+      "test_id": "INV-011-N.user-response-count",
+      "invariant_id": "INV-011",
+      "validator": "clarification_counter_reconciliation",
+      "enforcement_phase": "promotion",
+      "coverage_clause": "user-response counter equals classified USER_RESPONSE events",
+      "expected": {"verdict": "FAIL", "expected_failure_resolution": "QUARANTINE"},
+      "input": {"classified_events": [{"event_id": "event-001", "classification": "QUERY"}, {"event_id": "event-002", "classification": "USER_RESPONSE"}, {"event_id": "event-003", "classification": "ACTION"}], "recorded_counters": {"queries": 1, "user_responses": 0}}
+    }
+  ]
+}
+
