@@ -1,0 +1,393 @@
+"""Append-only artifact and event persistence.
+
+Hash domains are deliberately small and explicit:
+
+* canonical JSON is UTF-8 encoded, key-sorted, compact JSON with non-finite
+  numbers rejected;
+* a document's content hash covers that canonical representation after
+  removing only its top-level ``content_hash`` field, avoiding a self-hash;
+* the event-log hash covers the exact canonical JSONL bytes on disk, including
+  the trailing newline for each event.
+
+Writes are staged in the destination directory, flushed to durable storage,
+and atomically installed with ``os.replace``. A failed write therefore leaves
+the last complete store version visible rather than a partial record.
+"""
+
+from __future__ import annotations
+
+import errno
+import hashlib
+import json
+import os
+import tempfile
+import threading
+import time
+from collections.abc import Callable, Mapping
+from contextlib import contextmanager
+from copy import deepcopy
+from pathlib import Path
+from typing import Any
+
+
+class StorageError(RuntimeError):
+    """Base class for persistence failures."""
+
+
+class IntegrityError(StorageError):
+    """Stored bytes or a declared hash do not match canonical content."""
+
+
+class DuplicateEventIdError(StorageError):
+    """An event ID already exists in the durable event log."""
+
+
+class DuplicateArtifactIdError(StorageError):
+    """An artifact ID already exists in the append-only artifact store."""
+
+
+_ROOT_LOCKS_GUARD = threading.Lock()
+_ROOT_LOCKS: dict[Path, threading.RLock] = {}
+
+
+def _process_lock_for(root: Path) -> threading.RLock:
+    """Return the process-local half of a lock shared by equivalent roots."""
+
+    key = root.resolve()
+    with _ROOT_LOCKS_GUARD:
+        return _ROOT_LOCKS.setdefault(key, threading.RLock())
+
+
+@contextmanager
+def _locked_file(path: Path):
+    """Hold an exclusive advisory lock on byte zero of ``path``.
+
+    ``flock`` and ``msvcrt.locking`` locks are released by the operating system
+    if a writer exits unexpectedly. The process-local lock above also makes
+    same-process behavior independent of platform-specific lock ownership
+    semantics.
+    """
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a+b", buffering=0) as lock_file:
+        if lock_file.seek(0, os.SEEK_END) == 0:
+            lock_file.write(b"\0")
+            os.fsync(lock_file.fileno())
+        lock_file.seek(0)
+        if os.name == "nt":
+            import msvcrt
+
+            while True:
+                try:
+                    msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)
+                    break
+                except OSError as exc:
+                    if exc.errno not in {errno.EACCES, errno.EAGAIN}:
+                        raise
+                    time.sleep(0.01)
+            try:
+                yield
+            finally:
+                lock_file.seek(0)
+                msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
+def canonical_json_bytes(value: Any) -> bytes:
+    """Return the runtime's deterministic JSON representation of ``value``."""
+
+    try:
+        encoded = json.dumps(
+            value,
+            allow_nan=False,
+            ensure_ascii=False,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"value is not canonical-JSON serializable: {exc}") from exc
+    return encoded.encode("utf-8")
+
+
+def _hash_bytes(content: bytes) -> str:
+    return f"sha256:{hashlib.sha256(content).hexdigest()}"
+
+
+def _hash_value(hash_value: str) -> str:
+    if not isinstance(hash_value, str):
+        raise IntegrityError("declared content hash must be a string")
+    return hash_value.removeprefix("sha256:").lower()
+
+
+def _content_hash_payload(content: Mapping[str, Any]) -> dict[str, Any]:
+    payload = deepcopy(dict(content))
+    payload.pop("content_hash", None)
+    return payload
+
+
+def canonical_content_hash(content: Mapping[str, Any]) -> str:
+    """Hash a contract object, excluding its top-level self-hash field."""
+
+    if not isinstance(content, Mapping):
+        raise TypeError("content must be a mapping")
+    return _hash_bytes(canonical_json_bytes(_content_hash_payload(content)))
+
+
+def with_content_hash(content: Mapping[str, Any]) -> dict[str, Any]:
+    """Return a detached contract object carrying its canonical self-hash."""
+
+    result = deepcopy(dict(content))
+    result["content_hash"] = canonical_content_hash(result)
+    return result
+
+
+def _verify_declared_content_hash(
+    content: Mapping[str, Any], *, required: bool = True
+) -> str:
+    declared = content.get("content_hash")
+    if declared is None:
+        if required:
+            raise IntegrityError("content_hash is required for stored contract content")
+        return canonical_content_hash(content)
+    actual = canonical_content_hash(content)
+    if _hash_value(declared) != _hash_value(actual):
+        raise IntegrityError(
+            f"content hash mismatch: declared {declared!r}, computed {actual!r}"
+        )
+    return actual
+
+
+class AppendOnlyStore:
+    """Filesystem-backed append-only storage for artifacts and events."""
+
+    _EVENT_LOG_NAME = "events.jsonl"
+
+    def __init__(self, root: str | os.PathLike[str]) -> None:
+        self.root = Path(root).resolve()
+        self._artifacts = self.root / "artifacts"
+        self._event_log = self.root / self._EVENT_LOG_NAME
+        self._lock_file = self.root / ".store.lock"
+        self._process_lock = _process_lock_for(self.root)
+        self._artifacts.mkdir(parents=True, exist_ok=True)
+
+    @contextmanager
+    def _locked(self):
+        """Serialize a complete storage transaction for this shared root."""
+
+        with self._process_lock:
+            with _locked_file(self._lock_file):
+                yield
+
+    def put_artifact(
+        self,
+        artifact_id: str,
+        artifact_type: str,
+        content: Mapping[str, Any],
+    ) -> str:
+        """Atomically add immutable, self-hashed contract content."""
+
+        self._require_identifier("artifact_id", artifact_id)
+        self._require_identifier("artifact_type", artifact_type)
+        content_copy = deepcopy(dict(content))
+        # Not every domain schema carries a top-level self-hash. The store
+        # envelope always does; if the domain object also declares one, both
+        # must describe the same canonical hash domain.
+        content_hash = _verify_declared_content_hash(content_copy, required=False)
+        record = {
+            "artifact_id": artifact_id,
+            "artifact_type": artifact_type,
+            "content": content_copy,
+            "content_hash": content_hash,
+        }
+        destination = self._artifact_path(artifact_id)
+        with self._locked():
+            if destination.exists():
+                raise DuplicateArtifactIdError(f"artifact ID already exists: {artifact_id}")
+            self._atomic_replace(destination, canonical_json_bytes(record))
+        return content_hash
+
+    def get_artifact(
+        self, artifact_id: str, *, expected_type: str | None = None
+    ) -> dict[str, Any]:
+        """Load an artifact only after its ID, type, bytes, and hashes verify."""
+
+        record = self._read_artifact_record(artifact_id)
+        if expected_type is not None and record["artifact_type"] != expected_type:
+            raise IntegrityError(
+                f"artifact {artifact_id!r} has type {record['artifact_type']!r}, "
+                f"not {expected_type!r}"
+            )
+        return deepcopy(record["content"])
+
+    def verify_artifact(self, artifact_id: str) -> str:
+        """Verify an artifact and return its normalized canonical hash."""
+
+        return self._read_artifact_record(artifact_id)["content_hash"]
+
+    def append_event(
+        self,
+        event: Mapping[str, Any],
+        *,
+        _before_replace: Callable[[], None] | None = None,
+    ) -> str:
+        """Atomically append a self-hashed event and return the new log hash.
+
+        ``_before_replace`` is a private fault-injection seam used to prove that
+        interruption before the commit point cannot expose a partial event.
+        """
+
+        event_copy = deepcopy(dict(event))
+        event_id = event_copy.get("event_id")
+        self._require_identifier("event_id", event_id)
+        _verify_declared_content_hash(event_copy)
+        event_bytes = canonical_json_bytes(event_copy) + b"\n"
+
+        with self._locked():
+            existing_bytes, existing_events = self._read_verified_log()
+            # Duplicate detection intentionally inspects the durable log while
+            # holding the write lock, immediately before staging replacement.
+            if any(stored["event_id"] == event_id for stored in existing_events):
+                raise DuplicateEventIdError(f"event ID already exists: {event_id}")
+            new_bytes = existing_bytes + event_bytes
+            self._atomic_replace(
+                self._event_log, new_bytes, before_replace=_before_replace
+            )
+        return _hash_bytes(new_bytes)
+
+    def events(self) -> list[dict[str, Any]]:
+        """Return verified events in durable order."""
+
+        with self._locked():
+            _, events = self._read_verified_log()
+        return deepcopy(events)
+
+    def event_log_hash(self) -> str:
+        """Return the hash of the exact verified canonical event-log bytes."""
+
+        with self._locked():
+            content, _ = self._read_verified_log()
+        return _hash_bytes(content)
+
+    def verify_event_log(self, expected_hash: str | None = None) -> str:
+        """Verify canonical bytes, event hashes, unique IDs, and an optional hash."""
+
+        actual = self.event_log_hash()
+        if expected_hash is not None and _hash_value(expected_hash) != _hash_value(actual):
+            raise IntegrityError(
+                f"event-log hash mismatch: expected {expected_hash!r}, computed {actual!r}"
+            )
+        return actual
+
+    @staticmethod
+    def _require_identifier(name: str, value: Any) -> None:
+        if not isinstance(value, str) or not value:
+            raise ValueError(f"{name} must be a non-empty string")
+
+    def _artifact_path(self, artifact_id: str) -> Path:
+        safe_name = hashlib.sha256(artifact_id.encode("utf-8")).hexdigest()
+        return self._artifacts / f"{safe_name}.json"
+
+    def _read_artifact_record(self, artifact_id: str) -> dict[str, Any]:
+        destination = self._artifact_path(artifact_id)
+        try:
+            stored_bytes = destination.read_bytes()
+        except FileNotFoundError:
+            raise KeyError(artifact_id) from None
+        try:
+            record = json.loads(stored_bytes)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise IntegrityError(f"artifact {artifact_id!r} is not valid JSON") from exc
+        if not isinstance(record, dict) or set(record) != {
+            "artifact_id",
+            "artifact_type",
+            "content",
+            "content_hash",
+        }:
+            raise IntegrityError(f"artifact {artifact_id!r} has an invalid store envelope")
+        if stored_bytes != canonical_json_bytes(record):
+            raise IntegrityError(f"artifact {artifact_id!r} is not canonically serialized")
+        if record["artifact_id"] != artifact_id:
+            raise IntegrityError(f"artifact path does not match ID {artifact_id!r}")
+        if not isinstance(record["artifact_type"], str) or not record["artifact_type"]:
+            raise IntegrityError(f"artifact {artifact_id!r} has an invalid type")
+        if not isinstance(record["content"], dict):
+            raise IntegrityError(f"artifact {artifact_id!r} content is not an object")
+        actual = _verify_declared_content_hash(record["content"], required=False)
+        if _hash_value(record["content_hash"]) != _hash_value(actual):
+            raise IntegrityError(f"artifact {artifact_id!r} envelope hash is invalid")
+        record["content_hash"] = actual
+        return record
+
+    def _read_verified_log(self) -> tuple[bytes, list[dict[str, Any]]]:
+        if not self._event_log.exists():
+            return b"", []
+        stored_bytes = self._event_log.read_bytes()
+        if stored_bytes and not stored_bytes.endswith(b"\n"):
+            raise IntegrityError("event log ends with a partial record")
+        events: list[dict[str, Any]] = []
+        seen_ids: set[str] = set()
+        for line_number, line in enumerate(stored_bytes.splitlines(), start=1):
+            try:
+                event = json.loads(line)
+            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                raise IntegrityError(f"event log line {line_number} is not valid JSON") from exc
+            if not isinstance(event, dict):
+                raise IntegrityError(f"event log line {line_number} is not an object")
+            if line != canonical_json_bytes(event):
+                raise IntegrityError(f"event log line {line_number} is not canonical JSON")
+            event_id = event.get("event_id")
+            self._require_identifier("event_id", event_id)
+            if event_id in seen_ids:
+                raise IntegrityError(f"duplicate durable event ID: {event_id}")
+            seen_ids.add(event_id)
+            _verify_declared_content_hash(event)
+            events.append(event)
+        return stored_bytes, events
+
+    @staticmethod
+    def _atomic_replace(
+        destination: Path,
+        content: bytes,
+        *,
+        before_replace: Callable[[], None] | None = None,
+    ) -> None:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        temporary_path: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                dir=destination.parent,
+                prefix=f".{destination.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as temporary:
+                temporary_path = Path(temporary.name)
+                temporary.write(content)
+                temporary.flush()
+                os.fsync(temporary.fileno())
+            if before_replace is not None:
+                before_replace()
+            os.replace(temporary_path, destination)
+            temporary_path = None
+            AppendOnlyStore._sync_directory(destination.parent)
+        finally:
+            if temporary_path is not None:
+                temporary_path.unlink(missing_ok=True)
+
+    @staticmethod
+    def _sync_directory(directory: Path) -> None:
+        """Persist a replacement's directory entry where the OS supports it."""
+
+        if os.name == "nt":
+            return
+        descriptor = os.open(directory, os.O_RDONLY)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
