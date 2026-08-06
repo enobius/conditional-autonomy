@@ -1,2 +1,3 @@
 jsonschema==4.25.1
 fastjsonschema==2.21.2
+rfc3339-validator==0.1.4
