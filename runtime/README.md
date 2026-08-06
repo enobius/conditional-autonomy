@@ -23,8 +23,20 @@ lock serializes the complete durable read/check/write transaction across store
 instances and processes, and supported platforms flush the destination directory
 after replacement so its new entry is durable.
 
-Run the focused suite from the repository root:
+## Deterministic reducer
+
+`conditional_autonomy.reducer` accepts only schema-valid `STATE_TRANSITION`
+events whose five-field payload describes a `SET` of an existing canonical-
+state object member. Each accepted event advances `state_version` exactly once,
+advances the logical clock, and appends its `event_id` to `revision_chain`.
+No-op values are compared as canonical JSON, so JSON types remain distinct.
+
+`INV-015` continues to own ingest-time and durable event-log integrity. The
+reducer additionally verifies the self-hash of a directly supplied event as a
+defense-in-depth boundary; this does not replace the ingest validator.
+
+Run the runtime suite from the repository root:
 
 ```powershell
-python -m unittest tests.test_storage -v
+python -m unittest tests.test_storage tests.test_references tests.test_reducer -v
 ```

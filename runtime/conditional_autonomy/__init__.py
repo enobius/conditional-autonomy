@@ -19,6 +19,14 @@ from .references import (
     ReferenceResolution,
     ResolvedArtifact,
 )
+from .reducer import (
+    IllegalTransitionError,
+    ReducerError,
+    SchemaValidationError,
+    canonical_state_bytes,
+    reduce_event,
+    replay_events,
+)
 
 __all__ = [
     "AppendOnlyStore",
@@ -29,11 +37,17 @@ __all__ = [
     "DuplicateArtifactIdError",
     "DuplicateEventIdError",
     "IntegrityError",
+    "IllegalTransitionError",
     "ReferenceFailure",
     "ReferenceFailureCode",
     "ReferenceResolution",
     "ResolvedArtifact",
+    "ReducerError",
+    "SchemaValidationError",
     "canonical_content_hash",
     "canonical_json_bytes",
+    "canonical_state_bytes",
+    "reduce_event",
+    "replay_events",
     "with_content_hash",
 ]
