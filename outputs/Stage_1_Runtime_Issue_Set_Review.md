@@ -90,6 +90,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-10 — Implement reconciliation-phase validators
 
 - Tier: mid
+- Current status: in progress; T-09 and T-15 are complete and the fixture slice is integrated.
 - References: `INV-002`, `INV-009`, `INV-010`
 - Depends on: T-09, T-15
 - Blocks: T-13, T-18
@@ -144,7 +145,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-15 — Implement capabilities and tool surface
 
 - Tier: mid
-- Current status: in progress; dispatched after T-09 and T-14 completion.
+- Current status: done/closed after independent adversarial review; integrated commit `12c5125`.
 - References: action-proposal, supervisor-decision, validator-result, and tool-outcome schemas
 - Depends on: T-09, T-14
 - Blocks: T-10, T-16, T-18
@@ -153,6 +154,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-16 — Implement exogenous disruption schedule
 
 - Tier: mid
+- Current status: in progress; T-07, T-14, and T-15 are complete.
 - References: event and episode schemas; `INV-006`–`INV-008`
 - Depends on: T-07, T-14, T-15
 - Blocks: T-18, T-20
@@ -161,7 +163,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-17 — Implement deterministic oracle user simulator
 
 - Tier: mid
-- Current status: in progress; dispatched after T-05, T-08, and T-14 completion.
+- Current status: done/closed after independent adversarial review; integrated commit `12c5125`.
 - References: user-model and access-scoped-observation schemas; `INV-014`
 - Depends on: T-05, T-08, T-14
 - Blocks: T-18, T-19
@@ -180,6 +182,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-19 — Implement instance generator and manifest emission
 
 - Tier: mid
+- Current status: ready; T-08, T-14, and T-17 are complete.
 - References: instance-manifest schema; `INV-013`, `INV-015`
 - Depends on: T-08, T-14, T-17
 - Blocks: T-12, T-20, T-21
