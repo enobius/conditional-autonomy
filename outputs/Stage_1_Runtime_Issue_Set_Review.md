@@ -144,7 +144,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-15 — Implement capabilities and tool surface
 
 - Tier: mid
-- Current status: ready; T-09 and T-14 are done.
+- Current status: in progress; dispatched after T-09 and T-14 completion.
 - References: action-proposal, supervisor-decision, validator-result, and tool-outcome schemas
 - Depends on: T-09, T-14
 - Blocks: T-10, T-16, T-18
@@ -161,7 +161,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-17 — Implement deterministic oracle user simulator
 
 - Tier: mid
-- Current status: ready; T-05, T-08, and T-14 are done.
+- Current status: in progress; dispatched after T-05, T-08, and T-14 completion.
 - References: user-model and access-scoped-observation schemas; `INV-014`
 - Depends on: T-05, T-08, T-14
 - Blocks: T-18, T-19
