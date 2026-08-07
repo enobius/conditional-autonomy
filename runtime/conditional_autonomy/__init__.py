@@ -67,6 +67,16 @@ from .replay_invariants import (
     logical_clock_order_check,
     state_version_transition_check,
 )
+from .thanksgiving import (
+    Criticality as EnvironmentCriticality,
+    Enforceability,
+    EnvironmentConstraintError,
+    ThanksgivingEpisode,
+    evaluate_schedule,
+    initial_thanksgiving_state,
+    run_thanksgiving_episode,
+    thanksgiving_actions,
+)
 
 __all__ = [
     "AppendOnlyStore",
@@ -123,4 +133,12 @@ __all__ = [
     "artifact_reference_check",
     "event_id_uniqueness_check",
     "policy_input_leakage_check",
+    "EnvironmentCriticality",
+    "Enforceability",
+    "EnvironmentConstraintError",
+    "ThanksgivingEpisode",
+    "evaluate_schedule",
+    "initial_thanksgiving_state",
+    "run_thanksgiving_episode",
+    "thanksgiving_actions",
 ]

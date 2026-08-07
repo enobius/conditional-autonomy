@@ -139,3 +139,23 @@ action-specific residual-risk ceiling; omission raises an explicit error.
 Registered invariant failures use the separate `InvariantDisposition` type;
 `QUARANTINE` is therefore neither a supervisor `Resolution` nor a validator-
 result `permitted_resolution`.
+
+## Thanksgiving micro-environment
+
+`conditional_autonomy.thanksgiving` is the deterministic, hand-authored static
+P6 environment grounded in REALM-Bench v2 Table 6. It encodes the five family
+members, 18:00 dinner, four-hour turkey, two-hour sides, continuous cooking
+supervision, airport and Grandma pickups, and the published travel times. It is
+explicitly a thesis-specific executable encoding; P9's James flight delay is
+reserved for T-16.
+
+Internal time is integer UTC minutes. Boundary events use normalized timestamps;
+reservations are half-open and deadlines inclusive. Immutable constraints cover
+PREVENTABLE, PREDICTIVE, and DETECTABLE enforcement. The fixed schedule executes
+only through ordered reducer-compatible `SET` events and emits schema-valid
+action proposals, canonical states, a policy-visible observation with lineage,
+and an outcome vector. Tool calls, disruptions, user interventions, and recovery
+remain zero or null because later Stage 1 tickets own those behaviors.
+Cooking proposals are marked `IRREVERSIBLE`; the environment never implies that
+prepared food can be undone. `optimality_gap` remains `null` until T-20's
+feasibility oracle can establish an optimization reference.
