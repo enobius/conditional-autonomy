@@ -298,6 +298,27 @@ class AppendOnlyStoreTests(unittest.TestCase):
         with self.assertRaisesRegex(IntegrityError, "content hash mismatch"):
             self.store.verify_artifact("state:1")
 
+    def test_store_wide_inventory_verifies_every_entry(self) -> None:
+        first_hash = self.store.put_artifact("state:1", "canonical-state", {"value": 1})
+        second_hash = self.store.put_artifact("state:2", "canonical-state", {"value": 2})
+        inventory = self.store.verify_artifact_inventory()
+        self.assertEqual(
+            inventory,
+            {"state:1": first_hash, "state:2": second_hash},
+        )
+        self.assertEqual(
+            list(inventory),
+            sorted(
+                inventory,
+                key=lambda artifact_id: self.store._artifact_path(artifact_id).name,
+            ),
+        )
+
+        unexpected = self.root / "artifacts" / "unexpected.json"
+        unexpected.write_text("{}", encoding="utf-8")
+        with self.assertRaisesRegex(IntegrityError, "unexpected artifact-store entry"):
+            self.store.verify_artifact_inventory()
+
     def test_nonfinite_persisted_artifact_is_integrity_error(self) -> None:
         self.store.put_artifact("state:1", "canonical-state", {"value": 1})
         artifact_path = next((self.root / "artifacts").glob("*.json"))

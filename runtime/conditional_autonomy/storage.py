@@ -256,6 +256,44 @@ class AppendOnlyStore:
 
         return self._read_artifact_record(artifact_id)["content_hash"]
 
+    def verify_artifact_inventory(self) -> dict[str, str]:
+        """Verify and inventory every file in the append-only artifact store.
+
+        Inventory is store-wide: an unexpected directory entry, malformed
+        filename, invalid envelope, path/ID mismatch, noncanonical JSON, or
+        content-hash mismatch fails the complete operation. The returned map
+        is inserted in deterministic path order and contains detached IDs and
+        normalized hashes only.
+        """
+
+        inventory: dict[str, str] = {}
+        with self._locked():
+            for path in sorted(self._artifacts.iterdir(), key=lambda item: item.name):
+                if (
+                    path.is_symlink()
+                    or not path.is_file()
+                    or path.suffix != ".json"
+                    or len(path.stem) != 64
+                    or any(character not in "0123456789abcdef" for character in path.stem)
+                ):
+                    raise IntegrityError(f"unexpected artifact-store entry: {path.name!r}")
+                stored_bytes = path.read_bytes()
+                record = _load_persisted_json(stored_bytes, f"artifact file {path.name!r}")
+                if not isinstance(record, dict):
+                    raise IntegrityError(f"artifact file {path.name!r} is not an envelope")
+                artifact_id = record.get("artifact_id")
+                if not isinstance(artifact_id, str) or not artifact_id:
+                    raise IntegrityError(f"artifact file {path.name!r} has an invalid ID")
+                if path != self._artifact_path(artifact_id):
+                    raise IntegrityError(
+                        f"artifact file {path.name!r} does not match ID {artifact_id!r}"
+                    )
+                verified = self._verify_artifact_record_bytes(artifact_id, stored_bytes)
+                if artifact_id in inventory:
+                    raise IntegrityError(f"duplicate artifact ID in store: {artifact_id!r}")
+                inventory[artifact_id] = verified["content_hash"]
+        return inventory
+
     def append_event(
         self,
         event: Mapping[str, Any],
@@ -325,6 +363,14 @@ class AppendOnlyStore:
             stored_bytes = destination.read_bytes()
         except FileNotFoundError:
             raise KeyError(artifact_id) from None
+        return self._verify_artifact_record_bytes(artifact_id, stored_bytes)
+
+    @staticmethod
+    def _verify_artifact_record_bytes(
+        artifact_id: str, stored_bytes: bytes
+    ) -> dict[str, Any]:
+        """Verify one already-read envelope without changing its hash domain."""
+
         record = _load_persisted_json(stored_bytes, f"artifact {artifact_id!r}")
         if not isinstance(record, dict) or set(record) != {
             "artifact_id",
