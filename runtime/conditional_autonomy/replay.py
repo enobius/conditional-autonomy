@@ -101,14 +101,13 @@ def _artifact(
     )
 
 
-def _episode_events(
-    store: AppendOnlyStore, episode_id: str
-) -> list[dict[str, Any]]:
-    events = []
-    for index, event in enumerate(store.events(), start=1):
-        if event.get("episode_id") != episode_id:
-            continue
-        events.append(validate_contract(event, "event.schema.json", f"event log record {index}"))
+def validate_logical_clock_order(events: Sequence[Mapping[str, Any]]) -> None:
+    """Enforce INV-006 for one already-declared total event order.
+
+    Clocks need only be strictly increasing; gaps are valid.  Shape validation
+    remains with the caller's contract boundary.
+    """
+
     previous_clock: int | None = None
     for event in events:
         clock = event["logical_clock"]
@@ -118,16 +117,15 @@ def _episode_events(
                 f"{previous_clock} then {clock} at event {event['event_id']!r}"
             )
         previous_clock = clock
-    return events
 
 
-def _verify_trace_steps(
-    episode: Mapping[str, Any], resolver: ArtifactReferenceResolver
-) -> tuple[dict[str, Any], ...]:
-    episode_id = episode["episode_id"]
-    first_index = episode["steps"][0]["step_index"]
-    states: list[dict[str, Any]] = []
-    for offset, step in enumerate(episode["steps"]):
+def validate_episode_trace_order(
+    episode_id: str, steps: Sequence[Mapping[str, Any]]
+) -> None:
+    """Enforce INV-016 sequence membership and relative contiguous ordering."""
+
+    first_index = steps[0]["step_index"]
+    for offset, step in enumerate(steps):
         expected_index = first_index + offset
         actual_index = step["step_index"]
         if step["episode_id"] != episode_id:
@@ -140,6 +138,27 @@ def _verify_trace_steps(
                 "INV-016: trace step indexes must be unique, contiguous, and ascending; "
                 f"expected {expected_index}, found {actual_index}"
             )
+
+
+def _episode_events(
+    store: AppendOnlyStore, episode_id: str
+) -> list[dict[str, Any]]:
+    events = []
+    for index, event in enumerate(store.events(), start=1):
+        if event.get("episode_id") != episode_id:
+            continue
+        events.append(validate_contract(event, "event.schema.json", f"event log record {index}"))
+    validate_logical_clock_order(events)
+    return events
+
+
+def _verify_trace_steps(
+    episode: Mapping[str, Any], resolver: ArtifactReferenceResolver
+) -> tuple[dict[str, Any], ...]:
+    episode_id = episode["episode_id"]
+    validate_episode_trace_order(episode_id, episode["steps"])
+    states: list[dict[str, Any]] = []
+    for step in episode["steps"]:
         step_id = step["trace_step_id"]
         state = _resolved_content(
             resolver.resolve_object_reference(
