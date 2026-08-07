@@ -29,6 +29,12 @@ lock serializes the complete durable read/check/write transaction across store
 instances and processes, and supported platforms flush the destination directory
 after replacement so its new entry is durable.
 
+`AppendOnlyStore.verify_artifact_inventory()` enumerates the complete artifact
+directory under the store lock. It rejects unexpected entries and verifies
+every filename-to-ID binding, strict canonical envelope, artifact type, and
+content hash; callers cannot hide a corrupt artifact by supplying a partial ID
+list.
+
 ## Deterministic reducer
 
 `conditional_autonomy.reducer` accepts only schema-valid `STATE_TRANSITION`
@@ -59,6 +65,28 @@ lineage entry targets any other output, and each entry agrees with its actual
 source path, source episode, state version, and effective `POLICY_VISIBLE`
 access class. A missing, duplicate, stale, or extra lineage entry must resolve
 to `QUARANTINE` under `INV-014`.
+
+## Ingest validation
+
+`conditional_autonomy.ingest` provides the named `INV-003`, `INV-005`,
+`INV-014`, and `INV-015` validators. Every failure is deterministic and uses
+the register's exact `QUARANTINE` resolution. The adapters resolve artifacts
+through `ArtifactReferenceResolver`, read only verified event IDs and hashes
+through `AppendOnlyStore`, use the shared canonical byte/hash functions, and
+validate projection inputs at the public schema boundary.
+
+`artifact_integrity_check(store)` always verifies that complete artifact
+inventory and the global event log. Optional artifact IDs are additional
+required references, never a narrower verification scope. Broken iterators and
+unavailable storage boundaries produce stable fail-closed outcomes rather than
+escaping the validator.
+
+The policy-input validator accepts only a complete `ObservationProjection`
+plus its canonical source state. It verifies a bijection between every
+`/visible_facts/{index}` and exactly one lineage record, then checks the actual
+source value, source path, episode, state version, and effective access class.
+Detached observations and missing, duplicate, stale, extra, protected, or
+value-mismatched lineage fail closed.
 
 Run the runtime suite from the repository root:
 
@@ -91,6 +119,15 @@ checks store-wide integrity first and then compares the per-episode subset hash,
 so appending an event for another episode changes the store hash without
 invalidating the completed episode.
 
+## Replay-phase invariant adapters
+
+`conditional_autonomy.replay_invariants` exposes the four exact validator names
+registered for `INV-006`, `INV-007`, `INV-008`, and `INV-016`. These adapters
+consume the compact invariant corpus, fail closed to `QUARANTINE`, and delegate
+clock/trace ordering to the replay layer and state transition/replay semantics
+to the reducer. Clock gaps are valid under the declared total order; trace-step
+contiguity is relative to the first supplied index.
+
 ## Pre-execution validation and reconciliation
 
 `conditional_autonomy.preexecution` provides pure, fail-closed implementations
@@ -99,3 +136,6 @@ function encodes Specification section 3.1. A learned approval cannot override
 hard evidence, and `HARD + UNKNOWN` can resolve only to `QUERY` or `ESCALATE`.
 Soft non-pass evidence requires the caller to supply the result of the declared
 action-specific residual-risk ceiling; omission raises an explicit error.
+Registered invariant failures use the separate `InvariantDisposition` type;
+`QUARANTINE` is therefore neither a supervisor `Resolution` nor a validator-
+result `permitted_resolution`.

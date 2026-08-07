@@ -23,12 +23,14 @@ from .contracts import ContractValidationError, validate_contract
 from .reducer import (
     IllegalTransitionError,
     ReducerError,
+    SchemaValidationError,
     canonical_state_bytes,
     reduce_event,
     replay_events,
 )
 from .preexecution import (
     Criticality,
+    InvariantDisposition,
     ReconciliationEvidence,
     Resolution,
     ValidationOutcome,
@@ -48,6 +50,22 @@ from .projection import (
     ProjectionLineageEntry,
     ProjectionSourceError,
     project_observation,
+)
+from .ingest import (
+    INGEST_FAILURE_RESOLUTION,
+    INGEST_VALIDATORS,
+    artifact_integrity_check,
+    artifact_reference_check,
+    event_id_uniqueness_check,
+    policy_input_leakage_check,
+)
+from .replay_invariants import (
+    REPLAY_FAILURE_RESOLUTION,
+    REPLAY_INVARIANT_VALIDATORS,
+    deterministic_replay_check,
+    episode_trace_order_check,
+    logical_clock_order_check,
+    state_version_transition_check,
 )
 
 __all__ = [
@@ -83,13 +101,26 @@ __all__ = [
     "project_observation",
     "with_content_hash",
     "Criticality",
+    "InvariantDisposition",
     "ReconciliationEvidence",
     "Resolution",
     "ValidationOutcome",
     "ValidatorStatus",
     "Verdict",
+    "REPLAY_FAILURE_RESOLUTION",
+    "REPLAY_INVARIANT_VALIDATORS",
+    "deterministic_replay_check",
+    "episode_trace_order_check",
+    "logical_clock_order_check",
+    "state_version_transition_check",
     "adapter_compatibility_check",
     "compensation_prevalidation_check",
     "current_version_check",
     "reconcile_decision",
+    "INGEST_FAILURE_RESOLUTION",
+    "INGEST_VALIDATORS",
+    "artifact_integrity_check",
+    "artifact_reference_check",
+    "event_id_uniqueness_check",
+    "policy_input_leakage_check",
 ]
