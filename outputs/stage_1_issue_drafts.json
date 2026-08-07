@@ -30,10 +30,10 @@
     "query:human": "A recorded human decision is required before implementation can proceed"
   },
   "current_dispatch": {
-    "summary": {"total": 20, "done": 11, "in_progress": 2, "ready": 1, "blocked": 6, "dependencies_satisfied": 14, "dependencies_waiting": 6},
+    "summary": {"total": 20, "done": 11, "in_progress": 3, "ready": 0, "blocked": 6, "dependencies_satisfied": 14, "dependencies_waiting": 6},
     "done": ["T-03", "T-04", "T-05", "T-06", "T-07", "T-08", "T-09", "T-11", "T-14", "T-15", "T-17"],
-    "in_progress": ["T-10", "T-16"],
-    "ready": ["T-19"],
+    "in_progress": ["T-10", "T-16", "T-19"],
+    "ready": [],
     "blocked": ["T-12", "T-13", "T-18", "T-20", "T-21", "T-22"],
     "dependencies_satisfied": ["T-03", "T-04", "T-05", "T-06", "T-07", "T-08", "T-09", "T-10", "T-11", "T-14", "T-15", "T-16", "T-17", "T-19"],
     "dependencies_waiting": ["T-12", "T-13", "T-18", "T-20", "T-21", "T-22"],
@@ -112,7 +112,7 @@
       "T-16": {"number": 14, "url": "https://github.com/enobius/conditional-autonomy/issues/14", "state": "open", "status_label": "status:in-progress", "current_labels": ["status:in-progress"]},
       "T-17": {"number": 15, "url": "https://github.com/enobius/conditional-autonomy/issues/15", "state": "closed", "status_label": "status:done", "current_labels": ["status:done"], "integrated_commit": "12c5125"},
       "T-18": {"number": 16, "url": "https://github.com/enobius/conditional-autonomy/issues/16", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
-      "T-19": {"number": 17, "url": "https://github.com/enobius/conditional-autonomy/issues/17", "state": "open", "status_label": "status:ready", "current_labels": ["status:ready"]},
+      "T-19": {"number": 17, "url": "https://github.com/enobius/conditional-autonomy/issues/17", "state": "open", "status_label": "status:in-progress", "current_labels": ["status:in-progress"]},
       "T-20": {"number": 18, "url": "https://github.com/enobius/conditional-autonomy/issues/18", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
       "T-21": {"number": 19, "url": "https://github.com/enobius/conditional-autonomy/issues/19", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
       "T-22": {"number": 20, "url": "https://github.com/enobius/conditional-autonomy/issues/20", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]}

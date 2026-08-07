@@ -182,7 +182,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-19 — Implement instance generator and manifest emission
 
 - Tier: mid
-- Current status: ready; T-08, T-14, and T-17 are complete.
+- Current status: in progress; dispatched after T-08, T-14, and T-17 completion.
 - References: instance-manifest schema; `INV-013`, `INV-015`
 - Depends on: T-08, T-14, T-17
 - Blocks: T-12, T-20, T-21
