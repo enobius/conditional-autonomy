@@ -8,7 +8,7 @@
       "enforcement_phase": "pre-execution",
       "expected": {"verdict": "PASS", "expected_failure_resolution": null},
       "input": {
-        "action": {"action_id": "action-001", "reversibility": "COMPENSATABLE", "compensation_prevalidation_id": "prevalidation-001"},
+        "action": {"action_id": "action-001", "reversibility": "COMPENSATABLE", "compensation_action": {"action_type": "inventory:restore", "arguments": {}, "required_capabilities": ["inventory:write"], "prevalidation_id": "prevalidation-001"}},
         "authorization": {"authorized_at_logical_clock": 12},
         "prevalidations": [{"prevalidation_id": "prevalidation-001", "action_id": "action-001", "status": "PASS", "logical_clock": 11}]
       }
@@ -20,7 +20,7 @@
       "enforcement_phase": "pre-execution",
       "expected": {"verdict": "FAIL", "expected_failure_resolution": "REJECT"},
       "input": {
-        "action": {"action_id": "action-001", "reversibility": "COMPENSATABLE", "compensation_prevalidation_id": "prevalidation-001"},
+        "action": {"action_id": "action-001", "reversibility": "COMPENSATABLE", "compensation_action": {"action_type": "inventory:restore", "arguments": {}, "required_capabilities": ["inventory:write"], "prevalidation_id": "prevalidation-001"}},
         "authorization": {"authorized_at_logical_clock": 12},
         "prevalidations": [{"prevalidation_id": "prevalidation-001", "action_id": "action-001", "status": "PASS", "logical_clock": 13}]
       }

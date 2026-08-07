@@ -23,6 +23,10 @@ enforcement metadata. In particular, `QUARANTINE` is an outcome outside the
 into that schema. A later orchestration boundary may translate the outcome but
 must not silently change the fixture expectation.
 
+`INV-001` uses the canonical action-proposal compensation shape:
+`compensation_action.prevalidation_id`. The obsolete fixture-only top-level
+`compensation_prevalidation_id` alias is intentionally rejected.
+
 `INV-015` uses the Stage 1 canonical JSON profile: UTF-8, lexicographically
 sorted object keys, compact separators, and non-finite numbers forbidden.
 Event-log integrity hashes cover canonical JSON Lines bytes: one canonical
