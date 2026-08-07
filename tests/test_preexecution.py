@@ -6,7 +6,8 @@ from copy import deepcopy
 from pathlib import Path
 
 from runtime.conditional_autonomy.preexecution import (
-    Criticality, ReconciliationEvidence, Resolution, ValidatorStatus, Verdict,
+    Criticality, InvariantDisposition, ReconciliationEvidence, Resolution,
+    ValidationOutcome, ValidatorStatus, Verdict,
     adapter_compatibility_check, compensation_prevalidation_check,
     current_version_check, reconcile_decision,
 )
@@ -113,7 +114,7 @@ class PreExecutionInvariantTests(unittest.TestCase):
                 self.assertEqual(outcome.failure_codes, ("MALFORMED_CONTEXT",))
 
     def test_malformed_contexts_fail_with_registered_resolution(self) -> None:
-        cases = ((compensation_prevalidation_check, Resolution.REJECT), (current_version_check, Resolution.REPAIR), (adapter_compatibility_check, Resolution.REJECT))
+        cases = ((compensation_prevalidation_check, InvariantDisposition.REJECT), (current_version_check, InvariantDisposition.REPAIR), (adapter_compatibility_check, InvariantDisposition.REJECT))
         for validator, resolution in cases:
             with self.subTest(validator=validator.__name__):
                 outcome = validator(None)
@@ -123,6 +124,34 @@ class PreExecutionInvariantTests(unittest.TestCase):
 
 
 class ReconciliationTests(unittest.TestCase):
+    def test_invariant_dispositions_are_not_reconciliation_resolutions(self) -> None:
+        with self.assertRaises(ValueError):
+            Resolution("QUARANTINE")
+        with self.assertRaisesRegex(ValueError, "unknown supervisor decision"):
+            reconcile_decision("QUARANTINE", evidence("HARD", "PASS", "EXECUTE"))
+        with self.assertRaisesRegex(ValueError, "unknown supervisor decision"):
+            reconcile_decision(
+                InvariantDisposition.REJECT, evidence("HARD", "PASS", "EXECUTE")
+            )
+
+        for disposition in InvariantDisposition:
+            with self.subTest(disposition=disposition):
+                self.assertNotIsInstance(disposition, Resolution)
+                fixture = json.loads(VALIDATOR_FIXTURE.read_text(encoding="utf-8"))
+                fixture.update(permitted_resolution=disposition)
+                with self.assertRaisesRegex(ValueError, "invariant disposition"):
+                    ReconciliationEvidence(fixture)
+
+        fixture = json.loads(VALIDATOR_FIXTURE.read_text(encoding="utf-8"))
+        fixture.update(permitted_resolution=InvariantDisposition.QUARANTINE.value)
+        with self.assertRaisesRegex(ValueError, "validator-result.schema.json"):
+            ReconciliationEvidence(fixture)
+
+        with self.assertRaisesRegex(ValueError, "invariant disposition"):
+            ValidationOutcome(
+                "INV-001", "validator", Verdict.FAIL, Resolution.REJECT, ("CODE",)
+            )  # type: ignore[arg-type]
+
     def test_projects_validator_result_schema_vocabulary(self) -> None:
         fixture = json.loads(
             VALIDATOR_FIXTURE.read_text(encoding="utf-8")

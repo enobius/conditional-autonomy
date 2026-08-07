@@ -30,6 +30,15 @@ class Resolution(str, Enum):
     ESCALATE = "ESCALATE"
 
 
+class InvariantDisposition(str, Enum):
+    """Registered failure behavior, separate from supervisor decisions."""
+
+    REJECT = "REJECT"
+    REPAIR = "REPAIR"
+    ESCALATE = "ESCALATE"
+    QUARANTINE = "QUARANTINE"
+
+
 class ValidatorStatus(str, Enum):
     PASS = "PASS"
     FAIL = "FAIL"
@@ -48,15 +57,18 @@ class ValidationOutcome:
     invariant_id: str
     validator: str
     verdict: Verdict
-    failure_resolution: Resolution | None
+    failure_resolution: InvariantDisposition | None
     failure_codes: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         if self.verdict is Verdict.PASS:
             if self.failure_resolution is not None or self.failure_codes:
                 raise ValueError("PASS cannot carry failure metadata")
-        elif self.failure_resolution is None or not self.failure_codes:
-            raise ValueError("FAIL requires a resolution and failure code")
+        elif (
+            not isinstance(self.failure_resolution, InvariantDisposition)
+            or not self.failure_codes
+        ):
+            raise ValueError("FAIL requires an invariant disposition and failure code")
 
     @property
     def succeeded(self) -> bool:
@@ -73,6 +85,15 @@ class ReconciliationEvidence:
     _permitted_resolution: str
 
     def __init__(self, validator_result: object) -> None:
+        if (
+            isinstance(validator_result, Mapping)
+            and isinstance(
+                validator_result.get("permitted_resolution"), InvariantDisposition
+            )
+        ):
+            raise ValueError(
+                "validator-result permitted_resolution cannot be an invariant disposition"
+            )
         try:
             checked = validate_contract(
                 validator_result,
@@ -116,9 +137,12 @@ def _pass(invariant_id: str, validator: str) -> ValidationOutcome:
 
 
 def _fail(
-    invariant_id: str, validator: str, resolution: Resolution, *codes: str
+    invariant_id: str,
+    validator: str,
+    disposition: InvariantDisposition,
+    *codes: str,
 ) -> ValidationOutcome:
-    return ValidationOutcome(invariant_id, validator, Verdict.FAIL, resolution, tuple(codes))
+    return ValidationOutcome(invariant_id, validator, Verdict.FAIL, disposition, tuple(codes))
 
 
 def _mapping(value: object) -> Mapping[str, Any] | None:
@@ -144,10 +168,10 @@ def compensation_prevalidation_check(context: object) -> ValidationOutcome:
     authorization = _mapping(root.get("authorization")) if root else None
     records = _sequence(root.get("prevalidations")) if root else None
     if action is None or authorization is None or records is None:
-        return _fail(invariant, validator, Resolution.REJECT, "MALFORMED_CONTEXT")
+        return _fail(invariant, validator, InvariantDisposition.REJECT, "MALFORMED_CONTEXT")
     reversibility = action.get("reversibility")
     if reversibility not in {"REVERSIBLE", "COMPENSATABLE", "IRREVERSIBLE"}:
-        return _fail(invariant, validator, Resolution.REJECT, "MALFORMED_CONTEXT")
+        return _fail(invariant, validator, InvariantDisposition.REJECT, "MALFORMED_CONTEXT")
     if reversibility != "COMPENSATABLE":
         return _pass(invariant, validator)
 
@@ -177,7 +201,7 @@ def compensation_prevalidation_check(context: object) -> ValidationOutcome:
         or not all(isinstance(item, str) and item for item in required_capabilities)
         or len(set(required_capabilities)) != len(required_capabilities)
     ):
-        return _fail(invariant, validator, Resolution.REJECT, "MALFORMED_CONTEXT")
+        return _fail(invariant, validator, InvariantDisposition.REJECT, "MALFORMED_CONTEXT")
 
     normalized_records: list[tuple[str, str, str, int]] = []
     for candidate in records:
@@ -189,7 +213,7 @@ def compensation_prevalidation_check(context: object) -> ValidationOutcome:
             or record.get("status") not in {"PASS", "FAIL", "UNKNOWN"}
             or not _integer(record.get("logical_clock"))
         ):
-            return _fail(invariant, validator, Resolution.REJECT, "MALFORMED_CONTEXT")
+            return _fail(invariant, validator, InvariantDisposition.REJECT, "MALFORMED_CONTEXT")
         normalized_records.append(
             (
                 record["prevalidation_id"],
@@ -206,7 +230,7 @@ def compensation_prevalidation_check(context: object) -> ValidationOutcome:
             if status == "PASS" and clock < authorized_at:
                 return _pass(invariant, validator)
     code = "PREVALIDATION_NOT_BEFORE_AUTHORIZATION" if matched else "PREVALIDATION_NOT_FOUND"
-    return _fail(invariant, validator, Resolution.REJECT, code)
+    return _fail(invariant, validator, InvariantDisposition.REJECT, code)
 
 
 def current_version_check(context: object) -> ValidationOutcome:
@@ -217,22 +241,22 @@ def current_version_check(context: object) -> ValidationOutcome:
     authorization = _mapping(root.get("authorization")) if root else None
     current = _mapping(root.get("current")) if root else None
     if authorization is None or current is None:
-        return _fail(invariant, validator, Resolution.REPAIR, "MALFORMED_CONTEXT")
+        return _fail(invariant, validator, InvariantDisposition.REPAIR, "MALFORMED_CONTEXT")
     fields = ("state_version", "plan_id", "plan_version")
     if any(field not in authorization or field not in current for field in fields):
-        return _fail(invariant, validator, Resolution.REPAIR, "MALFORMED_CONTEXT")
+        return _fail(invariant, validator, InvariantDisposition.REPAIR, "MALFORMED_CONTEXT")
     for source in (authorization, current):
         if (
             not _integer(source["state_version"])
             or not isinstance(source["plan_id"], str) or not source["plan_id"]
             or not _integer(source["plan_version"])
         ):
-            return _fail(invariant, validator, Resolution.REPAIR, "MALFORMED_CONTEXT")
+            return _fail(invariant, validator, InvariantDisposition.REPAIR, "MALFORMED_CONTEXT")
     mismatches = tuple(
         f"STALE_{field.upper()}" for field in fields if authorization[field] != current[field]
     )
     if mismatches:
-        return _fail(invariant, validator, Resolution.REPAIR, *mismatches)
+        return _fail(invariant, validator, InvariantDisposition.REPAIR, *mismatches)
     return _pass(invariant, validator)
 
 
@@ -244,7 +268,7 @@ def adapter_compatibility_check(context: object) -> ValidationOutcome:
     adapter = _mapping(root.get("adapter")) if root else None
     runtime = _mapping(root.get("runtime")) if root else None
     if adapter is None or runtime is None:
-        return _fail(invariant, validator, Resolution.REJECT, "MALFORMED_CONTEXT")
+        return _fail(invariant, validator, InvariantDisposition.REJECT, "MALFORMED_CONTEXT")
     targets = _sequence(adapter.get("target_modules"))
     available = _sequence(runtime.get("available_modules"))
     incompatibilities = _sequence(adapter.get("incompatibilities"))
@@ -257,7 +281,7 @@ def adapter_compatibility_check(context: object) -> ValidationOutcome:
         or not all(isinstance(value, str) and value for value in required_strings)
         or not all(isinstance(value, str) and value for value in (*targets, *available, *incompatibilities))
     ):
-        return _fail(invariant, validator, Resolution.REJECT, "MALFORMED_CONTEXT")
+        return _fail(invariant, validator, InvariantDisposition.REJECT, "MALFORMED_CONTEXT")
     failures: list[str] = []
     if adapter["base_model_hash"] != runtime["base_model_hash"]:
         failures.append("BASE_MODEL_HASH_MISMATCH")
@@ -266,7 +290,7 @@ def adapter_compatibility_check(context: object) -> ValidationOutcome:
     if runtime["runtime_version"] in incompatibilities:
         failures.append("RUNTIME_INCOMPATIBLE")
     if failures:
-        return _fail(invariant, validator, Resolution.REJECT, *failures)
+        return _fail(invariant, validator, InvariantDisposition.REJECT, *failures)
     return _pass(invariant, validator)
 
 
@@ -280,6 +304,8 @@ def reconcile_decision(
 
     if not isinstance(evidence, ReconciliationEvidence):
         raise ValueError("reconciliation requires a complete schema-valid validator result")
+    if isinstance(supervisor_decision, InvariantDisposition):
+        raise ValueError("unknown supervisor decision")
     try:
         supervisor = Resolution(supervisor_decision)
     except (TypeError, ValueError) as exc:
