@@ -17,15 +17,11 @@ reducer-owned metadata, or accepts a value equal to the current value.
 
 from __future__ import annotations
 
-import json
-import sys
-from importlib.metadata import PackageNotFoundError, version
 from collections.abc import Iterable, Mapping
 from copy import deepcopy
-from functools import lru_cache
-from pathlib import Path
 from typing import Any
 
+from .contracts import ContractValidationError, validate_contract
 from .storage import canonical_content_hash, canonical_json_bytes
 
 
@@ -33,16 +29,14 @@ class ReducerError(RuntimeError):
     """Base class for fail-closed reducer errors."""
 
 
-class SchemaValidationError(ReducerError):
-    """An input or reducer output does not satisfy its v1.0 JSON Schema."""
+class SchemaValidationError(ContractValidationError, ReducerError):
+    """A reducer input or output violates its named runtime contract."""
 
 
 class IllegalTransitionError(ReducerError):
     """A schema-valid event does not describe a legal state transition."""
 
 
-_SCHEMA_ROOT = Path(__file__).resolve().parents[2] / "architecture" / "schemas" / "v1.0"
-_VENDOR = _SCHEMA_ROOT.parent / ".vendor"
 _PAYLOAD_FIELDS = frozenset(
     {"operation", "path", "value", "from_state_version", "to_state_version"}
 )
@@ -51,82 +45,15 @@ _REDUCER_OWNED_FIELDS = frozenset(
 )
 
 
-@lru_cache(maxsize=1)
-def _jsonschema_types():
-    """Load exactly the pinned validator from one selected package root."""
+def _validate_reducer_contract(
+    instance: object, schema_name: str, description: str
+) -> dict[str, Any]:
+    """Translate shared contract failures into the established reducer API."""
 
-    vendor_selected = _VENDOR.exists()
-    if vendor_selected and str(_VENDOR) not in sys.path:
-        sys.path.insert(0, str(_VENDOR))
     try:
-        import jsonschema
-        import referencing
-    except ImportError as exc:  # pragma: no cover - installation failure path
-        raise RuntimeError(
-            "runtime schema validation requires architecture/schemas/requirements-schema.txt"
-        ) from exc
-    try:
-        installed_version = version("jsonschema")
-    except PackageNotFoundError as exc:  # pragma: no cover - corrupt installation path
-        raise RuntimeError("jsonschema distribution metadata is unavailable") from exc
-    if installed_version != "4.25.1":
-        raise RuntimeError(
-            f"runtime requires jsonschema 4.25.1, found {installed_version}"
-        )
-    if vendor_selected:
-        vendor_root = _VENDOR.resolve()
-        module_paths = (
-            Path(jsonschema.__file__).resolve(),
-            Path(referencing.__file__).resolve(),
-        )
-        if any(not module_path.is_relative_to(vendor_root) for module_path in module_paths):
-            raise RuntimeError(
-                "vendored schema packages were selected but incompatible modules were already loaded"
-            )
-    return (
-        jsonschema.Draft202012Validator,
-        jsonschema.FormatChecker,
-        referencing.Registry,
-        referencing.Resource,
-    )
-
-
-@lru_cache(maxsize=2)
-def _validator(schema_name: str):
-    Draft202012Validator, FormatChecker, Registry, Resource = _jsonschema_types()
-    schemas = [
-        json.loads(path.read_text(encoding="utf-8"))
-        for path in sorted(_SCHEMA_ROOT.glob("*.schema.json"))
-    ]
-    registry = Registry().with_resources(
-        (schema["$id"], Resource.from_contents(schema)) for schema in schemas
-    )
-    target = next(
-        schema for schema in schemas if schema["$id"].endswith(f"/{schema_name}")
-    )
-    return Draft202012Validator(
-        target, registry=registry, format_checker=FormatChecker()
-    )
-
-
-def _validate(instance: Any, schema_name: str, description: str) -> dict[str, Any]:
-    if not isinstance(instance, Mapping):
-        raise SchemaValidationError(f"{description} must be an object")
-    try:
-        detached = json.loads(canonical_json_bytes(instance))
-    except (TypeError, ValueError) as exc:
-        raise SchemaValidationError(f"{description} is not strict JSON: {exc}") from exc
-    errors = sorted(
-        _validator(schema_name).iter_errors(detached),
-        key=lambda error: tuple(str(part) for part in error.path),
-    )
-    if errors:
-        error = errors[0]
-        location = "/" + "/".join(str(part) for part in error.absolute_path)
-        raise SchemaValidationError(
-            f"{description} fails {schema_name} at {location or '/'}: {error.message}"
-        )
-    return detached
+        return validate_contract(instance, schema_name, description)
+    except ContractValidationError as exc:
+        raise SchemaValidationError(str(exc)) from exc
 
 
 def _decode_pointer(path: Any) -> list[str]:
@@ -169,8 +96,8 @@ def _apply_set(state: dict[str, Any], path: Any, value: Any) -> None:
 def reduce_event(state: Mapping[str, Any], event: Mapping[str, Any]) -> dict[str, Any]:
     """Apply one event without mutating either input."""
 
-    current = _validate(state, "canonical-state.schema.json", "canonical state")
-    checked_event = _validate(event, "event.schema.json", "event")
+    current = _validate_reducer_contract(state, "canonical-state.schema.json", "canonical state")
+    checked_event = _validate_reducer_contract(event, "event.schema.json", "event")
     event_id = checked_event["event_id"]
 
     if checked_event["event_type"] != "STATE_TRANSITION":
@@ -226,7 +153,7 @@ def reduce_event(state: Mapping[str, Any], event: Mapping[str, Any]) -> dict[str
     successor["logical_clock"] = checked_event["logical_clock"]
     successor["revision_chain"].append(event_id)
     try:
-        return _validate(successor, "canonical-state.schema.json", "reduced canonical state")
+        return _validate_reducer_contract(successor, "canonical-state.schema.json", "reduced canonical state")
     except SchemaValidationError as exc:
         raise IllegalTransitionError(f"event {event_id!r} produces invalid state: {exc}") from exc
 
@@ -236,7 +163,7 @@ def replay_events(
 ) -> dict[str, Any]:
     """Replay events in their supplied ledger order."""
 
-    state = _validate(initial_state, "canonical-state.schema.json", "canonical state")
+    state = _validate_reducer_contract(initial_state, "canonical-state.schema.json", "canonical state")
     for event in events:
         state = reduce_event(state, event)
     return state
@@ -246,5 +173,5 @@ def canonical_state_bytes(state: Mapping[str, Any]) -> bytes:
     """Validate and serialize a canonical state to deterministic UTF-8 bytes."""
 
     return canonical_json_bytes(
-        _validate(state, "canonical-state.schema.json", "canonical state")
+        _validate_reducer_contract(state, "canonical-state.schema.json", "canonical state")
     )

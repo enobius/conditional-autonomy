@@ -8,6 +8,7 @@ from copy import deepcopy
 
 from runtime.conditional_autonomy.reducer import (
     IllegalTransitionError,
+    ReducerError,
     SchemaValidationError,
     canonical_state_bytes,
     reduce_event,
@@ -88,9 +89,18 @@ def sample_events() -> list[dict[str, object]]:
 
 
 class DeterministicReducerTests(unittest.TestCase):
+    def test_schema_validation_error_remains_a_reducer_error(self) -> None:
+        self.assertTrue(issubclass(SchemaValidationError, ReducerError))
+        invalid_state = initial_state()
+        del invalid_state["resources"]
+        with self.assertRaises(ReducerError) as caught:
+            reduce_event(invalid_state, transition_event("event:invalid-state", 1, 0, 1))
+        self.assertIsInstance(caught.exception, SchemaValidationError)
+        self.assertIsNotNone(caught.exception.__cause__)
+
     def test_pinned_validator_loads_under_isolated_python(self) -> None:
         program = (
-            "from runtime.conditional_autonomy.reducer import _jsonschema_types; "
+            "from runtime.conditional_autonomy.contracts import _jsonschema_types; "
             "validator,*_= _jsonschema_types(); print(validator.__module__)"
         )
         completed = subprocess.run(
