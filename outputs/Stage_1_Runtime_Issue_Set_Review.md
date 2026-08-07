@@ -128,10 +128,23 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 - Depends on: T-04, T-05
 - Blocks: T-15, T-16, T-17, T-18, T-19, T-20
 - Exit: resources, obligations, time windows, predictive effects, and constraint classes execute in a deterministic hand-authored episode; ambiguous requirements are resolved in the issue before merge.
+- Current status: done/closed after approved implementation and review; integrated commit `c0c7d34`.
+- Approved semantics:
+  - Use the exact static REALM-Bench v2 Table 6 P6 facts; reserve the P9 James delay for T-16.
+  - Represent time internally as integer UTC-minute offsets and normalize timestamps at schema boundaries. Windows are half-open `[start,end)` and deadlines are inclusive.
+  - Compile domain actions to ordered T-04 `SET` events. Do not introduce hidden mutation or a new event shape.
+  - Model predictive effects deterministically with earliest/latest effects, not sampled probabilities.
+  - Keep PREVENTABLE, PREDICTIVE, and DETECTABLE constraints immutable, with HARD/SOFT strengths.
+  - Limit T-14 to pure domain execution; tools and capabilities remain T-15 work, and disruptions remain T-16 work.
+  - Give obligations stable IDs, PENDING/COMPLETED states, required dependencies, and required timing.
+  - Succeed only when all required obligations are complete; unused tool/user metrics remain zero.
+  - Require stable IDs and explicit access classes throughout.
+- Approval evidence: https://github.com/enobius/conditional-autonomy/issues/12#issuecomment-5211138015
 
 #### T-15 — Implement capabilities and tool surface
 
 - Tier: mid
+- Current status: ready; T-09 and T-14 are done.
 - References: action-proposal, supervisor-decision, validator-result, and tool-outcome schemas
 - Depends on: T-09, T-14
 - Blocks: T-10, T-16, T-18
@@ -148,6 +161,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-17 — Implement deterministic oracle user simulator
 
 - Tier: mid
+- Current status: ready; T-05, T-08, and T-14 are done.
 - References: user-model and access-scoped-observation schemas; `INV-014`
 - Depends on: T-05, T-08, T-14
 - Blocks: T-18, T-19

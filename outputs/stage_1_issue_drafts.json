@@ -30,12 +30,13 @@
     "query:human": "A recorded human decision is required before implementation can proceed"
   },
   "current_dispatch": {
-    "summary": {"total": 20, "done": 8, "in_progress": 0, "ready": 0, "blocked": 12},
-    "done": ["T-03", "T-04", "T-05", "T-06", "T-07", "T-08", "T-09", "T-11"],
+    "summary": {"total": 20, "done": 9, "in_progress": 0, "ready": 2, "blocked": 9, "dependencies_satisfied": 11, "dependencies_waiting": 9},
+    "done": ["T-03", "T-04", "T-05", "T-06", "T-07", "T-08", "T-09", "T-11", "T-14"],
     "in_progress": [],
-    "ready": [],
-    "blocked": ["T-10", "T-12", "T-13", "T-14", "T-15", "T-16", "T-17", "T-18", "T-19", "T-20", "T-21", "T-22"],
-    "query_human": ["T-14"],
+    "ready": ["T-15", "T-17"],
+    "blocked": ["T-10", "T-12", "T-13", "T-16", "T-18", "T-19", "T-20", "T-21", "T-22"],
+    "dependencies_satisfied": ["T-03", "T-04", "T-05", "T-06", "T-07", "T-08", "T-09", "T-11", "T-14", "T-15", "T-17"],
+    "dependencies_waiting": ["T-10", "T-12", "T-13", "T-16", "T-18", "T-19", "T-20", "T-21", "T-22"],
     "fixture_slices_complete": ["T-08", "T-09", "T-10", "T-11", "T-12"]
   },
   "github": {
@@ -68,10 +69,48 @@
       "T-11": {"number": 9, "url": "https://github.com/enobius/conditional-autonomy/issues/9", "state": "closed", "status_label": "status:done", "current_labels": ["status:done", "fixture-slice:complete"], "fixture_commit": "3d890f3", "integrated_commit": "7bf0347"},
       "T-12": {"number": 10, "url": "https://github.com/enobius/conditional-autonomy/issues/10", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked", "fixture-slice:complete"], "fixture_commit": "3d890f3"},
       "T-13": {"number": 11, "url": "https://github.com/enobius/conditional-autonomy/issues/11", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
-      "T-14": {"number": 12, "url": "https://github.com/enobius/conditional-autonomy/issues/12", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked", "query:human"], "query_comment_url": "https://github.com/enobius/conditional-autonomy/issues/12#issuecomment-5210336704", "query_topic": "runtime semantics approval"},
-      "T-15": {"number": 13, "url": "https://github.com/enobius/conditional-autonomy/issues/13", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
+      "T-14": {
+        "number": 12,
+        "url": "https://github.com/enobius/conditional-autonomy/issues/12",
+        "state": "closed",
+        "status_label": "status:done",
+        "current_labels": ["status:done"],
+        "integrated_commit": "c0c7d34",
+        "integration_commit_status": "recorded",
+        "approval_comment_url": "https://github.com/enobius/conditional-autonomy/issues/12#issuecomment-5211138015",
+        "approved_semantics": {
+          "benchmark_facts": "exact static REALM-Bench v2 Table 6 P6 facts",
+          "reserved_for_t16": "P9 James delay",
+          "internal_time": "integer UTC-minute offsets",
+          "schema_boundary_time": "normalized timestamps",
+          "time_windows": "half-open [start,end)",
+          "deadlines": "inclusive",
+          "domain_action_compilation": "ordered T-04 SET events",
+          "hidden_mutation_allowed": false,
+          "new_event_shape_allowed": false,
+          "predictive_effects": "deterministic earliest/latest effects; no sampled probabilities",
+          "constraints": {
+            "mutability": "immutable",
+            "classes": ["PREVENTABLE", "PREDICTIVE", "DETECTABLE"],
+            "strengths": ["HARD", "SOFT"]
+          },
+          "execution_scope": "pure domain execution only",
+          "reserved_for_t15_t16": ["tools", "capabilities", "disruptions"],
+          "obligations": {
+            "stable_ids": true,
+            "statuses": ["PENDING", "COMPLETED"],
+            "dependencies_required": true,
+            "timing_required": true
+          },
+          "success_condition": "all required obligations complete",
+          "unused_tool_and_user_metrics": 0,
+          "stable_ids_required": true,
+          "explicit_access_classes_required": true
+        }
+      },
+      "T-15": {"number": 13, "url": "https://github.com/enobius/conditional-autonomy/issues/13", "state": "open", "status_label": "status:ready", "current_labels": ["status:ready"]},
       "T-16": {"number": 14, "url": "https://github.com/enobius/conditional-autonomy/issues/14", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
-      "T-17": {"number": 15, "url": "https://github.com/enobius/conditional-autonomy/issues/15", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
+      "T-17": {"number": 15, "url": "https://github.com/enobius/conditional-autonomy/issues/15", "state": "open", "status_label": "status:ready", "current_labels": ["status:ready"]},
       "T-18": {"number": 16, "url": "https://github.com/enobius/conditional-autonomy/issues/16", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
       "T-19": {"number": 17, "url": "https://github.com/enobius/conditional-autonomy/issues/17", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
       "T-20": {"number": 18, "url": "https://github.com/enobius/conditional-autonomy/issues/18", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
