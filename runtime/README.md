@@ -128,6 +128,30 @@ clock/trace ordering to the replay layer and state transition/replay semantics
 to the reducer. Clock gaps are valid under the declared total order; trace-step
 contiguity is relative to the first supplied index.
 
+## Deterministic oracle user simulator
+
+`conditional_autonomy.oracle.OracleUserSimulator` validates the v1.0 user
+model, holds both model and private world state as detached canonical bytes,
+and derives each answer template from SHA-256 over the declared seed, turn,
+question ID, and requested fact ID. Recreating a simulator with the same
+inputs therefore produces a byte-identical answer sequence without depending
+on Python hash order or process-local random state.
+
+One simulator instance represents one stateful conversation. Repeated calls
+share an absolute cumulative turn counter and `maximum_turns` budget. Each
+batch is preflighted and generated under a conversation lock before the
+counter advances, so a failed batch consumes no turns and cannot cause public
+ID reuse. Observation and response-fact IDs derive only from policy-visible
+episode/question/fact data and the absolute turn; evaluator-only seed material
+affects response-template selection but never public identifiers.
+
+Answers cross the boundary only as schema-valid `ObservationProjection`
+aggregates. The simulator reveals only the requested answerable fact, keeps
+unrequested private facts and evaluator-only model fields out of policy input,
+and runs `INV-014` before returning each response. Turn bounds and protected
+content fail closed. The current runtime explicitly supports the schema
+fixture's `template:p6-oracle` family and rejects unknown families.
+
 ## Pre-execution validation and reconciliation
 
 `conditional_autonomy.preexecution` provides pure, fail-closed implementations
@@ -159,3 +183,34 @@ remain zero or null because later Stage 1 tickets own those behaviors.
 Cooking proposals are marked `IRREVERSIBLE`; the environment never implies that
 prepared food can be undone. `optimality_gap` remains `null` until T-20's
 feasibility oracle can establish an optimization reference.
+
+## Capability-gated tool surface
+
+`conditional_autonomy.tools.ToolSurface` is the sole runtime dispatch boundary
+for registered tool adapters. Every attempt validates the pinned action,
+supervisor-decision, validator-result, and tool-outcome contracts; adds hard
+capability and current-version evidence; and sends all evidence through T-09
+reconciliation before an adapter can run. APPROVE is the contract term for a
+permit and REJECT is the contract term for a denial. QUERY, REPAIR, REJECT, and
+ESCALATE attempts dispatch zero tool calls.
+
+Repair proposals and compensation templates are materialized as complete action
+proposals and re-enter the same validation, capability, version, and
+reconciliation gates. COMPENSATABLE originals additionally require T-09
+`INV-001` prevalidation. Successful adapter results advance one state version,
+are verified without direct canonical-state mutation, and validate as tool
+outcomes. Idempotency keys suppress repeated side effects and reject conflicting
+reuse. The external evidence set is closed over T-09's registered
+`current_version_check` and `adapter_compatibility_check`, plus
+`compensation_prevalidation_check` for compensatable actions, and every result
+must observe the proposal's exact state version. Adapter execution is claimed
+under a lock before dispatch. A completed exact retry returns the recorded
+outcome; a post-dispatch validation failure leaves an indeterminate claim that
+cannot be retried automatically. Recovery accepts only the byte-identical
+recorded successful outcome and rechecks action, tool, version, capability, and
+idempotency linkage. Because the pinned compensation template has no effects
+field, recovery compilation requires an explicit strict-JSON expected-effect
+set before it can re-enter the gate. A successful outcome requires exact
+multiset equality across declared, normalized, and verified effects.
+Current compensation authority and effect-promotion audits
+remain T-10 work; exogenous disruptions remain T-16 work.

@@ -77,6 +77,20 @@ from .thanksgiving import (
     run_thanksgiving_episode,
     thanksgiving_actions,
 )
+from .oracle import (
+    OracleResponse,
+    OracleSimulatorError,
+    OracleTurnLimitError,
+    OracleUserSimulator,
+)
+from .tools import (
+    Authorization,
+    ToolAdapter,
+    ToolExecution,
+    ToolSurface,
+    ToolSurfaceError,
+    canonical_execution_bytes,
+)
 
 __all__ = [
     "AppendOnlyStore",
@@ -141,4 +155,14 @@ __all__ = [
     "initial_thanksgiving_state",
     "run_thanksgiving_episode",
     "thanksgiving_actions",
+    "OracleResponse",
+    "OracleSimulatorError",
+    "OracleTurnLimitError",
+    "OracleUserSimulator",
+    "Authorization",
+    "ToolAdapter",
+    "ToolExecution",
+    "ToolSurface",
+    "ToolSurfaceError",
+    "canonical_execution_bytes",
 ]
