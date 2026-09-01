@@ -27,6 +27,12 @@ must not silently change the fixture expectation.
 `compensation_action.prevalidation_id`. The obsolete fixture-only top-level
 `compensation_prevalidation_id` alias is intentionally rejected.
 
+`INV-002` reconciliation contexts bind the proposed compensation
+`action_id` to `current_context.authorized_action_id` in addition to current
+state version, capabilities, and preconditions. This is the minimal current
+authority record needed to prevent a different same-version recovery action
+from inheriting authorization.
+
 `INV-015` uses the Stage 1 canonical JSON profile: UTF-8, lexicographically
 sorted object keys, compact separators, and non-finite numbers forbidden.
 Event-log integrity hashes cover canonical JSON Lines bytes: one canonical

@@ -33,7 +33,7 @@
       "expected": {"verdict": "PASS", "expected_failure_resolution": null},
       "input": {
         "compensation": {"action_id": "compensation-001", "required_capabilities": ["inventory-write"], "authorized_state_version": 8},
-        "current_context": {"state_version": 8, "granted_capabilities": ["inventory-write"], "preconditions_hold": true}
+        "current_context": {"state_version": 8, "authorized_action_id": "compensation-001", "granted_capabilities": ["inventory-write"], "preconditions_hold": true}
       }
     },
     {
@@ -44,7 +44,7 @@
       "expected": {"verdict": "FAIL", "expected_failure_resolution": "ESCALATE"},
       "input": {
         "compensation": {"action_id": "compensation-001", "required_capabilities": ["inventory-write"], "authorized_state_version": 8},
-        "current_context": {"state_version": 8, "granted_capabilities": [], "preconditions_hold": true}
+        "current_context": {"state_version": 8, "authorized_action_id": "compensation-001", "granted_capabilities": [], "preconditions_hold": true}
       }
     },
     {
@@ -469,7 +469,7 @@
       "enforcement_phase": "reconciliation",
       "coverage_clause": "compensation authorization is valid against the current state version",
       "expected": {"verdict": "FAIL", "expected_failure_resolution": "ESCALATE"},
-      "input": {"compensation": {"action_id": "compensation-001", "required_capabilities": ["inventory-write"], "authorized_state_version": 8}, "current_context": {"state_version": 9, "granted_capabilities": ["inventory-write"], "preconditions_hold": true}}
+      "input": {"compensation": {"action_id": "compensation-001", "required_capabilities": ["inventory-write"], "authorized_state_version": 8}, "current_context": {"state_version": 9, "authorized_action_id": "compensation-001", "granted_capabilities": ["inventory-write"], "preconditions_hold": true}}
     },
     {
       "test_id": "INV-002-N.precondition",
@@ -478,7 +478,7 @@
       "enforcement_phase": "reconciliation",
       "coverage_clause": "compensation preconditions hold when recovery begins",
       "expected": {"verdict": "FAIL", "expected_failure_resolution": "ESCALATE"},
-      "input": {"compensation": {"action_id": "compensation-001", "required_capabilities": ["inventory-write"], "authorized_state_version": 8}, "current_context": {"state_version": 8, "granted_capabilities": ["inventory-write"], "preconditions_hold": false}}
+      "input": {"compensation": {"action_id": "compensation-001", "required_capabilities": ["inventory-write"], "authorized_state_version": 8}, "current_context": {"state_version": 8, "authorized_action_id": "compensation-001", "granted_capabilities": ["inventory-write"], "preconditions_hold": false}}
     },
     {
       "test_id": "INV-004-N.plan-id",
