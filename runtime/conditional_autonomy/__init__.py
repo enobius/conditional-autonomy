@@ -67,6 +67,13 @@ from .replay_invariants import (
     logical_clock_order_check,
     state_version_transition_check,
 )
+from .reconciliation_invariants import (
+    RECONCILIATION_FAILURE_RESOLUTIONS,
+    RECONCILIATION_INVARIANT_VALIDATORS,
+    audit_deadline_check,
+    compensation_current_authority_check,
+    verified_effect_check,
+)
 from .thanksgiving import (
     Criticality as EnvironmentCriticality,
     Enforceability,
@@ -90,6 +97,27 @@ from .tools import (
     ToolSurface,
     ToolSurfaceError,
     canonical_execution_bytes,
+)
+from .disruptions import (
+    DisruptedThanksgivingEpisode,
+    DisruptionError,
+    P9_EPISODE_ID,
+    P9_JAMES_ARRIVAL,
+    P9_NOTIFICATION,
+    P9_PLAN_ID,
+    canonical_disrupted_episode_bytes,
+    p9_replanned_actions,
+    plan_respects_james_arrival,
+    run_disrupted_thanksgiving_episode,
+)
+from .generation import (
+    FEASIBILITY_ORACLE_VERSION,
+    GENERATOR_ID,
+    GENERATOR_VERSION,
+    SCENARIO_FAMILY,
+    GeneratedInstance,
+    InstanceGenerationError,
+    generate_thanksgiving_instance,
 )
 
 __all__ = [
@@ -137,6 +165,11 @@ __all__ = [
     "episode_trace_order_check",
     "logical_clock_order_check",
     "state_version_transition_check",
+    "RECONCILIATION_FAILURE_RESOLUTIONS",
+    "RECONCILIATION_INVARIANT_VALIDATORS",
+    "audit_deadline_check",
+    "compensation_current_authority_check",
+    "verified_effect_check",
     "adapter_compatibility_check",
     "compensation_prevalidation_check",
     "current_version_check",
@@ -165,4 +198,21 @@ __all__ = [
     "ToolSurface",
     "ToolSurfaceError",
     "canonical_execution_bytes",
+    "DisruptedThanksgivingEpisode",
+    "DisruptionError",
+    "P9_EPISODE_ID",
+    "P9_JAMES_ARRIVAL",
+    "P9_NOTIFICATION",
+    "P9_PLAN_ID",
+    "canonical_disrupted_episode_bytes",
+    "p9_replanned_actions",
+    "plan_respects_james_arrival",
+    "run_disrupted_thanksgiving_episode",
+    "FEASIBILITY_ORACLE_VERSION",
+    "GENERATOR_ID",
+    "GENERATOR_VERSION",
+    "SCENARIO_FAMILY",
+    "GeneratedInstance",
+    "InstanceGenerationError",
+    "generate_thanksgiving_instance",
 ]

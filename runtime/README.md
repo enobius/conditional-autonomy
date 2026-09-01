@@ -29,6 +29,14 @@ lock serializes the complete durable read/check/write transaction across store
 instances and processes, and supported platforms flush the destination directory
 after replacement so its new entry is durable.
 
+Multi-artifact writes use `AppendOnlyStore.put_artifacts_atomic()`. The store
+verifies the complete existing inventory and every destination under that same
+cross-process lock, stages all records before publication, and re-verifies the
+complete committed inventory before releasing the lock. A collision, corrupt
+pre-existing artifact, staged-record failure, or publication failure leaves no
+new batch artifacts visible; publication-time failures roll back only the new
+records.
+
 `AppendOnlyStore.verify_artifact_inventory()` enumerates the complete artifact
 directory under the store lock. It rejects unexpected entries and verifies
 every filename-to-ID binding, strict canonical envelope, artifact type, and
@@ -152,6 +160,26 @@ and runs `INV-014` before returning each response. Turn bounds and protected
 content fail closed. The current runtime explicitly supports the schema
 fixture's `template:p6-oracle` family and rejects unknown families.
 
+## Deterministic instance generation
+
+`conditional_autonomy.generation.generate_thanksgiving_instance` emits an
+immutable evaluator instance and a schema-valid instance manifest from the P6
+environment, oracle configuration, explicit seed, difficulty, lineage, split,
+and disruption inputs. Equivalent lineage sets are sorted before emission, and
+all other inputs pass through strict canonical JSON boundaries, so fixed inputs
+produce byte-identical artifacts across processes.
+
+Constraint, entity, and disruption hashes use distinct labeled SHA-256 domains.
+`GeneratedInstance.verify()` pins the generator ID/version, P6 scenario family,
+environment version, feasibility-oracle version, and canonical sorted lineage;
+it also recomputes each graph from the emitted initial state and cross-checks
+every manifest binding. Seed and private-oracle changes
+change the complete instance content hash without falsely changing structural
+graph hashes; disruption changes affect the disruption hash. Emission uses
+one atomic typed-artifact batch and then runs the store-wide `INV-015` check. The
+manifest records the honest `environment-preflight.1.0` feasibility version;
+T-20 owns replacement with a solver-backed oracle.
+
 ## Pre-execution validation and reconciliation
 
 `conditional_autonomy.preexecution` provides pure, fail-closed implementations
@@ -212,5 +240,30 @@ idempotency linkage. Because the pinned compensation template has no effects
 field, recovery compilation requires an explicit strict-JSON expected-effect
 set before it can re-enter the gate. A successful outcome requires exact
 multiset equality across declared, normalized, and verified effects.
-Current compensation authority and effect-promotion audits
-remain T-10 work; exogenous disruptions remain T-16 work.
+Reconciliation-phase checks are exposed through
+`conditional_autonomy.reconciliation_invariants`. They keep the deferred
+register's phase dispositions intact: stale compensation authority and missed
+or unverifiable audits ESCALATE, while attempts to promote effects without
+independent verification require REPAIR. The adapters are pure and operate on
+the integrated invariant-corpus contexts. Current compensation authority binds
+the exact action ID, version, capabilities, and preconditions; verified effects
+bind canonical content while excluding only their independent evidence ID; and
+audit clocks require strict UTC `Z` instants. The validators do not execute
+recovery actions or mutate canonical state. Exogenous disruptions remain T-16
+work.
+
+## P9 exogenous disruption
+
+`conditional_autonomy.disruptions` extends the static Thanksgiving environment
+with the exact P9 flight update: at 10:00 EST, James reports a revised 16:00
+landing. The authorized P6 plan is recorded first, the new arrival enters
+canonical state only as a reducer-compatible ledger transition, and the stale
+plan is rejected because it schedules James before that ledger-derived arrival.
+A feasible replacement shifts his rental and dependent pickup, records the new
+active plan in the ledger, and only then executes revised effects.
+
+The dynamic episode has its own stable episode and plan IDs. Every state change
+is a schema-valid `SET` event, logical clocks are strictly increasing, state
+versions advance only through the reducer, and replaying the transition subset
+from the initial state reproduces the terminal state byte-for-byte. No sampled
+delay, hidden mutation, or additional disruption is introduced.

@@ -23,7 +23,7 @@ import os
 import tempfile
 import threading
 import time
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Iterable, Mapping
 from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
@@ -219,32 +219,106 @@ class AppendOnlyStore:
     ) -> str:
         """Atomically add immutable, self-hashed contract content."""
 
-        self._require_identifier("artifact_id", artifact_id)
-        self._require_identifier("artifact_type", artifact_type)
-        content_copy = deepcopy(dict(content))
-        # Not every domain schema carries a top-level self-hash. The store
-        # envelope always does; if the domain object also declares one, both
-        # must describe the same canonical hash domain.
-        content_hash = _verify_declared_content_hash(content_copy, required=False)
-        record = {
-            "artifact_id": artifact_id,
-            "artifact_type": artifact_type,
-            "content": content_copy,
-            "content_hash": content_hash,
-        }
-        destination = self._artifact_path(artifact_id)
+        return self.put_artifacts_atomic(((artifact_id, artifact_type, content),))[
+            artifact_id
+        ]
+
+    def put_artifacts_atomic(
+        self,
+        artifacts: Iterable[tuple[str, str, Mapping[str, Any]]] | object,
+        *,
+        _after_publish: Callable[[str], None] | None = None,
+    ) -> dict[str, str]:
+        """Publish a batch as one lock-isolated all-or-nothing transaction.
+
+        Every record is validated and staged before the first destination is
+        installed. Store readers use the same cross-process lock, so they see
+        either the old inventory or the complete batch. If publishing raises,
+        every destination installed by this transaction is removed before the
+        lock is released. ``_after_publish`` is a private fault-injection seam.
+        """
+
+        try:
+            items = tuple(artifacts)  # type: ignore[arg-type]
+        except Exception as exc:
+            raise ValueError("artifact batch must be a finite iterable") from exc
+        prepared: list[tuple[str, Path, bytes, str]] = []
+        seen_ids: set[str] = set()
+        for item in items:
+            if not isinstance(item, (tuple, list)) or len(item) != 3:
+                raise ValueError("each artifact batch member must contain ID, type, content")
+            artifact_id, artifact_type, content = item
+            self._require_identifier("artifact_id", artifact_id)
+            self._require_identifier("artifact_type", artifact_type)
+            if not isinstance(content, Mapping):
+                raise TypeError("artifact content must be an object")
+            if artifact_id in seen_ids:
+                raise DuplicateArtifactIdError(
+                    f"duplicate artifact ID within batch: {artifact_id}"
+                )
+            seen_ids.add(artifact_id)
+            content_copy = deepcopy(dict(content))
+            content_hash = _verify_declared_content_hash(content_copy, required=False)
+            record = {
+                "artifact_id": artifact_id,
+                "artifact_type": artifact_type,
+                "content": content_copy,
+                "content_hash": content_hash,
+            }
+            prepared.append(
+                (
+                    artifact_id,
+                    self._artifact_path(artifact_id),
+                    canonical_json_bytes(record),
+                    content_hash,
+                )
+            )
+
+        staged: list[tuple[str, Path, Path]] = []
+        published: list[Path] = []
         with self._locked():
-            if destination.exists():
-                raise DuplicateArtifactIdError(f"artifact ID already exists: {artifact_id}")
-            self._atomic_replace(destination, canonical_json_bytes(record))
-        return content_hash
+            # A batch must not extend an already-corrupt store. This check is
+            # inside the same cross-process transaction as collision preflight
+            # and publication, so the verified inventory cannot change between
+            # validation and commit.
+            self._verify_artifact_inventory_unlocked()
+            for artifact_id, destination, _, _ in prepared:
+                if destination.exists():
+                    raise DuplicateArtifactIdError(
+                        f"artifact ID already exists: {artifact_id}"
+                    )
+            try:
+                for artifact_id, destination, record_bytes, _ in prepared:
+                    staged.append(
+                        (artifact_id, destination, self._stage_content(destination, record_bytes))
+                    )
+                for artifact_id, destination, temporary_path in staged:
+                    os.replace(temporary_path, destination)
+                    published.append(destination)
+                    self._sync_directory(destination.parent)
+                    if _after_publish is not None:
+                        _after_publish(artifact_id)
+                # Re-read the committed bytes before releasing the lock. Any
+                # publication-time corruption rolls back only this batch.
+                self._verify_artifact_inventory_unlocked()
+            except BaseException:
+                for destination in reversed(published):
+                    destination.unlink(missing_ok=True)
+                if published:
+                    self._sync_directory(self._artifacts)
+                raise
+            finally:
+                for _, _, temporary_path in staged:
+                    temporary_path.unlink(missing_ok=True)
+        return {artifact_id: content_hash for artifact_id, _, _, content_hash in prepared}
 
     def get_artifact(
         self, artifact_id: str, *, expected_type: str | None = None
     ) -> dict[str, Any]:
         """Load an artifact only after its ID, type, bytes, and hashes verify."""
 
-        record = self._read_artifact_record(artifact_id)
+        with self._locked():
+            record = self._read_artifact_record(artifact_id)
         if expected_type is not None and record["artifact_type"] != expected_type:
             raise ArtifactTypeMismatchError(
                 artifact_id, record["artifact_type"], expected_type
@@ -254,7 +328,8 @@ class AppendOnlyStore:
     def verify_artifact(self, artifact_id: str) -> str:
         """Verify an artifact and return its normalized canonical hash."""
 
-        return self._read_artifact_record(artifact_id)["content_hash"]
+        with self._locked():
+            return self._read_artifact_record(artifact_id)["content_hash"]
 
     def verify_artifact_inventory(self) -> dict[str, str]:
         """Verify and inventory every file in the append-only artifact store.
@@ -266,32 +341,37 @@ class AppendOnlyStore:
         normalized hashes only.
         """
 
-        inventory: dict[str, str] = {}
         with self._locked():
-            for path in sorted(self._artifacts.iterdir(), key=lambda item: item.name):
-                if (
-                    path.is_symlink()
-                    or not path.is_file()
-                    or path.suffix != ".json"
-                    or len(path.stem) != 64
-                    or any(character not in "0123456789abcdef" for character in path.stem)
-                ):
-                    raise IntegrityError(f"unexpected artifact-store entry: {path.name!r}")
-                stored_bytes = path.read_bytes()
-                record = _load_persisted_json(stored_bytes, f"artifact file {path.name!r}")
-                if not isinstance(record, dict):
-                    raise IntegrityError(f"artifact file {path.name!r} is not an envelope")
-                artifact_id = record.get("artifact_id")
-                if not isinstance(artifact_id, str) or not artifact_id:
-                    raise IntegrityError(f"artifact file {path.name!r} has an invalid ID")
-                if path != self._artifact_path(artifact_id):
-                    raise IntegrityError(
-                        f"artifact file {path.name!r} does not match ID {artifact_id!r}"
-                    )
-                verified = self._verify_artifact_record_bytes(artifact_id, stored_bytes)
-                if artifact_id in inventory:
-                    raise IntegrityError(f"duplicate artifact ID in store: {artifact_id!r}")
-                inventory[artifact_id] = verified["content_hash"]
+            return self._verify_artifact_inventory_unlocked()
+
+    def _verify_artifact_inventory_unlocked(self) -> dict[str, str]:
+        """Verify the inventory while the caller owns ``_locked``."""
+
+        inventory: dict[str, str] = {}
+        for path in sorted(self._artifacts.iterdir(), key=lambda item: item.name):
+            if (
+                path.is_symlink()
+                or not path.is_file()
+                or path.suffix != ".json"
+                or len(path.stem) != 64
+                or any(character not in "0123456789abcdef" for character in path.stem)
+            ):
+                raise IntegrityError(f"unexpected artifact-store entry: {path.name!r}")
+            stored_bytes = path.read_bytes()
+            record = _load_persisted_json(stored_bytes, f"artifact file {path.name!r}")
+            if not isinstance(record, dict):
+                raise IntegrityError(f"artifact file {path.name!r} is not an envelope")
+            artifact_id = record.get("artifact_id")
+            if not isinstance(artifact_id, str) or not artifact_id:
+                raise IntegrityError(f"artifact file {path.name!r} has an invalid ID")
+            if path != self._artifact_path(artifact_id):
+                raise IntegrityError(
+                    f"artifact file {path.name!r} does not match ID {artifact_id!r}"
+                )
+            verified = self._verify_artifact_record_bytes(artifact_id, stored_bytes)
+            if artifact_id in inventory:
+                raise IntegrityError(f"duplicate artifact ID in store: {artifact_id!r}")
+            inventory[artifact_id] = verified["content_hash"]
         return inventory
 
     def append_event(
@@ -426,27 +506,29 @@ class AppendOnlyStore:
         *,
         before_replace: Callable[[], None] | None = None,
     ) -> None:
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        temporary_path: Path | None = None
+        temporary_path = AppendOnlyStore._stage_content(destination, content)
         try:
-            with tempfile.NamedTemporaryFile(
-                dir=destination.parent,
-                prefix=f".{destination.name}.",
-                suffix=".tmp",
-                delete=False,
-            ) as temporary:
-                temporary_path = Path(temporary.name)
-                temporary.write(content)
-                temporary.flush()
-                os.fsync(temporary.fileno())
             if before_replace is not None:
                 before_replace()
             os.replace(temporary_path, destination)
-            temporary_path = None
             AppendOnlyStore._sync_directory(destination.parent)
         finally:
-            if temporary_path is not None:
-                temporary_path.unlink(missing_ok=True)
+            temporary_path.unlink(missing_ok=True)
+
+    @staticmethod
+    def _stage_content(destination: Path, content: bytes) -> Path:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            dir=destination.parent,
+            prefix=f".{destination.name}.",
+            suffix=".tmp",
+            delete=False,
+        ) as temporary:
+            temporary_path = Path(temporary.name)
+            temporary.write(content)
+            temporary.flush()
+            os.fsync(temporary.fileno())
+        return temporary_path
 
     @staticmethod
     def _sync_directory(directory: Path) -> None:

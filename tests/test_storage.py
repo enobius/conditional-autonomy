@@ -67,6 +67,27 @@ def put_artifact_worker(
         results.put("ok")
 
 
+def put_artifact_batch_worker(
+    root: str,
+    owner: str,
+    start: object,
+    results: object,
+) -> None:
+    store = AppendOnlyStore(root)
+    start.wait()
+    try:
+        store.put_artifacts_atomic(
+            (
+                ("batch:shared:a", "example", {"owner": owner, "slot": "a"}),
+                ("batch:shared:b", "example", {"owner": owner, "slot": "b"}),
+            )
+        )
+    except Exception as exc:  # pragma: no cover - asserted in the parent process
+        results.put(type(exc).__name__)
+    else:
+        results.put("ok")
+
+
 def hold_shared_root_lock_worker(
     root: str,
     acquired: object,
@@ -268,6 +289,54 @@ class AppendOnlyStoreTests(unittest.TestCase):
         self.assertEqual(
             AppendOnlyStore(self.root).get_artifact("state:shared"),
             {"state_id": "state:shared", "version": 1},
+        )
+
+    def test_atomic_batch_preflights_every_destination_before_publication(self) -> None:
+        self.store.put_artifact("batch:conflict", "example", {"owner": "existing"})
+        with self.assertRaises(DuplicateArtifactIdError):
+            self.store.put_artifacts_atomic(
+                (
+                    ("batch:new", "example", {"owner": "new"}),
+                    ("batch:conflict", "example", {"owner": "replacement"}),
+                )
+            )
+        self.assertEqual(
+            self.store.verify_artifact_inventory(),
+            {
+                "batch:conflict": canonical_content_hash({"owner": "existing"})
+            },
+        )
+
+    def test_atomic_batch_rolls_back_forced_failure_after_first_publish(self) -> None:
+        def interrupt(_: str) -> None:
+            raise RuntimeError("forced publication failure")
+
+        with self.assertRaisesRegex(RuntimeError, "forced publication failure"):
+            self.store.put_artifacts_atomic(
+                (
+                    ("batch:a", "example", {"slot": "a"}),
+                    ("batch:b", "example", {"slot": "b"}),
+                ),
+                _after_publish=interrupt,
+            )
+        self.assertEqual(self.store.verify_artifact_inventory(), {})
+        self.assertEqual(list((self.root / "artifacts").glob(".*.tmp")), [])
+
+    def test_concurrent_colliding_batches_have_one_complete_winner(self) -> None:
+        outcomes = self.run_concurrently(
+            put_artifact_batch_worker,
+            [(str(self.root), owner) for owner in ("first", "second", "third")],
+        )
+        self.assertEqual(outcomes.count("ok"), 1)
+        self.assertEqual(outcomes.count("DuplicateArtifactIdError"), 2)
+        first = self.store.get_artifact("batch:shared:a")
+        second = self.store.get_artifact("batch:shared:b")
+        self.assertEqual(first["owner"], second["owner"])
+        self.assertEqual(first["slot"], "a")
+        self.assertEqual(second["slot"], "b")
+        self.assertEqual(
+            set(self.store.verify_artifact_inventory()),
+            {"batch:shared:a", "batch:shared:b"},
         )
 
     def test_artifact_round_trip_is_immutable_and_hash_verified(self) -> None:
