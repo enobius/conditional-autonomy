@@ -74,6 +74,13 @@ from .reconciliation_invariants import (
     compensation_current_authority_check,
     verified_effect_check,
 )
+from .promotion_invariants import (
+    PROMOTION_FAILURE_RESOLUTIONS,
+    PROMOTION_INVARIANT_VALIDATORS,
+    PROHIBITED_SPLIT_DIMENSIONS,
+    clarification_counter_reconciliation,
+    split_leakage_check,
+)
 from .thanksgiving import (
     Criticality as EnvironmentCriticality,
     Enforceability,
@@ -170,6 +177,11 @@ __all__ = [
     "audit_deadline_check",
     "compensation_current_authority_check",
     "verified_effect_check",
+    "PROMOTION_FAILURE_RESOLUTIONS",
+    "PROMOTION_INVARIANT_VALIDATORS",
+    "PROHIBITED_SPLIT_DIMENSIONS",
+    "clarification_counter_reconciliation",
+    "split_leakage_check",
     "adapter_compatibility_check",
     "compensation_prevalidation_check",
     "current_version_check",

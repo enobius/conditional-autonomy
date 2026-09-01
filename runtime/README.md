@@ -136,6 +136,18 @@ clock/trace ordering to the replay layer and state transition/replay semantics
 to the reducer. Clock gaps are valid under the declared total order; trace-step
 contiguity is relative to the first supplied index.
 
+## Promotion-phase invariant adapters
+
+`conditional_autonomy.promotion_invariants` exposes the registered `INV-011`
+and `INV-013` validators. Clarification reconciliation requires exact agreement
+between classified `QUERY`/`USER_RESPONSE` events and recorded counters.
+Split-leakage validation requires the complete promotion policy and rejects
+cross-split reuse of seeds, template families, constraint-graph hashes, or
+disruption-composition hashes in deterministic dimension order. Malformed or
+leaking evidence fails closed to `QUARANTINE`. T-21 owns translation from
+generated manifests into this compact evidence boundary and enforcement before
+artifact promotion.
+
 ## Deterministic oracle user simulator
 
 `conditional_autonomy.oracle.OracleUserSimulator` validates the v1.0 user
