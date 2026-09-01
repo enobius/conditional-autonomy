@@ -107,7 +107,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-12 — Implement promotion-phase validators
 
 - Tier: mid
-- Current status: ready; T-07 and T-19 are complete and the fixture slice is integrated.
+- Current status: in progress; dispatched after T-07 and T-19 completion with the fixture slice integrated.
 - References: `INV-011`, `INV-013`
 - Depends on: T-07, T-19
 - Blocks: T-13, T-21
@@ -173,7 +173,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-18 — Add counterfactual safety pairs
 
 - Tier: mid
-- Current status: ready; T-09, T-10, T-14, T-15, T-16, and T-17 are complete.
+- Current status: in progress; dispatched after T-09, T-10, T-14, T-15, T-16, and T-17 completion.
 - References: instance-manifest, action, decision, and validator schemas; T-09 reconciliation table
 - Depends on: T-09, T-10, T-14, T-15, T-16, T-17
 - Blocks: T-22
@@ -193,7 +193,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-20 — Implement solver-backed feasibility oracle
 
 - Tier: mid
-- Current status: ready; T-14, T-16, and T-19 are complete.
+- Current status: in progress; dispatched after T-14, T-16, and T-19 completion. Solver/checker independence is a hard exit requirement and the ticket is intentionally un-timeboxed.
 - References: canonical-state, action, and instance-manifest schemas; Stage 1 constraint semantics
 - Depends on: T-14, T-16, T-19
 - Blocks: T-22
@@ -229,17 +229,20 @@ Additional keystone paths:
 - `T-19 → T-12 → T-21 → T-22`
 - `T-09 → T-10 → T-13 → T-22`
 
-Immediate parallel work after approval: T-03 implementation and the fixture-first slices of T-08 through T-12. Validator implementation remains blocked by the dependencies above.
+Current parallel wave: T-12 promotion validators, T-18 counterfactual safety pairs, and T-20 solver-backed feasibility oracle. T-20 is un-timeboxed; its witness checker must remain structurally independent from the solver model and decision procedure.
 
 ## Tripwire counter
 
 Initial weekly values: unresolved QUERY blockers over two days = 0; second-review failures = 0; scope violations = 0. Any category reaching 3 triggers decomposition review. Counts must be updated by the orchestrator from issue events; they are diagnostic signals, not worker-performance scores.
 
-## Human decisions required
+## Approved Stage 1 decisions
 
-- [ ] Approve the Stage 1 boundary: 1B–1E plus T-22 only; no Stage 2+ issues.
-- [ ] Approve clustering 1C by enforcement phase, with fixtures owned by each phase ticket.
-- [ ] Confirm the reconciliation decision function remains in T-09, while `INV-015` correctly remains in T-08.
-- [ ] Approve ticket sizing, exit-test attribution, and dependency edges above for GitHub filing.
+- [x] Stage 1 boundary: 1B–1E plus T-22 only; no Stage 2+ issues.
+- [x] Cluster 1C by enforcement phase, with fixtures owned by each phase ticket.
+- [x] Keep the reconciliation decision function in T-09 and `INV-015` in T-08.
+- [x] Ticket sizing, exit-test attribution, and dependency edges approved and filed.
 
-After approval, file the 20 issues, apply tier/workstream/blocking labels, encode dependency edges, and start T-03 plus the unblocked fixture slices.
+## Orchestrator follow-up queue
+
+- **Q-01 — T-02 branch protection enforcement:** using an authenticated GitHub session, confirm `schema-gate` is required on `main` and prove that a seeded red pull request cannot merge.
+- **Q-02 — Task 5 vendor-quality runtime dataset:** assemble per-ticket tier, review findings, repair cycles, gate outcomes, and runtime-versus-contract failure classes from issue history.
