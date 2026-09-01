@@ -107,7 +107,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-12 — Implement promotion-phase validators
 
 - Tier: mid
-- Current status: in progress; dispatched after T-07 and T-19 completion with the fixture slice integrated.
+- Current status: done/closed after adversarial review; integrated commit `ce5a21d`.
 - References: `INV-011`, `INV-013`
 - Depends on: T-07, T-19
 - Blocks: T-13, T-21
@@ -116,6 +116,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-13 — Compute invariant-register status from test evidence
 
 - Tier: base
+- Current status: ready; T-08, T-10, T-11, and T-12 are complete.
 - References: `deferred-invariants.md`, `INV-001`–`INV-016`
 - Depends on: T-08, T-10, T-11, T-12
 - Blocks: T-22
@@ -173,7 +174,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-18 — Add counterfactual safety pairs
 
 - Tier: mid
-- Current status: in progress; dispatched after T-09, T-10, T-14, T-15, T-16, and T-17 completion.
+- Current status: done/closed after adversarial review and repair; integrated commit `e46823e`.
 - References: instance-manifest, action, decision, and validator schemas; T-09 reconciliation table
 - Depends on: T-09, T-10, T-14, T-15, T-16, T-17
 - Blocks: T-22
@@ -193,7 +194,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-20 — Implement solver-backed feasibility oracle
 
 - Tier: mid
-- Current status: in progress; dispatched after T-14, T-16, and T-19 completion. Solver/checker independence is a hard exit requirement and the ticket is intentionally un-timeboxed.
+- Current status: done/closed after adversarial review and repair; integrated commit `ec7d66e`. Solver/checker independence is enforced for both positive witnesses and exhaustive negative proofs.
 - References: canonical-state, action, and instance-manifest schemas; Stage 1 constraint semantics
 - Depends on: T-14, T-16, T-19
 - Blocks: T-22
@@ -202,6 +203,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-21 — Enforce split hygiene during generation
 
 - Tier: mid
+- Current status: ready; T-12 and T-19 are complete.
 - References: `INV-013`, instance-manifest schema
 - Depends on: T-12, T-19
 - Blocks: T-22
@@ -229,7 +231,7 @@ Additional keystone paths:
 - `T-19 → T-12 → T-21 → T-22`
 - `T-09 → T-10 → T-13 → T-22`
 
-Current parallel wave: T-12 promotion validators, T-18 counterfactual safety pairs, and T-20 solver-backed feasibility oracle. T-20 is un-timeboxed; its witness checker must remain structurally independent from the solver model and decision procedure.
+Next ready wave: T-13 invariant-register status automation and T-21 pre-promotion split-hygiene enforcement. T-22 remains blocked until both are complete.
 
 ## Tripwire counter
 
