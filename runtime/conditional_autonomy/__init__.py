@@ -127,13 +127,22 @@ from .counterfactuals import (
     validate_counterfactual_pair,
 )
 from .generation import (
-    FEASIBILITY_ORACLE_VERSION,
     GENERATOR_ID,
     GENERATOR_VERSION,
     SCENARIO_FAMILY,
     GeneratedInstance,
     InstanceGenerationError,
     generate_thanksgiving_instance,
+)
+from .feasibility import (
+    FEASIBILITY_ORACLE_VERSION,
+    FeasibilityOracle,
+    FeasibilityOracleError,
+)
+from .feasibility_types import (
+    ActionAssignment,
+    FeasibilityDecision,
+    FeasibilityWitness,
 )
 
 __all__ = [
@@ -243,4 +252,9 @@ __all__ = [
     "GeneratedInstance",
     "InstanceGenerationError",
     "generate_thanksgiving_instance",
+    "FeasibilityOracle",
+    "FeasibilityOracleError",
+    "ActionAssignment",
+    "FeasibilityDecision",
+    "FeasibilityWitness",
 ]

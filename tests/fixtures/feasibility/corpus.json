@@ -1,0 +1,12 @@
+{
+  "review_status": "hand-authored-and-reviewed",
+  "environment": "thanksgiving-p6.1.0",
+  "cases": [
+    {"case_id": "p6-static", "variant": "P6", "expected_feasible": true},
+    {"case_id": "p9-delay-replanned", "variant": "P9", "expected_feasible": true},
+    {"case_id": "missing-obligation-action", "variant": "MISSING_ACTION", "expected_feasible": false},
+    {"case_id": "oven-capacity-conflict", "variant": "OVEN_CONFLICT", "expected_feasible": false},
+    {"case_id": "stale-plan-after-delay", "variant": "P9_STALE", "expected_feasible": false},
+    {"case_id": "impossible-turkey-window", "variant": "TURKEY_WINDOW", "expected_feasible": false}
+  ]
+}

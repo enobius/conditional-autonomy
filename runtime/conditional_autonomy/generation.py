@@ -9,13 +9,13 @@ import json
 from typing import Any
 
 from .contracts import ContractValidationError, validate_contract
+from .feasibility import FEASIBILITY_ORACLE_VERSION, FeasibilityOracle
 from .ingest import artifact_integrity_check
 from .oracle import OracleSimulatorError, OracleUserSimulator
 from .storage import AppendOnlyStore, canonical_content_hash, canonical_json_bytes
 from .thanksgiving import (
     ENVIRONMENT_VERSION,
     ScheduledAction,
-    evaluate_schedule,
     initial_thanksgiving_state,
     thanksgiving_actions,
 )
@@ -24,7 +24,6 @@ from .thanksgiving import (
 GENERATOR_ID = "generator:thanksgiving-stage1"
 GENERATOR_VERSION = "1.0"
 SCENARIO_FAMILY = "P6"
-FEASIBILITY_ORACLE_VERSION = "environment-preflight.1.0"
 _INSTANCE_FIELDS = {
     "instance_id",
     "generator_id",
@@ -260,8 +259,7 @@ def generate_thanksgiving_instance(
 
     state = initial_thanksgiving_state()
     actions = thanksgiving_actions()
-    evaluations = evaluate_schedule(state, actions)
-    if any(not evaluation.passed for evaluation in evaluations):
+    if not FeasibilityOracle().assess(state, actions).feasible:
         raise InstanceGenerationError("base Thanksgiving environment is infeasible")
     constraint_graph = _constraint_graph(state)
     entity_graph = _entity_graph(state)

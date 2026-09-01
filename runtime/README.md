@@ -189,8 +189,25 @@ every manifest binding. Seed and private-oracle changes
 change the complete instance content hash without falsely changing structural
 graph hashes; disruption changes affect the disruption hash. Emission uses
 one atomic typed-artifact batch and then runs the store-wide `INV-015` check. The
-manifest records the honest `environment-preflight.1.0` feasibility version;
-T-20 owns replacement with a solver-backed oracle.
+manifest records the checked `thanksgiving-csp.1.0` feasibility-oracle version.
+
+## Solver-backed feasibility oracle
+
+`conditional_autonomy.feasibility.FeasibilityOracle` composes a deterministic
+finite-minute Thanksgiving CSP solver with a structurally separate checker.
+Positive witnesses bind the complete state/template problem and are rebuilt and
+evaluated through the pre-existing T-14 constraint evaluator plus independently
+encoded ledger-arrival release checks. The solver imports neither that evaluator
+nor the checker.
+
+A solver-negative result is not trusted. The checker owns a separate exhaustive
+finite-domain search and returns infeasible only after its complete search space
+is exhausted. If it finds a valid schedule, solver/checker disagreement raises
+`FeasibilityOracleError`; solver failures, checker failures, and interrupted
+negative proofs remain errors/UNKNOWN and can never silently become UNSAT. The
+negative proof is intentionally un-timeboxed and worst-case exponential. This is
+a transparent Stage 1 domain-specific oracle, not a general-purpose solver or an
+independently checkable compact UNSAT-certificate system.
 
 ## Pre-execution validation and reconciliation
 
@@ -221,8 +238,8 @@ action proposals, canonical states, a policy-visible observation with lineage,
 and an outcome vector. Tool calls, disruptions, user interventions, and recovery
 remain zero or null because later Stage 1 tickets own those behaviors.
 Cooking proposals are marked `IRREVERSIBLE`; the environment never implies that
-prepared food can be undone. `optimality_gap` remains `null` until T-20's
-feasibility oracle can establish an optimization reference.
+prepared food can be undone. `optimality_gap` remains `null`: T-20 certifies
+feasibility but does not claim to solve an optimization objective.
 
 ## Capability-gated tool surface
 
