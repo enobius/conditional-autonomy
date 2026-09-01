@@ -30,13 +30,13 @@
     "query:human": "A recorded human decision is required before implementation can proceed"
   },
   "current_dispatch": {
-    "summary": {"total": 20, "done": 11, "in_progress": 3, "ready": 0, "blocked": 6, "dependencies_satisfied": 14, "dependencies_waiting": 6},
-    "done": ["T-03", "T-04", "T-05", "T-06", "T-07", "T-08", "T-09", "T-11", "T-14", "T-15", "T-17"],
-    "in_progress": ["T-10", "T-16", "T-19"],
-    "ready": [],
-    "blocked": ["T-12", "T-13", "T-18", "T-20", "T-21", "T-22"],
-    "dependencies_satisfied": ["T-03", "T-04", "T-05", "T-06", "T-07", "T-08", "T-09", "T-10", "T-11", "T-14", "T-15", "T-16", "T-17", "T-19"],
-    "dependencies_waiting": ["T-12", "T-13", "T-18", "T-20", "T-21", "T-22"],
+    "summary": {"total": 20, "done": 14, "in_progress": 0, "ready": 3, "blocked": 3, "dependencies_satisfied": 17, "dependencies_waiting": 3},
+    "done": ["T-03", "T-04", "T-05", "T-06", "T-07", "T-08", "T-09", "T-10", "T-11", "T-14", "T-15", "T-16", "T-17", "T-19"],
+    "in_progress": [],
+    "ready": ["T-12", "T-18", "T-20"],
+    "blocked": ["T-13", "T-21", "T-22"],
+    "dependencies_satisfied": ["T-03", "T-04", "T-05", "T-06", "T-07", "T-08", "T-09", "T-10", "T-11", "T-12", "T-14", "T-15", "T-16", "T-17", "T-18", "T-19", "T-20"],
+    "dependencies_waiting": ["T-13", "T-21", "T-22"],
     "fixture_slices_complete": ["T-08", "T-09", "T-10", "T-11", "T-12"]
   },
   "github": {
@@ -65,9 +65,9 @@
       "T-07": {"number": 5, "url": "https://github.com/enobius/conditional-autonomy/issues/5", "state": "closed", "status_label": "status:done", "current_labels": ["status:done"], "integrated_commit": "3cf1e06"},
       "T-08": {"number": 6, "url": "https://github.com/enobius/conditional-autonomy/issues/6", "state": "closed", "status_label": "status:done", "current_labels": ["status:done", "fixture-slice:complete"], "fixture_commit": "3d890f3", "integrated_commit": "9bbf393", "shared_commits": ["637ba09", "c556a54", "8a923f8"]},
       "T-09": {"number": 7, "url": "https://github.com/enobius/conditional-autonomy/issues/7", "state": "closed", "status_label": "status:done", "current_labels": ["status:done", "fixture-slice:complete"], "fixture_commit": "3d890f3", "integrated_commit": "019ed10"},
-      "T-10": {"number": 8, "url": "https://github.com/enobius/conditional-autonomy/issues/8", "state": "open", "status_label": "status:in-progress", "current_labels": ["status:in-progress", "fixture-slice:complete"], "fixture_commit": "3d890f3"},
+      "T-10": {"number": 8, "url": "https://github.com/enobius/conditional-autonomy/issues/8", "state": "closed", "status_label": "status:done", "current_labels": ["status:done", "fixture-slice:complete"], "fixture_commit": "3d890f3", "integrated_commit": "54a4545"},
       "T-11": {"number": 9, "url": "https://github.com/enobius/conditional-autonomy/issues/9", "state": "closed", "status_label": "status:done", "current_labels": ["status:done", "fixture-slice:complete"], "fixture_commit": "3d890f3", "integrated_commit": "7bf0347"},
-      "T-12": {"number": 10, "url": "https://github.com/enobius/conditional-autonomy/issues/10", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked", "fixture-slice:complete"], "fixture_commit": "3d890f3"},
+      "T-12": {"number": 10, "url": "https://github.com/enobius/conditional-autonomy/issues/10", "state": "open", "status_label": "status:ready", "current_labels": ["status:ready", "fixture-slice:complete"], "fixture_commit": "3d890f3"},
       "T-13": {"number": 11, "url": "https://github.com/enobius/conditional-autonomy/issues/11", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
       "T-14": {
         "number": 12,
@@ -109,11 +109,11 @@
         }
       },
       "T-15": {"number": 13, "url": "https://github.com/enobius/conditional-autonomy/issues/13", "state": "closed", "status_label": "status:done", "current_labels": ["status:done"], "integrated_commit": "12c5125"},
-      "T-16": {"number": 14, "url": "https://github.com/enobius/conditional-autonomy/issues/14", "state": "open", "status_label": "status:in-progress", "current_labels": ["status:in-progress"]},
+      "T-16": {"number": 14, "url": "https://github.com/enobius/conditional-autonomy/issues/14", "state": "closed", "status_label": "status:done", "current_labels": ["status:done"], "integrated_commit": "6b9259b"},
       "T-17": {"number": 15, "url": "https://github.com/enobius/conditional-autonomy/issues/15", "state": "closed", "status_label": "status:done", "current_labels": ["status:done"], "integrated_commit": "12c5125"},
-      "T-18": {"number": 16, "url": "https://github.com/enobius/conditional-autonomy/issues/16", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
-      "T-19": {"number": 17, "url": "https://github.com/enobius/conditional-autonomy/issues/17", "state": "open", "status_label": "status:in-progress", "current_labels": ["status:in-progress"]},
-      "T-20": {"number": 18, "url": "https://github.com/enobius/conditional-autonomy/issues/18", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
+      "T-18": {"number": 16, "url": "https://github.com/enobius/conditional-autonomy/issues/16", "state": "open", "status_label": "status:ready", "current_labels": ["status:ready"]},
+      "T-19": {"number": 17, "url": "https://github.com/enobius/conditional-autonomy/issues/17", "state": "closed", "status_label": "status:done", "current_labels": ["status:done"], "integrated_commit": "b63b7ba"},
+      "T-20": {"number": 18, "url": "https://github.com/enobius/conditional-autonomy/issues/18", "state": "open", "status_label": "status:ready", "current_labels": ["status:ready"]},
       "T-21": {"number": 19, "url": "https://github.com/enobius/conditional-autonomy/issues/19", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]},
       "T-22": {"number": 20, "url": "https://github.com/enobius/conditional-autonomy/issues/20", "state": "open", "status_label": "status:blocked", "current_labels": ["status:blocked"]}
     }

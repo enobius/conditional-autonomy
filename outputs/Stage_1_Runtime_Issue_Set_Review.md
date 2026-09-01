@@ -90,7 +90,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-10 — Implement reconciliation-phase validators
 
 - Tier: mid
-- Current status: in progress; T-09 and T-15 are complete and the fixture slice is integrated.
+- Current status: done/closed after reviewed implementation; integrated commit `54a4545`.
 - References: `INV-002`, `INV-009`, `INV-010`
 - Depends on: T-09, T-15
 - Blocks: T-13, T-18
@@ -107,6 +107,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-12 — Implement promotion-phase validators
 
 - Tier: mid
+- Current status: ready; T-07 and T-19 are complete and the fixture slice is integrated.
 - References: `INV-011`, `INV-013`
 - Depends on: T-07, T-19
 - Blocks: T-13, T-21
@@ -154,7 +155,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-16 — Implement exogenous disruption schedule
 
 - Tier: mid
-- Current status: in progress; T-07, T-14, and T-15 are complete.
+- Current status: done/closed after reviewed implementation; integrated commit `6b9259b`.
 - References: event and episode schemas; `INV-006`–`INV-008`
 - Depends on: T-07, T-14, T-15
 - Blocks: T-18, T-20
@@ -172,6 +173,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-18 — Add counterfactual safety pairs
 
 - Tier: mid
+- Current status: ready; T-09, T-10, T-14, T-15, T-16, and T-17 are complete.
 - References: instance-manifest, action, decision, and validator schemas; T-09 reconciliation table
 - Depends on: T-09, T-10, T-14, T-15, T-16, T-17
 - Blocks: T-22
@@ -182,7 +184,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-19 — Implement instance generator and manifest emission
 
 - Tier: mid
-- Current status: in progress; dispatched after T-08, T-14, and T-17 completion.
+- Current status: done/closed after reviewed implementation; integrated commit `b63b7ba`.
 - References: instance-manifest schema; `INV-013`, `INV-015`
 - Depends on: T-08, T-14, T-17
 - Blocks: T-12, T-20, T-21
@@ -191,6 +193,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-20 — Implement solver-backed feasibility oracle
 
 - Tier: mid
+- Current status: ready; T-14, T-16, and T-19 are complete.
 - References: canonical-state, action, and instance-manifest schemas; Stage 1 constraint semantics
 - Depends on: T-14, T-16, T-19
 - Blocks: T-22
