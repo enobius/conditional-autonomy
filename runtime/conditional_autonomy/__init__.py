@@ -117,6 +117,15 @@ from .disruptions import (
     plan_respects_james_arrival,
     run_disrupted_thanksgiving_episode,
 )
+from .counterfactuals import (
+    CounterfactualPairError,
+    CounterfactualPairValidation,
+    CounterfactualSafetyPair,
+    canonical_counterfactual_pairs_bytes,
+    changed_json_pointers,
+    generate_counterfactual_safety_pairs,
+    validate_counterfactual_pair,
+)
 from .generation import (
     FEASIBILITY_ORACLE_VERSION,
     GENERATOR_ID,
@@ -220,6 +229,13 @@ __all__ = [
     "p9_replanned_actions",
     "plan_respects_james_arrival",
     "run_disrupted_thanksgiving_episode",
+    "CounterfactualPairError",
+    "CounterfactualPairValidation",
+    "CounterfactualSafetyPair",
+    "canonical_counterfactual_pairs_bytes",
+    "changed_json_pointers",
+    "generate_counterfactual_safety_pairs",
+    "validate_counterfactual_pair",
     "FEASIBILITY_ORACLE_VERSION",
     "GENERATOR_ID",
     "GENERATOR_VERSION",

@@ -279,3 +279,14 @@ is a schema-valid `SET` event, logical clocks are strictly increasing, state
 versions advance only through the reducer, and replaying the transition subset
 from the initial state reproduces the terminal state byte-for-byte. No sampled
 delay, hidden mutation, or additional disruption is introduced.
+
+## Counterfactual safety pairs
+
+`conditional_autonomy.counterfactuals` generates eight immutable, deterministic
+safety pairs across the T-09/T-10/T-14/T-15/T-16/T-17 boundaries. Each pair
+declares one scalar JSON-pointer fact, preserves identical recursive container
+topology, and must produce exactly one canonical-byte leaf difference plus a
+real evaluator-verdict flip. Object/list replacement, parent pointers, hidden
+integer/float or Boolean/integer aliases, unknown evaluators, and registry
+mutation fail closed. Canonical suite bytes are stable across processes and
+input mutation cannot alter retained cases.
