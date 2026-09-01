@@ -59,6 +59,16 @@ class DuplicateArtifactIdError(StorageError):
     """An artifact ID already exists in the append-only artifact store."""
 
 
+class PromotionBoundaryError(StorageError):
+    """A domain artifact attempted to bypass its mandatory promotion gate."""
+
+
+_GENERATED_PAIR_ARTIFACT_TYPES = frozenset(
+    {"generated-instance", "instance-manifest"}
+)
+_GENERATED_PAIR_ID_PREFIXES = ("instance:", "manifest:")
+
+
 _ROOT_LOCKS_GUARD = threading.Lock()
 _ROOT_LOCKS: dict[Path, threading.RLock] = {}
 
@@ -238,18 +248,69 @@ class AppendOnlyStore:
         lock is released. ``_after_publish`` is a private fault-injection seam.
         """
 
+        return self._put_artifacts_atomic(
+            artifacts,
+            _after_publish=_after_publish,
+        )
+
+    def _put_generated_pair_atomic(
+        self,
+        instance_ref: str,
+        instance: Mapping[str, Any],
+        manifest_ref: str,
+        manifest: Mapping[str, Any],
+        *,
+        _after_publish: Callable[[str], None] | None = None,
+    ) -> dict[str, str]:
+        """Publish one generated pair through the fixed INV-013 gate."""
+
+        from .split_hygiene import _generation_pair_store_preflight
+
+        artifacts = (
+            (instance_ref, "generated-instance", instance),
+            (manifest_ref, "instance-manifest", manifest),
+        )
+
+        def mandatory_preflight(records: tuple[Mapping[str, Any], ...]) -> None:
+            _generation_pair_store_preflight(
+                records,
+                instance_ref,
+                instance,
+                manifest_ref,
+                manifest,
+            )
+
+        return self._put_artifacts_atomic(
+            artifacts,
+            _preflight=mandatory_preflight,
+            _allow_generated_pair=True,
+            _after_publish=_after_publish,
+        )
+
+    def _put_artifacts_atomic(
+        self,
+        artifacts: Iterable[tuple[str, str, Mapping[str, Any]]] | object,
+        *,
+        _preflight: Callable[[tuple[Mapping[str, Any], ...]], None] | None = None,
+        _allow_generated_pair: bool = False,
+        _after_publish: Callable[[str], None] | None = None,
+    ) -> dict[str, str]:
+        """Internal transaction primitive; public callers cannot select gates."""
+
         try:
             items = tuple(artifacts)  # type: ignore[arg-type]
         except Exception as exc:
             raise ValueError("artifact batch must be a finite iterable") from exc
         prepared: list[tuple[str, Path, bytes, str]] = []
         seen_ids: set[str] = set()
+        artifact_types: list[str] = []
         for item in items:
             if not isinstance(item, (tuple, list)) or len(item) != 3:
                 raise ValueError("each artifact batch member must contain ID, type, content")
             artifact_id, artifact_type, content = item
             self._require_identifier("artifact_id", artifact_id)
             self._require_identifier("artifact_type", artifact_type)
+            artifact_types.append(artifact_type)
             if not isinstance(content, Mapping):
                 raise TypeError("artifact content must be an object")
             if artifact_id in seen_ids:
@@ -274,6 +335,23 @@ class AppendOnlyStore:
                 )
             )
 
+        uses_reserved_boundary = any(
+            artifact_type in _GENERATED_PAIR_ARTIFACT_TYPES
+            or artifact_id.startswith(_GENERATED_PAIR_ID_PREFIXES)
+            for artifact_id, artifact_type, _ in items
+        )
+        if uses_reserved_boundary and (
+            not _allow_generated_pair
+            or _preflight is None
+            or len(items) != 2
+            or set(artifact_types) != _GENERATED_PAIR_ARTIFACT_TYPES
+            or not any(item[0].startswith("instance:") for item in items)
+            or not any(item[0].startswith("manifest:") for item in items)
+        ):
+            raise PromotionBoundaryError(
+                "generated instance pairs require the split-hygiene promotion gate"
+            )
+
         staged: list[tuple[str, Path, Path]] = []
         published: list[Path] = []
         with self._locked():
@@ -281,7 +359,14 @@ class AppendOnlyStore:
             # inside the same cross-process transaction as collision preflight
             # and publication, so the verified inventory cannot change between
             # validation and commit.
-            self._verify_artifact_inventory_unlocked()
+            inventory = self._verify_artifact_inventory_unlocked()
+            if _preflight is not None:
+                _preflight(
+                    tuple(
+                        deepcopy(self._read_artifact_record(artifact_id))
+                        for artifact_id in inventory
+                    )
+                )
             for artifact_id, destination, _, _ in prepared:
                 if destination.exists():
                     raise DuplicateArtifactIdError(

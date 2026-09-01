@@ -42,11 +42,10 @@ class ArtifactReferenceResolverTests(unittest.TestCase):
     def test_real_episode_string_and_object_refs_resolve_declared_types(self) -> None:
         episode = self.fixture("episode.valid.json")
         step = episode["steps"][0]
-        self.store.put_artifact(
-            episode["generator_manifest_ref"],
-            "instance-manifest",
-            self.fixture("instance-manifest.valid.json"),
-        )
+        from tests.test_generation import generate
+
+        _, manifest_ref = generate().emit(self.store)
+        episode["generator_manifest_ref"] = manifest_ref
         self.store.put_artifact(
             episode["user_model_ref"],
             "user-model",
@@ -70,7 +69,7 @@ class ArtifactReferenceResolverTests(unittest.TestCase):
         self.assertEqual(
             [(item.ref_id, item.artifact_type) for item in result.artifacts],
             [
-                ("instance-manifest:episode-1", "instance-manifest"),
+                (manifest_ref, "instance-manifest"),
                 ("user-model:p6-oracle:1.0", "user-model"),
                 ("state:episode-1:version-3", "canonical-state"),
             ],

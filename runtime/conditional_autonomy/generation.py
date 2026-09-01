@@ -12,7 +12,11 @@ from .contracts import ContractValidationError, validate_contract
 from .feasibility import FEASIBILITY_ORACLE_VERSION, FeasibilityOracle
 from .ingest import artifact_integrity_check
 from .oracle import OracleSimulatorError, OracleUserSimulator
-from .storage import AppendOnlyStore, canonical_content_hash, canonical_json_bytes
+from .storage import (
+    AppendOnlyStore,
+    canonical_content_hash,
+    canonical_json_bytes,
+)
 from .thanksgiving import (
     ENVIRONMENT_VERSION,
     ScheduledAction,
@@ -178,7 +182,7 @@ class GeneratedInstance:
                 raise InstanceGenerationError(f"manifest {field_name} is not bound to instance")
 
     def emit(self, store: AppendOnlyStore) -> tuple[str, str]:
-        """Persist instance and manifest, then enforce store-wide INV-015."""
+        """Enforce INV-013, persist atomically, then enforce store-wide INV-015."""
 
         if not isinstance(store, AppendOnlyStore):
             raise InstanceGenerationError("emission requires an AppendOnlyStore")
@@ -187,12 +191,13 @@ class GeneratedInstance:
         suffix = instance["instance_id"].removeprefix("instance:")
         instance_ref = instance["instance_id"]
         manifest_ref = f"manifest:{suffix}"
+
         try:
-            store.put_artifacts_atomic(
-                (
-                    (instance_ref, "generated-instance", instance),
-                    (manifest_ref, "instance-manifest", self.manifest),
-                )
+            store._put_generated_pair_atomic(
+                instance_ref,
+                instance,
+                manifest_ref,
+                self.manifest,
             )
         except (OSError, RuntimeError, TypeError, ValueError) as exc:
             raise InstanceGenerationError("instance emission failed") from exc

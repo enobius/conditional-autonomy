@@ -191,6 +191,16 @@ graph hashes; disruption changes affect the disruption hash. Emission uses
 one atomic typed-artifact batch and then runs the store-wide `INV-015` check. The
 manifest records the checked `thanksgiving-csp.1.0` feasibility-oracle version.
 
+Before a generated instance and manifest can be promoted, the store-owned
+generation-pair path reconstructs every historical pair and runs T-21 split
+hygiene while holding the same cross-process publication lock. It derives the
+registered `INV-013` evidence from the manifests' real seed, template-family,
+constraint-graph, and disruption-composition fields and delegates the policy
+decision to `split_leakage_check`. Orphans, malformed or mistyped records,
+forged bindings, and cross-split reuse fail closed before either artifact is
+visible. Generic storage APIs reject the reserved generated-pair types and ID
+namespaces, so callers cannot bypass this promotion boundary.
+
 ## Solver-backed feasibility oracle
 
 `conditional_autonomy.feasibility.FeasibilityOracle` composes a deterministic

@@ -206,33 +206,37 @@ class DeterministicInstanceGenerationTests(unittest.TestCase):
 
     def test_emission_preflight_conflict_leaves_no_partial_instance(self) -> None:
         generated = generate()
-        suffix = generated.instance["instance_id"].removeprefix("instance:")
-        manifest_ref = f"manifest:{suffix}"
         with tempfile.TemporaryDirectory() as directory:
             store = AppendOnlyStore(directory)
-            store.put_artifact(manifest_ref, "reserved", {"owner": "existing"})
+            instance_ref, manifest_ref = generated.emit(store)
+            before = store.verify_artifact_inventory()
             with self.assertRaisesRegex(InstanceGenerationError, "emission failed"):
                 generated.emit(store)
-            with self.assertRaises(KeyError):
-                store.get_artifact(generated.instance["instance_id"])
-            self.assertEqual(
-                store.get_artifact(manifest_ref, expected_type="reserved"),
-                {"owner": "existing"},
-            )
+            self.assertEqual(store.verify_artifact_inventory(), before)
+            self.assertEqual(store.get_artifact(instance_ref), generated.instance)
+            self.assertEqual(store.get_artifact(manifest_ref), generated.manifest)
 
     def test_emission_forced_publish_failure_rolls_back_complete_batch(self) -> None:
         generated = generate()
         with tempfile.TemporaryDirectory() as directory:
             store = AppendOnlyStore(directory)
-            atomic_put = store.put_artifacts_atomic
+            atomic_put = store._put_generated_pair_atomic
 
             def fail_after_first(_: str) -> None:
                 raise RuntimeError("forced publication failure")
 
-            def faulted_put(artifacts):
-                return atomic_put(artifacts, _after_publish=fail_after_first)
+            def faulted_put(instance_ref, instance, manifest_ref, manifest):
+                return atomic_put(
+                    instance_ref,
+                    instance,
+                    manifest_ref,
+                    manifest,
+                    _after_publish=fail_after_first,
+                )
 
-            with mock.patch.object(store, "put_artifacts_atomic", side_effect=faulted_put):
+            with mock.patch.object(
+                store, "_put_generated_pair_atomic", side_effect=faulted_put
+            ):
                 with self.assertRaisesRegex(InstanceGenerationError, "emission failed"):
                     generated.emit(store)
             self.assertEqual(store.verify_artifact_inventory(), {})

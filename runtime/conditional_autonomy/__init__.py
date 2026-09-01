@@ -6,6 +6,7 @@ from .storage import (
     DuplicateArtifactIdError,
     DuplicateEventIdError,
     IntegrityError,
+    PromotionBoundaryError,
     canonical_content_hash,
     canonical_json_bytes,
     with_content_hash,
@@ -144,6 +145,11 @@ from .feasibility_types import (
     FeasibilityDecision,
     FeasibilityWitness,
 )
+from .split_hygiene import (
+    SplitHygieneError,
+    enforce_generation_split_hygiene,
+    generation_manifest_evidence,
+)
 
 __all__ = [
     "AppendOnlyStore",
@@ -154,6 +160,7 @@ __all__ = [
     "DuplicateArtifactIdError",
     "DuplicateEventIdError",
     "IntegrityError",
+    "PromotionBoundaryError",
     "IllegalTransitionError",
     "AccessBoundaryError",
     "ObservationProjection",
@@ -257,4 +264,7 @@ __all__ = [
     "ActionAssignment",
     "FeasibilityDecision",
     "FeasibilityWitness",
+    "SplitHygieneError",
+    "enforce_generation_split_hygiene",
+    "generation_manifest_evidence",
 ]
