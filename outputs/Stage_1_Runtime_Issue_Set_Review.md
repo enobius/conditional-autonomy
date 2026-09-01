@@ -116,7 +116,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-13 — Compute invariant-register status from test evidence
 
 - Tier: base
-- Current status: ready; T-08, T-10, T-11, and T-12 are complete.
+- Current status: in progress; dispatched after T-08, T-10, T-11, and T-12 completion.
 - References: `deferred-invariants.md`, `INV-001`–`INV-016`
 - Depends on: T-08, T-10, T-11, T-12
 - Blocks: T-22
@@ -203,7 +203,7 @@ Each phase ticket owns its named positive and negative fixtures from `deferred-i
 #### T-21 — Enforce split hygiene during generation
 
 - Tier: mid
-- Current status: ready; T-12 and T-19 are complete.
+- Current status: in progress; dispatched after T-12 and T-19 completion.
 - References: `INV-013`, instance-manifest schema
 - Depends on: T-12, T-19
 - Blocks: T-22
@@ -231,7 +231,7 @@ Additional keystone paths:
 - `T-19 → T-12 → T-21 → T-22`
 - `T-09 → T-10 → T-13 → T-22`
 
-Next ready wave: T-13 invariant-register status automation and T-21 pre-promotion split-hygiene enforcement. T-22 remains blocked until both are complete.
+Current parallel wave: T-13 invariant-register status automation and T-21 pre-promotion split-hygiene enforcement. T-22 remains blocked until both are complete.
 
 ## Tripwire counter
 
