@@ -102,6 +102,26 @@ Run the runtime suite from the repository root:
 python -m unittest discover -s tests -v
 ```
 
+## Executable invariant register
+
+`conditional_autonomy.invariant_register` turns the 16-entry deferred-invariant
+register into an executable exit gate. It accepts only the exact registered
+phase, validator callable, failure resolution, and owned positive/negative
+corpus cases; then it runs the five canonical evidence suites and requires one
+successful result for every one of the 32 named cases. Loader errors, skipped or
+unexpected tests, suite-level failures, substituted callables, mismatched
+custom registers, and incomplete evidence all fail closed rather than reporting
+an invariant as verified.
+
+Run the human-readable gate with:
+
+```powershell
+python -m runtime.conditional_autonomy.invariant_register
+```
+
+The `runtime-invariant-gate` GitHub workflow runs the complete runtime suite,
+the corpus/register consistency checker, and this executable register report.
+
 # Replay CLI
 
 The runtime exposes store-backed replay and verification plus an exact byte
