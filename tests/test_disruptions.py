@@ -53,6 +53,9 @@ class ThanksgivingDisruptionTests(unittest.TestCase):
         )
         self.assertEqual(event["payload"]["value"], normalized_time(P9_JAMES_ARRIVAL))
         self.assertEqual(
+            event["payload"]["value"]["instant"], "2026-11-26T21:00:00Z"
+        )
+        self.assertEqual(
             sum(item["event_id"] == "event:p9-james-delay" for item in self.episode.events),
             1,
         )
