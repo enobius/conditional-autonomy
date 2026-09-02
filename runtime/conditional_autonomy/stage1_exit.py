@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass, replace
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -145,11 +146,30 @@ def run_stage1_exit() -> Stage1ExitReport:
 
 def _copy_clean_inputs(destination: Path) -> None:
     for name in ("runtime", "tests", "architecture"):
-        shutil.copytree(REPOSITORY_ROOT / name, destination / name, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        _copy_tree_without_bytecode(REPOSITORY_ROOT / name, destination / name)
+
+
+def _copy_tree_without_bytecode(source: Path, destination: Path) -> None:
+    shutil.copytree(
+        source,
+        destination,
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"),
+    )
 
 
 def _run_exact_gate(checkout: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run([sys.executable, "-m", "runtime.conditional_autonomy.stage1_exit"], cwd=checkout, capture_output=True, text=True, encoding="utf-8", check=False, timeout=180)
+    environment = os.environ.copy()
+    environment.update(PYTHONDONTWRITEBYTECODE="1", PYTHONHASHSEED="0")
+    return subprocess.run(
+        [sys.executable, "-B", "-m", "runtime.conditional_autonomy.stage1_exit"],
+        cwd=checkout,
+        env=environment,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        check=False,
+        timeout=180,
+    )
 
 
 def _apply_mutation(checkout: Path, mutation: MutationSpec) -> bytes:
@@ -173,7 +193,7 @@ def verify_seeded_defects() -> None:
             raise Stage1ExitError("pristine aggregate gate is not green")
         for mutation in MUTATIONS:
             checkout = Path(directory) / f"mutant-{mutation.workstream}"
-            shutil.copytree(pristine, checkout)
+            _copy_tree_without_bytecode(pristine, checkout)
             path = checkout / mutation.relative_path
             original_bytes = _apply_mutation(checkout, mutation)
             seeded = _run_exact_gate(checkout)

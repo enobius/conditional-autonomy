@@ -8,6 +8,7 @@ from runtime.conditional_autonomy.stage1_exit import (
     EXIT_CATEGORY_TESTS,
     MUTATIONS,
     _apply_mutation,
+    _copy_tree_without_bytecode,
     run_stage1_exit,
 )
 
@@ -43,6 +44,27 @@ class Stage1ExitGateTests(unittest.TestCase):
                 self.assertIn(mutation.replacement, target.read_text(encoding="utf-8"))
                 target.write_bytes(saved)
                 self.assertEqual(target.read_bytes(), original)
+
+    def test_mutant_copy_cannot_inherit_stale_python_bytecode(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "source"
+            source.mkdir()
+            (source / "module.py").write_text("VALUE = 'restored'\n", encoding="utf-8")
+            cache = source / "__pycache__"
+            cache.mkdir()
+            (cache / "module.cpython-311.pyc").write_bytes(b"stale-mutant")
+            (source / "loose.pyc").write_bytes(b"stale-mutant")
+
+            destination = root / "destination"
+            _copy_tree_without_bytecode(source, destination)
+
+            self.assertEqual(
+                (destination / "module.py").read_text(encoding="utf-8"),
+                "VALUE = 'restored'\n",
+            )
+            self.assertFalse((destination / "__pycache__").exists())
+            self.assertFalse((destination / "loose.pyc").exists())
 
 
 if __name__ == "__main__":

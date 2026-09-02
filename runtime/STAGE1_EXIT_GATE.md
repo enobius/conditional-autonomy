@@ -19,6 +19,10 @@ fail, restores the original bytes, and reruns the exact command green. It
 neither edits the working checkout nor invokes Git. `stage1-exit-gate` runs
 this command after a clean GitHub checkout.
 
+All temporary copies exclude Python bytecode, and every nested gate runs with
+`-B`, `PYTHONDONTWRITEBYTECODE=1`, and a fixed hash seed. Restoration therefore
+re-executes restored source rather than timestamp-valid mutant bytecode.
+
 The four defects alter the 1B reducer version transition, a 1C canonical
 corpus-to-validator binding, the 1D P9 arrival transition, and the 1E
 generation split-hygiene enforcement boundary. The campaign requires both the
