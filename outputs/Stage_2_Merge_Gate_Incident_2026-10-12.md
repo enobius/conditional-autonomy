@@ -1,6 +1,7 @@
 # Stage 2 merge-gate incident and CI repair
 
-Status: protection configuration corrected by owner; runtime CI repair pending PR.
+Status: protection configuration corrected by owner; runtime CI repair checks
+passed at 1edc438; non-author GitHub approval and PR integration pending.
 No S2-05 dispatch is authorized by this report.
 
 ## Tripwire incident MG-001
@@ -92,4 +93,22 @@ The fail-closed guard correctly rejected unavailable historical evidence.
 The follow-up workflow change sets fetch-depth: 0 so the approved commit and
 its raw artifact blobs can be checked remotely. No authority test or guard is
 skipped, mocked, relaxed or changed. The required Stage 1 PR gate passed on
-the first revision; both gates must be checked again on the follow-up revision.
+the first revision. Both gates subsequently passed on the follow-up revision
+`1edc43874bde79cb138c5d003d51788d3d438abc`:
+
+- stage1-exit-gate: completed / success, run 38298745425.
+  https://github.com/enobius/conditional-autonomy/actions/runs/38298745425
+- runtime-invariant-gate: completed / success, run 38298745374; full unit
+  suite, corpus consistency and invariant-register checks completed.
+  https://github.com/enobius/conditional-autonomy/actions/runs/38298745374
+
+The owner supplied independent review confirming the workflow preserves the
+guards, tests and scientific policies, with this stale audit text as the sole
+remaining finding. No GitHub approval was submitted: the connected account
+enobius is the PR author and cannot satisfy the non-author approval requirement.
+The approval gate and S2-05 dispatch hold remain in place.
+
+These results bind 1edc438 exactly. This audit-only correction creates a later
+PR head, whose checks must pass independently before merge; it does not claim
+that earlier run URLs certify later commits or require rerunning the already
+successful 1edc438 runs.
