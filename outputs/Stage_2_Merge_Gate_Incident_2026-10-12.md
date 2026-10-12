@@ -80,3 +80,16 @@ Regression and invariant-register evidence used normal Windows temporary-file
 permissions. The invariant-register attempt inside the restricted sandbox
 failed its evidence suite; the elevated rerun passed without changing tests.
 These local results are not a substitute for the PR's remote CI.
+
+## PR-discovered historical-commit checkout requirement
+
+PR #38 first run installed dependencies correctly and ran all 231 tests, but
+one authority test failed because actions/checkout's shallow history omitted
+the approved 93ad347 commit. Evidence:
+https://github.com/enobius/conditional-autonomy/actions/runs/38298575674
+
+The fail-closed guard correctly rejected unavailable historical evidence.
+The follow-up workflow change sets fetch-depth: 0 so the approved commit and
+its raw artifact blobs can be checked remotely. No authority test or guard is
+skipped, mocked, relaxed or changed. The required Stage 1 PR gate passed on
+the first revision; both gates must be checked again on the follow-up revision.
