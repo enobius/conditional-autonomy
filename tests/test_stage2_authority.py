@@ -106,13 +106,17 @@ class Stage2AuthorityTests(unittest.TestCase):
             with self.assertRaises(Stage2AuthorityError):
                 verify_development_pin_integrity(root, record)
 
-    def test_actual_v6_candidate_is_intact_but_not_approved(self):
+    def test_actual_v6_pin_has_development_only_authority(self):
         root = Path(__file__).resolve().parents[1]
         record = json.loads((root / 'outputs/Stage_2_Development_Pin_v6.json').read_text())
         verify_development_pin_integrity(root, record)
-        for phase in ('development', 'confirmatory'):
-            with self.assertRaises(Stage2AuthorityError):
-                require_stage2_authority(root, record, phase=phase)
+        require_stage2_authority(root, record, phase='development')
+        with self.assertRaises(Stage2AuthorityError):
+            require_stage2_authority(root, record, phase='confirmatory')
+        unapproved = deepcopy(record)
+        unapproved['owner_approval']['approved'] = False
+        with self.assertRaises(Stage2AuthorityError):
+            require_stage2_authority(root, unapproved, phase='development')
 
 
 if __name__ == '__main__':

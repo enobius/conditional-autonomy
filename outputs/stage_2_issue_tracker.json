@@ -90,7 +90,13 @@
         "S2-12"
       ],
       "development_pin": "outputs/Stage_2_Development_Pin_v6.json",
-      "review_status": "independent-review-pass-for-uncommitted-commit-binding-repair; owner-pin-approval-and-integration-pending",
+      "review_status": "independent-review-pass; repair-committed-93ad347; owner-development-pin-approved; integration-pending",
+      "owner_development_pin_approval": {
+        "approved": true,
+        "draft_commit": "93ad347dec11e22cff95e4e32d9ac4424c51bb74",
+        "artifact_set_hash": "5723aedc74ea2b1a31ef08e80547acc0bc6bc067fe9c9f4822980ea1b69741cc",
+        "scope": "development-only"
+      },
       "reviewed_commit": "dd7edd9b48cd4d500b5ad82f057f85a4929dcc87"
     },
     {

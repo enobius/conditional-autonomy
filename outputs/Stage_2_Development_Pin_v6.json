@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "scope": "DEVELOPMENT_CANDIDATE",
-  "status": "awaiting-owner-development-pin-review",
+  "status": "owner-approved-development-only",
   "source_base_commit": "14e99c1",
   "date": "2026-10-12",
   "artifacts": [
@@ -28,11 +28,11 @@
   ],
   "artifact_set_hash": "5723aedc74ea2b1a31ef08e80547acc0bc6bc067fe9c9f4822980ea1b69741cc",
   "owner_approval": {
-    "approved": false,
-    "owner": null,
-    "statement": null,
-    "draft_commit": null,
-    "artifact_set_hash": null
+    "approved": true,
+    "owner": "repository owner (approval in this conversation)",
+    "statement": "I approve the v6 development pin at commit 93ad347dec11e22cff95e4e32d9ac4424c51bb74 with artifact-set SHA256 5723aedc74ea2b1a31ef08e80547acc0bc6bc067fe9c9f4822980ea1b69741cc for development only.",
+    "draft_commit": "93ad347dec11e22cff95e4e32d9ac4424c51bb74",
+    "artifact_set_hash": "5723aedc74ea2b1a31ef08e80547acc0bc6bc067fe9c9f4822980ea1b69741cc"
   },
   "final_freeze_approved": false,
   "paid_runs_approved": false,
