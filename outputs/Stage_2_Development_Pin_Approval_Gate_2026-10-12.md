@@ -60,3 +60,27 @@ verified commit and artifact-set hash above. The four content-hashed artifacts
 remain unchanged; their draft checkboxes are historical to the approved bytes.
 The separate approval record is the operative authority input. Final freeze
 and paid-run flags remain false. Integration and issue closure remain pending.
+
+## Integration and synchronization completed
+
+After owner authorization to integrate, push, close and recompute readiness:
+
+- Local main fast-forwarded to `c8664c0f48d7652c5b3a9390a1f29d964e83a7ff`.
+- Integrated-main full regression: 231 tests passed, 70.071 seconds, exit 0.
+- Implementation and approval pushed; origin/main confirmed at c8664c0.
+- GitHub reported a bypass of the expected required `stage1-exit-gate` check.
+  The earlier exact repair-commit fresh-clone gate was GREEN; this is not a
+  claim that GitHub Actions passed or that branch protection prevented bypass.
+- GitHub #21 (T-19b) and #22 (S2-01) closed as Completed with `status:done`;
+  `status:in-progress` removed, stage/workstream labels preserved.
+- #26 (S2-05) marked `status:ready`, `status:blocked` removed; operative v6
+  development-pin and no-dispatch/no-paid-run boundaries recorded in a comment.
+- S2-02 awaits shared-definition contract approval. S2-06 awaits resolution
+  of its conditional environment-contract approval. They remain blocked for
+  implementation even though the S2-01 dependency is complete.
+- Stage 2: 1/16 done, 1 ready, 14 blocked, 0 in progress. Separate T-19b done;
+  historical Stage 1 remains 20/20. No successor dispatched.
+
+Screenshots: `outputs/Stage_2_First_Wave_Closed_2026-10-12.jpg` and
+`outputs/Stage_2_Ready_2026-10-12.jpg`. This synchronization record follows
+the tested implementation commit; it does not modify the pinned artifact set.

@@ -33,7 +33,7 @@
     "github_number": 21,
     "url": "https://github.com/enobius/conditional-autonomy/issues/21",
     "stage": 1,
-    "status": "in-progress",
+    "status": "done",
     "dispatched": true,
     "depends_on": [
       "Completed T-19",
@@ -51,20 +51,20 @@
       113
     ],
     "review_status": "independent-review-pass-at-dd7edd9",
-    "reviewed_commit": "dd7edd9b48cd4d500b5ad82f057f85a4929dcc87"
+    "reviewed_commit": "dd7edd9b48cd4d500b5ad82f057f85a4929dcc87",
+    "integrated_commit": "c8664c0f48d7652c5b3a9390a1f29d964e83a7ff",
+    "github_state": "closed-completed"
   },
   "summary": {
     "stage2_total": 16,
-    "stage2_ready": 0,
-    "stage2_blocked": 15,
-    "stage2_in_progress": 1,
-    "stage2_done": 0,
+    "stage2_ready": 1,
+    "stage2_blocked": 14,
+    "stage2_in_progress": 0,
+    "stage2_done": 1,
     "separate_regression_follow_ups": 1,
-    "ready": [],
-    "dispatched": [
-      "T-19b",
-      "S2-01"
-    ]
+    "ready": ["S2-05"],
+    "dispatched": [],
+    "readiness_note": "Ready means dependencies and applicable owner gates satisfied; it does not authorize dispatch. S2-02 awaits shared-definition contract approval; S2-06 awaits resolution of its conditional environment-contract gate."
   },
   "issues": [
     {
@@ -72,7 +72,7 @@
       "title": "Pin v6-draft and development/confirmatory boundary",
       "stage": 2,
       "tier": "mid",
-      "status": "in-progress",
+      "status": "done",
       "dispatched": true,
       "github_number": 22,
       "url": "https://github.com/enobius/conditional-autonomy/issues/22",
@@ -90,7 +90,9 @@
         "S2-12"
       ],
       "development_pin": "outputs/Stage_2_Development_Pin_v6.json",
-      "review_status": "independent-review-pass; repair-committed-93ad347; owner-development-pin-approved; integration-pending",
+      "review_status": "independent-review-pass; owner-development-pin-approved; integrated-and-pushed",
+      "integrated_commit": "c8664c0f48d7652c5b3a9390a1f29d964e83a7ff",
+      "github_state": "closed-completed",
       "owner_development_pin_approval": {
         "approved": true,
         "draft_commit": "93ad347dec11e22cff95e4e32d9ac4424c51bb74",
@@ -177,7 +179,7 @@
       "title": "Diverse generated P6/P9 bases with matched disruptions",
       "stage": 2,
       "tier": "mid",
-      "status": "blocked",
+      "status": "ready",
       "dispatched": false,
       "github_number": 26,
       "url": "https://github.com/enobius/conditional-autonomy/issues/26",
