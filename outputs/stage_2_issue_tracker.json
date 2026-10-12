@@ -50,7 +50,8 @@
       109,
       113
     ],
-    "review_status": "independent-adversarial-review-pending"
+    "review_status": "independent-review-pass-at-dd7edd9",
+    "reviewed_commit": "dd7edd9b48cd4d500b5ad82f057f85a4929dcc87"
   },
   "summary": {
     "stage2_total": 16,
@@ -88,7 +89,9 @@
         "S2-06",
         "S2-12"
       ],
-      "development_pin": "outputs/Stage_2_Development_Pin_v6.json"
+      "development_pin": "outputs/Stage_2_Development_Pin_v6.json",
+      "review_status": "independent-review-pass-for-uncommitted-commit-binding-repair; owner-pin-approval-and-integration-pending",
+      "reviewed_commit": "dd7edd9b48cd4d500b5ad82f057f85a4929dcc87"
     },
     {
       "id": "S2-02",

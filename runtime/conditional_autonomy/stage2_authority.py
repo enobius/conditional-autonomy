@@ -11,6 +11,7 @@ import hashlib
 import json
 from pathlib import Path, PurePosixPath
 import re
+import subprocess
 from collections.abc import Mapping
 
 from .storage import canonical_json_bytes
@@ -22,6 +23,42 @@ class Stage2AuthorityError(ValueError):
 
 def artifact_set_hash(artifacts: list) -> str:
     return hashlib.sha256(canonical_json_bytes(artifacts)).hexdigest()
+
+
+def _git(root: Path, *args: str) -> bytes:
+    """Read actual Git objects, without shell interpolation or replacement refs."""
+    try:
+        return subprocess.run(
+            ['git', '--no-replace-objects', '-C', str(root), *args],
+            check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            timeout=30,
+        ).stdout
+    except (OSError, subprocess.SubprocessError) as error:
+        raise Stage2AuthorityError('draft commit cannot be verified in local Git repository') from error
+
+
+def _verify_commit_binding(root: Path, record: Mapping, commit: str) -> None:
+    root = root.resolve()
+    top = Path(_git(root, 'rev-parse', '--show-toplevel').decode().strip()).resolve()
+    if top != root:
+        raise Stage2AuthorityError('pin root must be the Git repository root')
+    if _git(root, 'cat-file', '-t', commit).strip() != b'commit':
+        raise Stage2AuthorityError('draft_commit does not name a commit object')
+    for item in record['artifacts']:
+        name = item['path']
+        entries = _git(root, 'ls-tree', '-z', '--full-tree', commit,
+                       '--', ':(literal)' + name).split(b'\0')
+        entries = [entry for entry in entries if entry]
+        if len(entries) != 1:
+            raise Stage2AuthorityError('pinned artifact missing from draft commit')
+        metadata, stored_name = entries[0].split(b'\t', 1)
+        mode, kind, oid = metadata.split()
+        if (stored_name != name.encode('utf-8') or kind != b'blob'
+                or mode not in (b'100644', b'100755')):
+            raise Stage2AuthorityError('draft artifact is not an exact regular-file path')
+        data = _git(root, 'cat-file', 'blob', oid.decode('ascii'))
+        if len(data) != item['bytes'] or hashlib.sha256(data).hexdigest() != item['sha256']:
+            raise Stage2AuthorityError('draft commit artifact bytes do not match pin')
 
 
 def verify_development_pin_integrity(root: Path, record: Mapping) -> None:
@@ -67,6 +104,7 @@ def require_stage2_authority(root: Path, record: Mapping, *, phase: str) -> None
             or not isinstance(approval.get('draft_commit'), str)
             or not re.fullmatch(r'[0-9a-f]{40}', approval['draft_commit'])):
         raise Stage2AuthorityError('owner approval is not bound to artifacts and draft commit')
+    _verify_commit_binding(root, record, approval['draft_commit'])
     # This approval covers the draft pin only. Pilot execution additionally
     # requires S2-13 input/config pins, resolved policy and paid-run authority.
 
