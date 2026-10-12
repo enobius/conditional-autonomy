@@ -36,3 +36,6 @@ jobs:
         run: >-
           python -m runtime.conditional_autonomy.stage1_exit
           --verify-seeded-defects
+
+      - name: Prove seeded generator distinctness fails for a constant task
+        run: python -m runtime.conditional_autonomy.generation_distinctness_exit

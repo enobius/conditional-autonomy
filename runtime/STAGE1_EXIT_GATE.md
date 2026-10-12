@@ -11,6 +11,13 @@ deterministic replay, leakage prevention, HARD+UNKNOWN handling, and invariant
 tests. It also separately requires the computed invariant register to report
 16/16 VERIFIED.
 
+T-19b additionally binds the approved paired reproducibility/distinctness grid
+to `invariant-tests`. The same required CI job runs
+`python -m runtime.conditional_autonomy.generation_distinctness_exit` to prove
+that a production-source constant-task mutation goes red and restoration
+returns green. This supplements, rather than replaces, the four workstream
+proofs and does not claim statistical independence or a complete Stage 2 corpus.
+
 The seeded-defect campaign copies `runtime`, `tests`, and `architecture` into
 isolated temporary checkouts. For each of Workstreams 1B, 1C, 1D, and 1E it
 changes one production source file or workstream-owned evidence artifact, runs

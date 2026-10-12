@@ -40,6 +40,7 @@ EXIT_CATEGORY_TESTS = {
     "invariant-tests": (
         "tests.test_invariant_register.InvariantRegisterTests.test_live_named_test_evidence_verifies_all_sixteen",
         "tests.test_split_hygiene.GenerationSplitHygieneTests.test_each_prohibited_cross_split_overlap_uses_canonical_inv_013",
+        "tests.test_generation_distinctness.GeneratorDistinctnessTests.test_approved_grid_is_reproducible_and_semantically_distinct",
     ),
 }
 
