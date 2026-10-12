@@ -1,0 +1,444 @@
+{
+  "schema_version": "1.0",
+  "status": "filed",
+  "date": "2026-10-12",
+  "repository": "enobius/conditional-autonomy",
+  "source": "outputs/Stage_2_Issue_Set_Review_DRAFT.md",
+  "approval": {
+    "owner_quote": "I approve all 3",
+    "date": "2026-10-12",
+    "t19b_scope_and_seed_grid": true,
+    "stage2_issue_plan_with_required_b1v": true,
+    "repository_local_validation_policy": true,
+    "issue_filing": true,
+    "implementation_dispatch": false,
+    "paid_infrastructure_or_pilots": false,
+    "final_freeze": false,
+    "confirmatory_execution": false
+  },
+  "validation_policy": {
+    "path": "architecture/validation-policy.md",
+    "version": "1.0",
+    "routing_status": "recorded"
+  },
+  "historical_stage1_completion": "20/20 unchanged; T-19b is a separate regression follow-up",
+  "dependency_semantics": "depends_on is authoritative; blocks is its computed inverse. Conditional and owner gates remain separate. Ready does not mean dispatched.",
+  "regression_follow_up": {
+    "id": "T-19b",
+    "github_number": 21,
+    "url": "https://github.com/enobius/conditional-autonomy/issues/21",
+    "stage": 1,
+    "status": "ready",
+    "dispatched": false,
+    "depends_on": [
+      "Completed T-19",
+      "Verified/pushed a76729b and 8560527"
+    ],
+    "source": "outputs/T_19b_Generator_Distinctness_Regression_DRAFT.md",
+    "seed_grid": [
+      11,
+      29,
+      47,
+      101,
+      103,
+      107,
+      109,
+      113
+    ]
+  },
+  "summary": {
+    "stage2_total": 16,
+    "stage2_ready": 1,
+    "stage2_blocked": 15,
+    "stage2_in_progress": 0,
+    "stage2_done": 0,
+    "separate_regression_follow_ups": 1,
+    "ready": [
+      "T-19b",
+      "S2-01"
+    ],
+    "dispatched": []
+  },
+  "issues": [
+    {
+      "id": "S2-01",
+      "title": "Pin v6-draft and development/confirmatory boundary",
+      "stage": 2,
+      "tier": "mid",
+      "status": "ready",
+      "dispatched": false,
+      "github_number": 22,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/22",
+      "depends_on": [],
+      "conditional_dependencies": [],
+      "owner_gates": [],
+      "approved_ticket_body": "- Tier: mid. References: P5 Sections 2, 11–12, 16; M5 Sections 2, 12–14; I5; DA.\n- Depends on: preparation verification; owner approval of this issue set.\n- Blocks: all subsequent Stage 2 tickets.\n- Scope: reconcile editorial inconsistencies and deployment amendment without\n  changing policy; record B1V and the dedicated safety suite in a spec version\n  note. Correct safety count to 1,200 gate episodes: reserves are validated\n  before inference, not extra outcome-driven runs. Pin v6-draft source hashes,\n  decision register and unresolved owner inputs. Distinguish engineering pin\n  from final evaluation freeze; no unchecked decision becomes a default.\n- Exit: explicit owner-approved development pin, immutable draft commit/hash,\n  amendment process and negative gate rejecting any confirmatory run against\n  draft-only authority. All pilot records must cite this pin or an approved\n  superseding development amendment.",
+      "blocks": [
+        "S2-02",
+        "S2-03",
+        "S2-05",
+        "S2-06",
+        "S2-12"
+      ]
+    },
+    {
+      "id": "S2-02",
+      "title": "Approve and implement versioned trace/config envelope",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 23,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/23",
+      "depends_on": [
+        "S2-01"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [
+        "Shared-definition contract approval"
+      ],
+      "approved_ticket_body": "- Tier: mid. References: G1; M5 Sections 3, 5, 12; I5 outcome/trace finding.\n- Depends on: S2-01; explicit shared-definition contract approval.\n- Blocks: S2-03, S2-04, S2-08, S2-09, S2-11.\n- Scope: bind role, instance/pair/split/origin, per-call index/seed, raw response,\n  effective sampler/runtime hashes, confidence, token/clock counters, tool\n  authorization and outcome/failure classifications in a versioned envelope.\n  Do not insert unsupported fields into closed Stage 1 schemas.\n- Exit: positive/negative contract fixtures; old contracts remain valid;\n  unknown versions, missing lineage, nonfinite confidence and forged config\n  bindings fail closed. Confidence is captured from the designated first plan\n  before execution/validator feedback, under an owner-approved extraction rule.",
+      "blocks": [
+        "S2-03",
+        "S2-04",
+        "S2-08",
+        "S2-09",
+        "S2-11"
+      ]
+    },
+    {
+      "id": "S2-03",
+      "title": "Model adapter, budget accounting and deterministic request seeds",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 24,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/24",
+      "depends_on": [
+        "S2-01",
+        "S2-02"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [
+        "Sampler order and clock semantics"
+      ],
+      "approved_ticket_body": "- Tier: mid. References: P5 Section 2; M5 Sections 5–6; SM; seed helper/tests.\n- Depends on: S2-01, S2-02; owner-approved sampler order and clock semantics.\n- Blocks: S2-08, S2-09, S2-13, S2-14.\n- Scope: explicit modifiers/order, one inference slot, FP16 KV, pinned model\n  and runtime; count all submitted/generated tokens, discarded responses and\n  all role calls. Bind zero-based global call indexing to approved seed bytes.\n  Clear caches at episode start; disable prefix reuse; use `timings.cache_n`.\n- Exit: fake-server adversarial tests for unexpected settings, wrong seed,\n  cached input, truncation, token/time exhaustion and indeterminate requests;\n  fail closed with durable counters. Three identical synthetic warm-ups are\n  excluded from timing after each restart; conservative per-request context\n  headroom enforced. No TEST data is used for adapter tuning.",
+      "blocks": [
+        "S2-08",
+        "S2-09",
+        "S2-13"
+      ]
+    },
+    {
+      "id": "S2-04",
+      "title": "Durable episode ledger, interruption policy and backup verification",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 25,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/25",
+      "depends_on": [
+        "S2-02"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [
+        "Infrastructure interruption/restart policy"
+      ],
+      "approved_ticket_body": "- Tier: mid. References: G1 storage/atomicity; P5 exclusions; M5 lineage; I5.\n- Depends on: S2-02; owner-approved infrastructure interruption/restart policy.\n- Blocks: S2-08, S2-09, S2-12, S2-14, S2-16.\n- Scope: write-ahead request identities, atomic terminal outcomes, artifact\n  hashes, completed-run inventory and independent backup/export tooling.\n  Do not silently repeat an indeterminate model/tool request or replace model\n  failures with new cases. Separate genuine infrastructure interruptions from\n  preregistered episode failures using policy fixed before pilots.\n- Exit: kill the process before/after dispatch and publication; restart finds\n  completed episodes without duplicate side effects or cherry-picked reruns.\n  Corruption is detected; backup restore recovers exact bytes and pending\n  states. Model failure classification remains unchanged by resume.",
+      "blocks": [
+        "S2-08",
+        "S2-09",
+        "S2-12",
+        "S2-16"
+      ]
+    },
+    {
+      "id": "S2-05",
+      "title": "Diverse generated P6/P9 bases with matched disruptions",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 26,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/26",
+      "depends_on": [
+        "S2-01",
+        "T-19b"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [
+        "Completed T-19b; policy routing is recorded"
+      ],
+      "approved_ticket_body": "- Tier: mid. References: T-19b draft; M5 Section 2; P5 Section 11; G1 fidelity.\n- Depends on: S2-01, completed T-19b, recorded validation-policy routing.\n- Blocks: S2-07, S2-10, S2-13, S2-14.\n- Scope: construct declared generated evaluation and disjoint DEVELOPMENT\n  inventories; retain canonical hand-authored references. P9 shares its P6\n  base and changes only the declared disruption schedule.\n- Exit: reproducibility and semantic distinctness hold for the actual pinned\n  corpus, not only a small seed sample; independently checked valid/feasible\n  bases; matched static/dynamic fingerprints; deterministic disruption ledger\n  replay; constant-task mutation is detected. No generation tuned to results.",
+      "blocks": [
+        "S2-07",
+        "S2-10",
+        "S2-13"
+      ]
+    },
+    {
+      "id": "S2-06",
+      "title": "J1/J2 ingest, execution and evaluator support",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 27,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/27",
+      "depends_on": [
+        "S2-01"
+      ],
+      "conditional_dependencies": [
+        "S2-02: approval of any new environment contract"
+      ],
+      "owner_gates": [
+        "Approval of new environment contracts via S2-02, if needed"
+      ],
+      "approved_ticket_body": "- Tier: mid. References: M5 Sections 2–3; P5 Section 11; G1 feasibility/replay.\n- Depends on: S2-01; approval of any new environment contracts via S2-02.\n- Blocks: S2-08, S2-09, S2-10, S2-13.\n- Scope: verify released dataset identities/license/checksums and exact source\n  attribution; implement static scheduling and matched dynamic disruption\n  execution. Apply the approved outcome-blind reservation rule: ten of 109\n  J1 bases to DEVELOPMENT, 99 to TEST, with matching J2 variants.\n- Exit: malformed/duplicate source cases rejected; explicit reserved IDs;\n  static/dynamic matching; independently checked schedule witnesses and\n  disruption recovery; fresh-process replay and evaluator fidelity tests.",
+      "blocks": [
+        "S2-08",
+        "S2-09",
+        "S2-10",
+        "S2-13"
+      ]
+    },
+    {
+      "id": "S2-07",
+      "title": "Safety distribution generator, validity and variant selection",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 28,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/28",
+      "depends_on": [
+        "S2-05",
+        "T-19b"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [
+        "Safety distribution, validity, selection and unsafe-label mapping"
+      ],
+      "approved_ticket_body": "- Tier: mid, independent review required. References: P5 Sections 4, 11.4;\n  M5 Sections 2–3; I5 safety distribution/label blockers; T-19b policy.\n- Depends on: S2-05 and T-19b; owner decisions on mix/weights, validity checks,\n  variant-selection rule and mapping of executed violations to unsafe flag.\n- Blocks: S2-10, S2-13, S2-14.\n- Scope: 330 ordered independent candidate bases for confirmatory safety;\n  select first 300 valid before inference and stop if fewer qualify. Freeze one\n  selected variant per base. Separate DEVELOPMENT: 60 bases with two variants.\n  Preserve unsafe proposals/external adverse outcomes as distinct fields.\n- Exit: independent provenance/duplicate checks and sampling-unit audit;\n  single-fact counterfactual witnesses; validity entirely model-output-blind;\n  no substitution on model failure. The development unit is the base (unsafe\n  if either variant is unsafe). No claim that unique hashes prove independence.",
+      "blocks": [
+        "S2-10",
+        "S2-13"
+      ]
+    },
+    {
+      "id": "S2-08",
+      "title": "Implement B0, B1 and required B1V runners",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 29,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/29",
+      "depends_on": [
+        "S2-02",
+        "S2-03",
+        "S2-04",
+        "S2-06"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [],
+      "approved_ticket_body": "- Tier: mid. References: P5 Sections 2–3; M5 Section 5; G1 tools/projector.\n- Depends on: S2-02, S2-03, S2-04, S2-06.\n- Blocks: S2-13, S2-14, S2-16.\n- Scope: B0 direct planning/no tools; B1 single looping agent without shield;\n  B1V same agent with deterministic validator/reconciliation/capability and\n  invariant gates, implicit APPROVE on executable proposals, no supervisor\n  or extra model self-review. Use synthetic local fixtures first.\n- Exit: capability-matrix tests prevent tools/loops in B0, shield in B1,\n  decomposition/self-review calls in B1V; identical model/information/budget\n  rules and comparable evaluator access; invalid/UNKNOWN B1V proposals never\n  execute; all role/call/cost/confidence data binds to the envelope.",
+      "blocks": [
+        "S2-13",
+        "S2-16"
+      ]
+    },
+    {
+      "id": "S2-09",
+      "title": "Implement B2/B3 supervisor-worker runners",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 30,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/30",
+      "depends_on": [
+        "S2-02",
+        "S2-03",
+        "S2-04",
+        "S2-06"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [],
+      "approved_ticket_body": "- Tier: mid. References: P5 Section 2; M5 Section 5; G1 reconciliation/tools.\n- Depends on: S2-02, S2-03, S2-04, S2-06.\n- Blocks: S2-13, S2-14, S2-16.\n- Scope: B2 decomposed baseline without validator shield; B3 same decomposition\n  with deterministic gates; frozen same-model roles and dispatch/depth limits.\n  Safety of real external systems remains out of scope: execution is sandboxed.\n- Exit: seeded role leakage, unauthorized dispatch, UNKNOWN execution, hidden\n  extra model calls and budget bypass detected; same gated surface as B1V;\n  B2 never gains B3's shield through shared helper code. Replay binds all roles.",
+      "blocks": [
+        "S2-13",
+        "S2-16"
+      ]
+    },
+    {
+      "id": "S2-10",
+      "title": "Enumerate and hash inventories, protected suites and split gates",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 31,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/31",
+      "depends_on": [
+        "S2-05",
+        "S2-06",
+        "S2-07"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [
+        "Protected-suite definitions"
+      ],
+      "approved_ticket_body": "- Tier: mid. References: M5 Sections 2–4, 9, 12–13; G1 INV-013.\n- Depends on: S2-05, S2-06, S2-07; approved protected-suite definitions.\n- Blocks: S2-13, S2-14, S2-15.\n- Scope: produce explicit instance IDs, pairings, origins, seeds, reserve ranks,\n  content hashes and allowed architectures. Enumerate exact protected tests,\n  fixtures, expected results and which condition is gated versus only reported.\n- Exit: DEVELOPMENT/TEST/safety/protected contamination, missing pairs, semantic\n  duplicates and unsupported counts fail before inference. Preserve approved\n  paired-family relationships; no blanket duplicate rejection of valid variants.\n  Effectiveness is 400 items x three trials x five conditions = 6,000 episodes;\n  safety gate is 300 bases x four conditions = 1,200, subject to final inventory.",
+      "blocks": [
+        "S2-13",
+        "S2-15"
+      ]
+    },
+    {
+      "id": "S2-11",
+      "title": "Implement the owner-resolved analysis and calibration plan",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 32,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/32",
+      "depends_on": [
+        "S2-02"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [
+        "ECE/confidence, bootstrap/CI/analysis seed, regression population, content-origin reporting"
+      ],
+      "approved_ticket_body": "- Tier: mid, independent statistical review. References: P5 Sections 3–9;\n  M5 Sections 8–12; I5 analysis blockers.\n- Depends on: S2-02; owner decisions on ECE/confidence, bootstrap tests/CI/\n  numeric seed, regression reference population and content-origin reporting.\n- Blocks: S2-14 power/cost planning, S2-15, S2-16 analysis.\n- Scope: encode primary B3 minus B1V; exactly three secondary claim-level\n  p-values in the approved Holm family; H1 joint construction; correct paired\n  base clustering and binomial safety unit. Do not invent missing policy.\n- Exit: independently calculated toy-case and boundary tests, null/effect\n  simulations, invalid-confidence cases and cluster-resampling audits; reject\n  silent exclusion or optional stopping. Analysis artifact is hashed before\n  confirmatory collection, not adjusted after viewing TEST results.",
+      "blocks": [
+        "S2-14",
+        "S2-15",
+        "S2-16"
+      ]
+    },
+    {
+      "id": "S2-12",
+      "title": "Persistent deployment and independent experiment backup",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 33,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/33",
+      "depends_on": [
+        "S2-01",
+        "S2-04"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [
+        "Provider/storage/budget authorization"
+      ],
+      "approved_ticket_body": "- Tier: mid operations. References: DA; SM; S2-04 restore evidence.\n- Depends on: S2-01, S2-04; owner storage/provider/budget authorization.\n- Blocks: S2-13 GPU checks, S2-14, S2-16.\n- Scope: persist model/runtime/config/data outside ephemeral container storage;\n  keep independent result backups. Same recorded A6000 configuration across\n  conditions; any replacement is checked and amended before use.\n- Exit: actual storage persistence/restore tested, exact source and GGUF hashes\n  verified after restart, runtime/hardware/thread versions recorded, backups\n  verified independently. No production credentials in repo and no assumption\n  that stopping guarantees GPU availability or preserves container data.",
+      "blocks": [
+        "S2-13",
+        "S2-16"
+      ]
+    },
+    {
+      "id": "S2-13",
+      "title": "Development inventory pin and outcome-blind pre-pilot checks",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 34,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/34",
+      "depends_on": [
+        "S2-03",
+        "S2-05",
+        "S2-06",
+        "S2-07",
+        "S2-08",
+        "S2-09",
+        "S2-10",
+        "S2-12"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [
+        "All policy inputs needed for development execution"
+      ],
+      "approved_ticket_body": "- Tier: mid. References: P5 Section 11.1–11.2; M5 Section 12; SM; DA.\n- Depends on: S2-03, S2-05, S2-06, S2-07, S2-08, S2-09, S2-10, S2-12;\n  all policy inputs needed for development execution approved.\n- Blocks: S2-14.\n- Scope: hash runner/config/prompt and DEVELOPMENT input artifacts under the\n  v6-draft pin; contextual representation checks (including B0 output),\n  independent reference-recovery allowance feasibility, synthetic throughput\n  and 16 GB memory checks on actual persistent deployment. Apply the declared\n  time-bound-tier rule without task outcome inspection.\n- Exit: checks and excluded time-bound tiers recorded deterministically; no\n  TEST architecture episodes; no infeasible instance silently dropped. A\n  necessary allowance change requires recorded development amendment first.",
+      "blocks": [
+        "S2-14"
+      ]
+    },
+    {
+      "id": "S2-14",
+      "title": "Execute pinned development pilots and planning analyses",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 35,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/35",
+      "depends_on": [
+        "S2-13",
+        "S2-11"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [
+        "Paid DEVELOPMENT run authorization"
+      ],
+      "approved_ticket_body": "- Tier: mid; runtime/cost estimate comes from measurement, not a timebox.\n- References: P5 Section 11; M5 Sections 2, 6, 12; S2-13 artifact hashes.\n- Depends on: S2-13, S2-11; owner authorization for the paid DEVELOPMENT runs.\n- Blocks: S2-15.\n- Scope: token-cap ladder on 40 cases/condition, one trial seed 11; B0 reported\n  but does not select tier. Then 60 safety bases x two variants x four executable\n  conditions = 480 development runs; base-level unsafe aggregation. Compute\n  five-point-effect power planning, per-condition cost and calendar feasibility.\n- Exit: each record binds v6-draft and exact development/run-config hashes;\n  selection uses exhaustion, never success rate; raw terminal records/backups\n  complete; invalid/failed runs handled by fixed policy. No TEST/safety-gate\n  evaluation inspected. If power/cap rule fails, stop and request owner-directed\n  sample/config amendment; do not lower acceptance thresholds to fit results.",
+      "blocks": [
+        "S2-15"
+      ]
+    },
+    {
+      "id": "S2-15",
+      "title": "Reconcile v6-final and obtain the final freeze",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 36,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/36",
+      "depends_on": [
+        "S2-10",
+        "S2-11",
+        "S2-14"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [
+        "All freeze blockers resolved; explicit final-freeze approval"
+      ],
+      "approved_ticket_body": "- Tier: mid plus mandatory owner gate. References: P5 Sections 12, 16;\n  M5 Sections 12–14; I5 blocker register; S2-14 pilot evidence.\n- Depends on: S2-10, S2-11, S2-14; every owner freeze-blocker decision resolved.\n- Blocks: S2-16 (hard gate).\n- Scope: mechanically produce v6-final from approved draft decisions, recorded\n  development amendments and rule-derived pilot values; deliver all six M5\n  machine-readable artifacts, hashes and approval/amendment provenance.\n- Exit: explicit owner final-freeze approval checked; immutable freeze commit\n  and signed/recorded artifact hash binding; seeded missing-approval, draft-only,\n  changed-config and missing-inventory failures prevent confirmatory launch.\n  A filename saying FINAL is never sufficient authorization.",
+      "blocks": [
+        "S2-16"
+      ]
+    },
+    {
+      "id": "S2-16",
+      "title": "Gated confirmatory collection, audit and preregistered reporting",
+      "stage": 2,
+      "tier": "mid",
+      "status": "blocked",
+      "dispatched": false,
+      "github_number": 37,
+      "url": "https://github.com/enobius/conditional-autonomy/issues/37",
+      "depends_on": [
+        "S2-15",
+        "S2-04",
+        "S2-08",
+        "S2-09",
+        "S2-11",
+        "S2-12"
+      ],
+      "conditional_dependencies": [],
+      "owner_gates": [
+        "Final freeze plus confirmatory execution/budget authorization"
+      ],
+      "approved_ticket_body": "- Tier: mid. References: v6-final/freeze record; S2-04; S2-11; M5 inventories.\n- Depends on: S2-15, S2-04, S2-08, S2-09, S2-11, S2-12;\n  owner-confirmed execution/budget authorization.\n- Scope: execute only frozen enumerated conditions/trials; validate freeze\n  authority before every batch; checkpoint/export raw outcomes, run the pinned\n  analysis and protected-suite reporting. No threshold/model/suite tuning.\n- Exit: missing/corrupt/duplicate episode audit clean; no model-outcome-driven\n  replacement; exact expected counts and paired keys accounted for; backup\n  restoration tested; primary/secondary/descriptive claims remain separated.\n  Any change after freeze routes through a numbered owner-approved amendment.",
+      "blocks": []
+    }
+  ]
+}
