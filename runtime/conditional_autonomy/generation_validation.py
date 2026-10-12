@@ -41,6 +41,7 @@ def check_variant_state(state: Mapping, *, version: str, seed: int) -> None:
     facts = candidate['resources']['projection_facts']
     expected_fact = {
         'fact_id': 'fact:sides-earliest-start', 'value': normalized_time(actual),
+        'epistemic_status': 'OBSERVED', 'evidence_refs': [],
         'access_class': 'POLICY_VISIBLE',
     }
     if facts.pop('sides_earliest_start', None) != expected_fact:

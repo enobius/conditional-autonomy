@@ -15,8 +15,10 @@ from runtime.conditional_autonomy.generation_validation import (
     GenerationValidationError, semantic_task_fingerprint, verify_distinct_instances,
 )
 from runtime.conditional_autonomy.thanksgiving import (
-    evaluate_schedule, initial_thanksgiving_state, thanksgiving_actions, utc_minute,
+    DINNER, evaluate_schedule, initial_thanksgiving_state, normalized_time,
+    thanksgiving_actions, utc_minute,
 )
+from runtime.conditional_autonomy.projection import project_observation
 from tests.test_generation import generate, private_state, user_model
 
 GRID = (11, 29, 47, 101, 103, 107, 109, 113)
@@ -24,12 +26,26 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class GeneratorDistinctnessTests(unittest.TestCase):
+    def _assert_projectable(self, generated):
+        state = generated.instance['initial_state']
+        result = project_observation(
+            state, observation_id='observation:variant-test', actor_id='actor:planner',
+            source_paths=['/resources/projection_facts/sides_earliest_start'],
+            goal_refs=['goal:thanksgiving-dinner'], generated_at=normalized_time(DINNER))
+        self.assertEqual(result.observation['visible_facts'],
+                         [state['resources']['projection_facts']['sides_earliest_start']])
+
     def test_approved_grid_is_reproducible_and_semantically_distinct(self):
         first = [generate(seed=s) for s in GRID]
         second = [generate(seed=s) for s in GRID]
         self.assertEqual([g.canonical_bytes() for g in first],
                          [g.canonical_bytes() for g in second])
         self.assertEqual(len(set(verify_distinct_instances(first))), len(GRID))
+        for generated in first:
+            self._assert_projectable(generated)
+
+    def test_generated_release_is_projectable_under_existing_contract(self):
+        self._assert_projectable(generate(seed=11))
 
     def test_generated_window_changes_an_executable_constraint(self):
         low, high = generate(seed=11), generate(seed=113)

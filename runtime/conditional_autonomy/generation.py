@@ -354,6 +354,7 @@ def _seeded_variant_state(seed: int, version: str) -> dict[str, Any]:
     target['window']['start'] = normalized_time(release)
     state['resources']['projection_facts']['sides_earliest_start'] = {
         'fact_id': 'fact:sides-earliest-start', 'value': normalized_time(release),
+        'epistemic_status': 'OBSERVED', 'evidence_refs': [],
         'access_class': 'POLICY_VISIBLE',
     }
     return state
