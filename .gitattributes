@@ -1,0 +1,5 @@
+# Preserve forensic smoke evidence as exact bytes across clone platforms.
+outputs/Stage_2_Smoke_Evidence_2026-10-07.zip -text
+outputs/Stage_2_Smoke_Evidence_2026-10-07/evidence/provenance.json -text
+outputs/Stage_2_Smoke_Evidence_2026-10-07/evidence/artifact_hashes.json -text
+outputs/Stage_2_Smoke_Evidence_2026-10-07/evidence/summary.json -text

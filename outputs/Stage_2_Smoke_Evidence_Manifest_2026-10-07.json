@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0",
+  "status": "synthetic-smoke-evidence-not-experiment-freeze",
+  "packaged_date": "2026-10-12",
+  "smoke_date": "2026-10-07",
+  "archive_contains": "Raw responses, memory samples, build/conversion/quantization logs, failed probe attempts, boundary diagnostic, Python dependencies and probe source.",
+  "runtime": {
+    "tag": "b11433",
+    "commit": "50569eb87df530daff11afda229ceb9ab8e6cae8"
+  },
+  "source_model": {
+    "id": "ibm-granite/granite-4.1-3b",
+    "revision": "c0650403e44e78ec0262dab1c90914c65b196c4e"
+  },
+  "artifacts": [
+    {
+      "path": "outputs/Stage_2_Smoke_Evidence_2026-10-07.zip",
+      "sha256": "fcc28fa684bb3a83643b300fecf790739cb33f2600f2328669ce38d6b7428ac7",
+      "bytes": 51948
+    },
+    {
+      "path": "outputs/Stage_2_Smoke_Evidence_2026-10-07/evidence/provenance.json",
+      "sha256": "249f5cbbb5642c5daf45ffac09b891cf1313cb48a49dae26060850ef6b8ee8df",
+      "bytes": 932
+    },
+    {
+      "path": "outputs/Stage_2_Smoke_Evidence_2026-10-07/evidence/artifact_hashes.json",
+      "sha256": "6ca1bc97d97d25410596c150a39f7b43806e1aeb23c385996d28313be43d5aad",
+      "bytes": 589
+    },
+    {
+      "path": "outputs/Stage_2_Smoke_Evidence_2026-10-07/evidence/summary.json",
+      "sha256": "2fef923a5fcfebe15b9409d60669e57c0468ec5860f2126999b5540614f7fe8e",
+      "bytes": 12440
+    }
+  ]
+}

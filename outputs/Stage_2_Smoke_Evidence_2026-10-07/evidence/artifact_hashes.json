@@ -1,0 +1,18 @@
+{
+  "model-00001-of-00002.safetensors": {
+    "sha256": "895bf5f2d7c8b06ca902499567d3c3d9ed30061e4c5ad94bf8216286ca67e2fd",
+    "bytes": 4991538344
+  },
+  "model-00002-of-00002.safetensors": {
+    "sha256": "de8c9efdaa6f669d595bda8b949213cba92ea69689fd2a27fbceed3d1ebeb2f7",
+    "bytes": 1814176448
+  },
+  "granite-4.1-3b-f16.gguf": {
+    "sha256": "048cd1c5cd4a2cf76572861b32767451d2ceddaa99856492b00d744e660447cd",
+    "bytes": 6809655808
+  },
+  "granite-4.1-3b-q8_0.gguf": {
+    "sha256": "a99e246b0a3d429d632cd869a039471b8ec3563875a91c67b7af759e39b583ea",
+    "bytes": 3619691008
+  }
+}
