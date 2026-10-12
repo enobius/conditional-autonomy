@@ -11,10 +11,15 @@
     "stage2_issue_plan_with_required_b1v": true,
     "repository_local_validation_policy": true,
     "issue_filing": true,
-    "implementation_dispatch": false,
+    "implementation_dispatch": true,
     "paid_infrastructure_or_pilots": false,
     "final_freeze": false,
-    "confirmatory_execution": false
+    "confirmatory_execution": false,
+    "implementation_dispatch_scope": [
+      "T-19b",
+      "S2-01"
+    ],
+    "implementation_dispatch_quote": "yes (commit/push records and begin both)"
   },
   "validation_policy": {
     "path": "architecture/validation-policy.md",
@@ -28,8 +33,8 @@
     "github_number": 21,
     "url": "https://github.com/enobius/conditional-autonomy/issues/21",
     "stage": 1,
-    "status": "ready",
-    "dispatched": false,
+    "status": "in-progress",
+    "dispatched": true,
     "depends_on": [
       "Completed T-19",
       "Verified/pushed a76729b and 8560527"
@@ -44,20 +49,21 @@
       107,
       109,
       113
-    ]
+    ],
+    "review_status": "independent-adversarial-review-pending"
   },
   "summary": {
     "stage2_total": 16,
-    "stage2_ready": 1,
+    "stage2_ready": 0,
     "stage2_blocked": 15,
-    "stage2_in_progress": 0,
+    "stage2_in_progress": 1,
     "stage2_done": 0,
     "separate_regression_follow_ups": 1,
-    "ready": [
+    "ready": [],
+    "dispatched": [
       "T-19b",
       "S2-01"
-    ],
-    "dispatched": []
+    ]
   },
   "issues": [
     {
@@ -65,13 +71,15 @@
       "title": "Pin v6-draft and development/confirmatory boundary",
       "stage": 2,
       "tier": "mid",
-      "status": "ready",
-      "dispatched": false,
+      "status": "in-progress",
+      "dispatched": true,
       "github_number": 22,
       "url": "https://github.com/enobius/conditional-autonomy/issues/22",
       "depends_on": [],
       "conditional_dependencies": [],
-      "owner_gates": [],
+      "owner_gates": [
+        "Approval of the exact v6 development-candidate artifact set and draft commit"
+      ],
       "approved_ticket_body": "- Tier: mid. References: P5 Sections 2, 11–12, 16; M5 Sections 2, 12–14; I5; DA.\n- Depends on: preparation verification; owner approval of this issue set.\n- Blocks: all subsequent Stage 2 tickets.\n- Scope: reconcile editorial inconsistencies and deployment amendment without\n  changing policy; record B1V and the dedicated safety suite in a spec version\n  note. Correct safety count to 1,200 gate episodes: reserves are validated\n  before inference, not extra outcome-driven runs. Pin v6-draft source hashes,\n  decision register and unresolved owner inputs. Distinguish engineering pin\n  from final evaluation freeze; no unchecked decision becomes a default.\n- Exit: explicit owner-approved development pin, immutable draft commit/hash,\n  amendment process and negative gate rejecting any confirmatory run against\n  draft-only authority. All pilot records must cite this pin or an approved\n  superseding development amendment.",
       "blocks": [
         "S2-02",
@@ -79,7 +87,8 @@
         "S2-05",
         "S2-06",
         "S2-12"
-      ]
+      ],
+      "development_pin": "outputs/Stage_2_Development_Pin_v6.json"
     },
     {
       "id": "S2-02",

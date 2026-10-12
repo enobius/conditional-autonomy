@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "scope": "DEVELOPMENT_CANDIDATE",
+  "status": "awaiting-owner-development-pin-review",
+  "source_base_commit": "14e99c1",
+  "date": "2026-10-12",
+  "artifacts": [
+    {
+      "path": "outputs/Stage_2_Preregistration_Checkpoint_DRAFT_v6.md",
+      "sha256": "7bad2bcd21dfa046594e57c2cbbc4e2b96cd50cce6e69882b3f12ecb7712aeaa",
+      "bytes": 48652
+    },
+    {
+      "path": "outputs/Stage_2_Evaluation_Manifest_Freeze_DRAFT_v6.md",
+      "sha256": "2a15359b6e1c2addabf734249702e0ae2c09d504ac7ffc340807e72306b0be32",
+      "bytes": 37779
+    },
+    {
+      "path": "outputs/Stage_2_Development_Blockers_v6.json",
+      "sha256": "78c206e8d89bda11be96f256dd1d7424686fc8c88c986ee27619111a0c9cc3c9",
+      "bytes": 2621
+    },
+    {
+      "path": "outputs/Stage_2_Spec_Version_Note_v6.md",
+      "sha256": "4e32fc8bda2b5710e70d22dd3d7cfbbbf7a7ba7c71c095687580384bc53c1455",
+      "bytes": 1067
+    }
+  ],
+  "artifact_set_hash": "5723aedc74ea2b1a31ef08e80547acc0bc6bc067fe9c9f4822980ea1b69741cc",
+  "owner_approval": {
+    "approved": false,
+    "owner": null,
+    "statement": null,
+    "draft_commit": null,
+    "artifact_set_hash": null
+  },
+  "final_freeze_approved": false,
+  "paid_runs_approved": false,
+  "amendment_rule": "Approve a new exact artifact set and commit before changed development inputs are used; S2-15 owns separate final authority."
+}

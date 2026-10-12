@@ -5,3 +5,6 @@ outputs/Stage_2_Smoke_Evidence_2026-10-07/evidence/artifact_hashes.json -text
 outputs/Stage_2_Smoke_Evidence_2026-10-07/evidence/summary.json -text
 # The seeded 1C mutation matches literal LF JSON; preserve CI checkout bytes.
 tests/fixtures/invariants/corpus.json text eol=lf
+outputs/Stage_2_*_DRAFT_v6.md text eol=lf
+outputs/Stage_2_Development_Blockers_v6.json text eol=lf
+outputs/Stage_2_Spec_Version_Note_v6.md text eol=lf

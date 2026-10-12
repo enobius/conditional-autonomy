@@ -12,6 +12,7 @@ from .contracts import ContractValidationError, validate_contract
 from .feasibility import FEASIBILITY_ORACLE_VERSION, FeasibilityOracle
 from .ingest import artifact_integrity_check
 from .oracle import OracleSimulatorError, OracleUserSimulator
+from .generation_validation import GenerationValidationError, check_variant_state
 from .storage import (
     AppendOnlyStore,
     canonical_content_hash,
@@ -22,11 +23,13 @@ from .thanksgiving import (
     ScheduledAction,
     initial_thanksgiving_state,
     thanksgiving_actions,
+    normalized_time,
+    utc_minute,
 )
 
 
 GENERATOR_ID = "generator:thanksgiving-stage1"
-GENERATOR_VERSION = "1.0"
+GENERATOR_VERSION = "2.0"
 SCENARIO_FAMILY = "P6"
 _INSTANCE_FIELDS = {
     "instance_id",
@@ -116,7 +119,6 @@ class GeneratedInstance:
             raise InstanceGenerationError("generated oracle configuration is invalid") from exc
         pinned = {
             "generator_id": GENERATOR_ID,
-            "generator_version": GENERATOR_VERSION,
             "scenario_family": SCENARIO_FAMILY,
             "environment_version": ENVIRONMENT_VERSION,
             "feasibility_oracle_version": FEASIBILITY_ORACLE_VERSION,
@@ -126,6 +128,8 @@ class GeneratedInstance:
                 raise InstanceGenerationError(
                     f"{field_name} is not the supported generation contract"
                 )
+        if instance['generator_version'] not in {'1.0', GENERATOR_VERSION}:
+            raise InstanceGenerationError('generator_version is not supported')
         lineage = instance["source_dataset_lineage"]
         if not isinstance(lineage, list) or lineage != sorted(lineage):
             raise InstanceGenerationError(
@@ -134,8 +138,10 @@ class GeneratedInstance:
 
         expected_constraint_graph = _constraint_graph(state)
         expected_entity_graph = _entity_graph(state)
-        if canonical_json_bytes(state) != canonical_json_bytes(initial_thanksgiving_state()):
-            raise InstanceGenerationError("initial state is not the bound P6 environment")
+        try:
+            check_variant_state(state, version=instance['generator_version'], seed=instance['seed'])
+        except (GenerationValidationError, KeyError, TypeError, ValueError) as exc:
+            raise InstanceGenerationError('initial state is not the bound P6 environment') from exc
         if instance["action_plan"] != [
             _serialize_action(action) for action in thanksgiving_actions()
         ]:
@@ -226,7 +232,7 @@ def generate_thanksgiving_instance(
 
     if (
         generator_id != GENERATOR_ID
-        or generator_version != GENERATOR_VERSION
+        or generator_version not in {'1.0', GENERATOR_VERSION}
         or feasibility_oracle_version != FEASIBILITY_ORACLE_VERSION
     ):
         raise InstanceGenerationError("unsupported generator or feasibility version")
@@ -262,7 +268,7 @@ def generate_thanksgiving_instance(
     except (ContractValidationError, OracleSimulatorError) as exc:
         raise InstanceGenerationError("oracle configuration is invalid") from exc
 
-    state = initial_thanksgiving_state()
+    state = _seeded_variant_state(seed, generator_version)
     actions = thanksgiving_actions()
     if not FeasibilityOracle().assess(state, actions).feasible:
         raise InstanceGenerationError("base Thanksgiving environment is infeasible")
@@ -333,6 +339,24 @@ def _strict_json_object(value: object, description: str) -> dict[str, Any]:
     except (TypeError, ValueError) as exc:
         raise InstanceGenerationError(f"{description} must be strict JSON") from exc
     return detached
+
+
+def _seeded_variant_state(seed: int, version: str) -> dict[str, Any]:
+    if type(seed) is not int:
+        raise InstanceGenerationError('seed must be an integer')
+    state = initial_thanksgiving_state()
+    if version == '1.0':
+        return state
+    offset = seed % 120
+    target = next(o for o in state['obligations']
+                  if o['obligation_id'] == 'obligation:sides-ready')
+    release = utc_minute(target['window']['start']['instant']) + offset
+    target['window']['start'] = normalized_time(release)
+    state['resources']['projection_facts']['sides_earliest_start'] = {
+        'fact_id': 'fact:sides-earliest-start', 'value': normalized_time(release),
+        'access_class': 'POLICY_VISIBLE',
+    }
+    return state
 
 
 def _domain_hash(domain: str, value: object) -> str:

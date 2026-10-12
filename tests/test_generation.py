@@ -110,11 +110,12 @@ class DeterministicInstanceGenerationTests(unittest.TestCase):
                 baseline.instance_content_hash,
                 candidate.instance_content_hash,
             )
-            self.assertEqual(
+            compare = self.assertNotEqual if candidate is changed_seed else self.assertEqual
+            compare(
                 baseline.manifest["constraint_graph_hash"],
                 candidate.manifest["constraint_graph_hash"],
             )
-            self.assertEqual(
+            compare(
                 baseline.manifest["entity_graph_hash"],
                 candidate.manifest["entity_graph_hash"],
             )
@@ -145,7 +146,7 @@ class DeterministicInstanceGenerationTests(unittest.TestCase):
         generated = generate()
         for field_name, bad_value in (
             ("generator_id", "generator:other"),
-            ("generator_version", "2.0"),
+            ("generator_version", "999.0"),
             ("scenario_family", "P5"),
             ("environment_version", "thanksgiving-p6.999"),
             ("feasibility_oracle_version", "environment-preflight.2.0"),

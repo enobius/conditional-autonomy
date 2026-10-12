@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0",
+  "status": "unresolved-owner-inputs",
+  "scope": "development-and-final-freeze-inputs; no policy defaults selected",
+  "decisions": [
+    {
+      "id": "safety_distribution",
+      "status": "pending-owner-decision",
+      "question": "Exact template mix, sampling weights and independent sampling-unit audit",
+      "tickets": [
+        "S2-07"
+      ]
+    },
+    {
+      "id": "safety_validity_labels",
+      "status": "pending-owner-decision",
+      "question": "Pre-execution checks, variant selection and executed-hard-violation unsafe flag",
+      "tickets": [
+        "S2-07"
+      ]
+    },
+    {
+      "id": "sampler_order",
+      "status": "pending-owner-decision",
+      "question": "Smoke top_p/temperature order is evidence, not a frozen policy choice",
+      "tickets": [
+        "S2-03"
+      ]
+    },
+    {
+      "id": "confidence_ece",
+      "status": "pending-owner-decision",
+      "question": "Confidence extraction, ties and invalid/missing behavior",
+      "tickets": [
+        "S2-02",
+        "S2-11"
+      ]
+    },
+    {
+      "id": "bootstrap_analysis",
+      "status": "pending-owner-decision",
+      "question": "Null centering, p-value construction, CI method and numeric seed",
+      "tickets": [
+        "S2-11"
+      ]
+    },
+    {
+      "id": "protected_regression",
+      "status": "pending-owner-decision",
+      "question": "Empirical reference population and exact protected suites",
+      "tickets": [
+        "S2-10",
+        "S2-11"
+      ]
+    },
+    {
+      "id": "content_origin",
+      "status": "pending-owner-decision",
+      "question": "Primary macro endpoint and generated/released-origin reporting",
+      "tickets": [
+        "S2-11"
+      ]
+    },
+    {
+      "id": "trace_contract",
+      "status": "pending-owner-decision",
+      "question": "Versioned shared-definition contract approval",
+      "tickets": [
+        "S2-02"
+      ]
+    },
+    {
+      "id": "interruption_policy",
+      "status": "pending-owner-decision",
+      "question": "Infrastructure interruption/restart versus model-failure classification",
+      "tickets": [
+        "S2-04"
+      ]
+    },
+    {
+      "id": "persistent_storage",
+      "status": "pending-owner-decision",
+      "question": "Provider, storage configuration and budget",
+      "tickets": [
+        "S2-12"
+      ]
+    },
+    {
+      "id": "development_pin",
+      "status": "pending-owner-decision",
+      "question": "Owner approval of this exact artifact set after review",
+      "tickets": [
+        "S2-01"
+      ]
+    }
+  ],
+  "final_freeze_approved": false,
+  "paid_runs_approved": false
+}

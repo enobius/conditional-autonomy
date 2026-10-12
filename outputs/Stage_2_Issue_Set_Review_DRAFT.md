@@ -1,6 +1,6 @@
 # Stage 2 — Dependency-ordered issue-set review
 
-Date: 2026-10-12. Status: OWNER APPROVED AND FILED; not dispatched.
+Date: 2026-10-12. Status: OWNER APPROVED AND FILED; T-19b/S2-01 in progress.
 Scope: Stage 2 engineering, development pilots, final freeze, then gated
 confirmatory collection. No Stage 3 training, model selection on TEST, paid
 provisioning, policy substitution or confirmatory execution is authorized by
@@ -303,7 +303,8 @@ after gates clear, but no agents have been dispatched by this drafting step.
 - [x] Approve S2-01–S2-16 decomposition, references and exits, with B1V required.
 - [x] Approve the draft-then-final freeze boundary and policy-input gates.
 - [x] Authorize issue filing (owner: "I approve all 3", 2026-10-12).
-- [ ] Dispatch scoped implementation (separate next action).
+- [x] Dispatch T-19b and S2-01 only (owner authorized on 2026-10-12).
+- [ ] Dispatch any subsequent ticket after its dependencies and owner gates clear.
 - [ ] Separately approve paid storage/pilot budgets when ready; final freeze
   and confirmatory execution are separate later owner gates.
 

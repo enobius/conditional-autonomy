@@ -1,6 +1,6 @@
 # T-19b — Pair reproducibility with structural generator distinctness
 
-Date: 2026-10-12. Status: OWNER APPROVED AND FILED; ready, not dispatched.
+Date: 2026-10-12. Status: IN PROGRESS; implementation candidate, review pending.
 GitHub: https://github.com/enobius/conditional-autonomy/issues/21.
 Stage 1 regression follow-up to completed T-19; not a
 retroactive edit of the 20/20 completion record.
@@ -78,4 +78,5 @@ was installed or modified. S2-05/S2-07 still require completed T-19b.
 - [x] Approve T-19b scope and the proposed regression seed grid.
 - [x] Approve repository-local validation policy and record routing.
 - [x] Authorize filing the Stage 1 regression issue.
-- [ ] Dispatch implementation (separate next action).
+- [x] Dispatch implementation (owner authorized beginning T-19b on 2026-10-12).
+- [ ] Independent adversarial review and fresh-clone integration exit accepted.
