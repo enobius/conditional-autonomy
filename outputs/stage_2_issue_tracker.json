@@ -1,6 +1,33 @@
 {
   "schema_version": "1.0",
   "status": "filed",
+  "merge_gate": {
+    "dispatch_hold": true,
+    "incident": "MG-001",
+    "incident_count": 1,
+    "confirmed_bypass_push_events_in_incident": 2,
+    "record": "outputs/Stage_2_Merge_Gate_Incident_2026-10-12.md",
+    "remote_stage1_exit_at_76477f1": "success",
+    "admin_bypass_disabled_configuration_verified": true,
+    "runtime_ci_repair": "implementation-checks-passed; non-author-GitHub-approval-and-integration-pending",
+    "verified_pr_head": "1edc43874bde79cb138c5d003d51788d3d438abc",
+    "verified_pr_checks": [
+      {
+        "name": "stage1-exit-gate",
+        "conclusion": "success",
+        "run_url": "https://github.com/enobius/conditional-autonomy/actions/runs/38298745425"
+      },
+      {
+        "name": "runtime-invariant-gate",
+        "conclusion": "success",
+        "run_url": "https://github.com/enobius/conditional-autonomy/actions/runs/38298745374"
+      }
+    ],
+    "github_approval_submitted": false,
+    "approval_blocker": "Connected account enobius is PR author; an eligible non-author reviewer must submit approval.",
+    "evidence_rule": "Recorded results bind verified_pr_head only. Any later head must independently pass its own checks before merge.",
+    "note": "Dependency-ready S2-05 remains undispatched under the merge-gate hold."
+  },
   "date": "2026-10-12",
   "repository": "enobius/conditional-autonomy",
   "source": "outputs/Stage_2_Issue_Set_Review_DRAFT.md",
