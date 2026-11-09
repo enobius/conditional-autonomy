@@ -4,19 +4,23 @@ on:
   pull_request:
     paths:
       - ".github/workflows/runtime-invariant-gate.yml"
+      - ".github/workflows/claude-review-shadow.yml"
       - "architecture/schemas/**"
       - "architecture/schemas/v1.0/deferred-invariants.md"
       - "runtime/**"
       - "tests/**"
+      - "tools/**"
   push:
     branches:
       - main
     paths:
       - ".github/workflows/runtime-invariant-gate.yml"
+      - ".github/workflows/claude-review-shadow.yml"
       - "architecture/schemas/**"
       - "architecture/schemas/v1.0/deferred-invariants.md"
       - "runtime/**"
       - "tests/**"
+      - "tools/**"
   workflow_dispatch:
 
 permissions:
@@ -39,13 +43,16 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-          cache-dependency-path: architecture/schemas/requirements-schema.txt
+          cache-dependency-path: |
+            architecture/schemas/requirements-schema.txt
+            architecture/schemas/requirements-test.txt
 
       - name: Install pinned schema validators
         run: >-
           python -m pip install
           --target architecture/schemas/.vendor
           -r architecture/schemas/requirements-schema.txt
+          -r architecture/schemas/requirements-test.txt
 
       - name: Run runtime unit tests
         run: python -m unittest discover -s tests -v
