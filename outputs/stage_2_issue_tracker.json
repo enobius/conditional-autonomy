@@ -9,7 +9,21 @@
     "record": "outputs/Stage_2_Merge_Gate_Incident_2026-10-12.md",
     "remote_stage1_exit_at_76477f1": "success",
     "admin_bypass_disabled_configuration_verified": true,
-    "runtime_ci_repair": "implementation-checks-passed; non-author-GitHub-approval-and-integration-pending",
+    "runtime_ci_repair": "merged-PR-38-under-owner-approved-solo-maintainer-amendment",
+    "merge_commit": "43ed458dc3b98761b4b990d21d15f53473f2414a",
+    "merged_head_checks": [
+      {"name": "stage1-exit-gate", "conclusion": "success", "run_url": "https://github.com/enobius/conditional-autonomy/actions/runs/38318583284"},
+      {"name": "runtime-invariant-gate", "conclusion": "success", "run_url": "https://github.com/enobius/conditional-autonomy/actions/runs/38318583384"}
+    ],
+    "solo_maintainer_amendment": {
+      "owner_approved": true,
+      "saved_configuration_verified": true,
+      "require_human_approvals": false,
+      "require_pr": true,
+      "require_remote_ci": true,
+      "require_up_to_date": true,
+      "allow_admin_bypass": false
+    },
     "verified_pr_head": "1edc43874bde79cb138c5d003d51788d3d438abc",
     "verified_pr_checks": [
       {
@@ -24,9 +38,9 @@
       }
     ],
     "github_approval_submitted": false,
-    "approval_blocker": "Connected account enobius is PR author; an eligible non-author reviewer must submit approval.",
+    "independent_review_gate": {"ticket": "S2-CR-01", "status": "independent-review-revision-required", "proposal": "outputs/S2_CR_01_Contract_DRAFT.md", "owner_approval": {"date": "2026-11-05", "quote": "I approve the 4 items", "items": ["verdict outcomes", "severity rubric", "two-round repair cap", "calibration criteria"]}, "reviewer_provider": "Anthropic Claude Opus 5.5", "reviewer_model_id": "claude-opus-5-5", "model_selection_quote": "ok i agree", "publisher": "dedicated GitHub App; not installed", "required_check_active": false, "implementation_authorized": true, "credential_and_paid_execution_authorized": false, "shadow_workflow": "draft PR 39; disabled pending CLI compatibility and independent review", "reviewed_head": "6c6804146cfd7b941700ef6e42d877a37b93c90d", "secret_removal": "owner-reported; not independently verified"},
     "evidence_rule": "Recorded results bind verified_pr_head only. Any later head must independently pass its own checks before merge.",
-    "note": "Dependency-ready S2-05 remains undispatched under the merge-gate hold."
+    "note": "CI repair merged with merged-head remote green. S2-05 remains undispatched until S2-CR-01 is calibrated and enforced."
   },
   "date": "2026-10-12",
   "repository": "enobius/conditional-autonomy",
