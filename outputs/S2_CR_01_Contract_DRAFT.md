@@ -20,8 +20,8 @@ remain enabled. No protected-main direct push occurred in this merge.
 Both gates also passed on the merged main commit:
 stage1-exit-gate https://github.com/enobius/conditional-autonomy/actions/runs/38318583284
 and runtime-invariant-gate https://github.com/enobius/conditional-autonomy/actions/runs/38318583384.
-These draft files and local tracker updates are uncommitted on
-codex/s2-cr-01-contract; they are not part of that tested merge commit.
+These draft files and tracker updates are part of draft PR #39 and are not
+part of that tested merge commit; later local changes may remain uncommitted.
 This draft supersedes the earlier Independent_Review_Gate_Proposal document's
 assumption that an external parser might be located. No parser exists yet.
 
@@ -121,17 +121,18 @@ Local candidate verification on 2026-11-05: five focused parser tests pass;
 the full regression passes 236 tests; the Stage 1 exit gate is GREEN with all
 16 invariants VERIFIED and all four seeded-defect fail-and-restore proofs PASS.
 This is working-checkout evidence, not remote CI or an independent review.
-The parser, tests, contract and tracker updates are local and uncommitted.
+This is historical evidence, not a statement about the latest PR revision.
 
 On 2026-11-08 the owner asked to connect the installed Claude integration. A
 local shadow assembler and tests were added: the model supplies only the five
 review fields, while a caller supplies context and the helper hashes the exact
 diff and response bytes. This helper is intentionally non-authoritative: its
 caller-provided context and model output are not yet authenticated. The prompt
-candidate is `outputs/S2_CR_01_Claude_Review_Prompt_DRAFT.md`. There is no
-active Claude workflow, calibrated check, publisher, or successful live review.
-The owner reports installing the Claude GitHub App on this repository and using
-Claude Pro; the owner reports no GitHub Actions OAuth credential is configured.
+candidate is `outputs/S2_CR_01_Claude_Review_Prompt_DRAFT.md`. Draft PR #39
+contains a shadow workflow, presently disabled pending further review; there is
+no calibrated check, publisher, or successful live review. The owner reports
+installing the Claude GitHub App and using Claude Pro, and reports subsequently
+removing the repository OAuth secret; that removal has not been verified here.
 GitHub App installation alone is not evidence of Claude billing/authentication.
 
 Shadow-assembler verification: nine focused verdict/assembler tests passed,

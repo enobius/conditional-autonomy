@@ -68,7 +68,8 @@ class ReviewVerdictTests(unittest.TestCase):
 
     def test_unsafe_paths_and_duplicate_ids_fail(self):
         for path in ('../outside', '/absolute', 'a/../b', 'a//b', 'a/./b',
-                     'C:/file', 'a\\b', '@repository'):
+                     'C:/file', 'a\\b', '@repository', ' a.py', 'a.py ',
+                     'a\n.py', 'a\x7f.py'):
             value = sample()
             item = finding()
             item['path'] = path

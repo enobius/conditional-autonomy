@@ -70,7 +70,8 @@ def validate_finding_structure(findings: list) -> None:
                 raise ReviewVerdictError('repository scope cannot have a line')
             continue
         relative = PurePosixPath(path)
-        if ('\\' in path or ':' in path or relative.is_absolute() or
+        if (path != path.strip() or any(ord(c) < 32 or ord(c) == 127 for c in path) or
+                '\\' in path or ':' in path or relative.is_absolute() or
                 not relative.parts or any(p in ('.', '..') for p in path.split('/')) or
                 str(relative) != path or finding['line'] is None):
             raise ReviewVerdictError('finding path or line is not canonical')
