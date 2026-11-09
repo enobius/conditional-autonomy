@@ -12,7 +12,7 @@ There is no evidence here that the credential was accessed. Do not restore a
 credential until the environment's branch restrictions and access controls have
 been configured and independently verified; assess revocation and replacement.
 
-Local changes in progress add an environment name (not protection by itself),
+The draft adds an environment name (not protection by itself),
 use the reviewed action's reported commit SHA, bound JSON-escaped prompt size,
 reject recognizable binary diffs, randomize diff delimiters, and reject control
 characters and untrimmed finding paths. The draft also requests the diff using
@@ -39,3 +39,30 @@ records. The action commit and environment protections must be independently
 verified. The reviewer also identified live
 compatibility questions; no live run is authorized by this note. A new review
 must examine the final revised head before merge.
+
+## Re-review of `6c68041`
+
+The supplied re-review recommended revision required: F-007 and F-009 were
+merge blockers; F-001 remained an owner-settings check. It also reported a new
+enablement blocker: `--max-turns 1` did not produce structured output in a
+localhost test with CLI 2.0.62. That is not evidence about the pinned CLI
+2.1.319. The workflow remains explicitly disabled, and the replacement token
+and environment protections must not be configured on the assumption that
+naming an environment protects it.
+
+The subsequent candidate repair splits patch text only on LF, tests injected
+Unicode/control separators, parses workflow YAML with a duplicate-key-rejecting
+loader, and tests seven adversarial workflow mutations. Compare file-inventory
+validation moved from an inline jq expression to a testable Python command;
+fixtures cover absent files, incomplete patches, cap overflow, and invalid
+merge-base IDs. The upstream argv probe is still a separate manual test, not
+part of the default unit suite; it needs externally supplied pinned source and
+SDK, and the probe does not itself authenticate those inputs. These repairs
+require fresh independent review. The exact CLI
+turn limit and tool behavior remain unverified; no live model invocation or
+subscription usage was performed.
+
+Local verification of this candidate: 251 unit tests passed; the focused
+20-test review suite also passed with the newly pinned PyYAML 6.0.3 installed
+in an isolated dependency directory. Remote CI and independent review apply
+only to the exact revision they examine.

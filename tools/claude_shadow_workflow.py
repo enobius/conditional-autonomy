@@ -29,6 +29,23 @@ def load_snapshot(path: Path) -> dict:
     return data
 
 
+def load_compare(path: Path) -> str:
+    """Fail closed when GitHub's compare file inventory may be incomplete."""
+    data = json.loads(path.read_text(encoding='utf-8'), object_pairs_hook=_object,
+                      parse_constant=_constant)
+    if not isinstance(data, dict):
+        raise ReviewVerdictError('invalid compare response')
+    files = data.get('files')
+    merge = data.get('merge_base_commit')
+    if (not isinstance(files, list) or not 0 < len(files) < 300 or
+            any(not isinstance(item, dict) or not isinstance(item.get('patch'), str)
+                for item in files) or not isinstance(merge, dict) or
+            not isinstance(merge.get('sha'), str) or
+            not re.fullmatch('[0-9a-f]{40}', merge['sha'])):
+        raise ReviewVerdictError('incomplete compare or invalid merge base')
+    return merge['sha']
+
+
 def prepare(diff_path: Path, snapshot_path: Path, prompt_path: Path, output_path: Path) -> None:
     diff = diff_path.read_bytes()
     if not diff or len(diff) > 200_000:
@@ -63,7 +80,9 @@ def validate_finding_locations(findings: list, diff: bytes) -> None:
     paths = ()
     header = re.compile(r'^diff --git a/([A-Za-z0-9_./-]+) b/([A-Za-z0-9_./-]+)$')
     hunk = re.compile(r'^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@')
-    for line in diff.decode('utf-8').splitlines():
+    # Git's patch format is LF-delimited. Other Unicode separators can occur
+    # within file content and must never create synthetic patch headers.
+    for line in diff.decode('utf-8').split('\n'):
         if line.startswith('diff --git '):
             match = header.fullmatch(line)
             paths = match.groups() if match else ()
@@ -119,20 +138,25 @@ def validate(response: bytes, before: Path, after: Path, diff_path: Path, destin
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('prepare', 'validate'))
+    parser.add_argument('mode', choices=('prepare', 'validate', 'verify-compare'))
     parser.add_argument('--diff', type=Path)
-    parser.add_argument('--before', type=Path, required=True)
+    parser.add_argument('--before', type=Path)
+    parser.add_argument('--compare', type=Path)
     parser.add_argument('--after', type=Path)
     parser.add_argument('--prompt', type=Path)
-    parser.add_argument('--destination', type=Path, required=True)
+    parser.add_argument('--destination', type=Path)
     args = parser.parse_args()
     try:
-        if args.mode == 'prepare':
-            if args.diff is None or args.prompt is None:
+        if args.mode == 'verify-compare':
+            if args.compare is None:
+                raise ReviewVerdictError('missing compare input')
+            print(load_compare(args.compare))
+        elif args.mode == 'prepare':
+            if args.diff is None or args.prompt is None or args.before is None or args.destination is None:
                 raise ReviewVerdictError('missing preparation input')
             prepare(args.diff, args.before, args.prompt, args.destination)
         else:
-            if args.after is None or args.diff is None:
+            if args.after is None or args.diff is None or args.before is None or args.destination is None:
                 raise ReviewVerdictError('missing post-review snapshot')
             validate(os.environ.get('CLAUDE_SHADOW_RESULT', '').encode('utf-8'),
                      args.before, args.after, args.diff, args.destination,

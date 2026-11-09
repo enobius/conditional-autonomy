@@ -50,8 +50,7 @@ jobs:
           gh api "$compare" > "$RUNNER_TEMP/compare.json"
           # GitHub caps the compare file list. Missing patches can represent
           # binary or truncated content, so do not produce an approval for it.
-          jq -e '(.files | type == "array" and length > 0 and length < 300 and all(.[]; (.patch | type == "string")))' "$RUNNER_TEMP/compare.json" > /dev/null
-          merge_base=$(jq -r '.merge_base_commit.sha' "$RUNNER_TEMP/compare.json")
+          merge_base=$(python -m tools.claude_shadow_workflow verify-compare --compare "$RUNNER_TEMP/compare.json")
           [[ "$merge_base" =~ ^[0-9a-f]{40}$ ]] || exit 1
           gh api -H 'Accept: application/vnd.github.v3.diff' "$compare" > "$RUNNER_TEMP/pr.diff"
           jq --arg sha "$merge_base" '. + {mergeBaseOid: $sha}' "$RUNNER_TEMP/pr-before.json" > "$RUNNER_TEMP/pr-before-bound.json"
