@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "S2-CR-01 review verdict — DRAFT, not approved",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "repository", "pr_number", "head_sha", "base_sha", "diff_sha256", "review_run_id", "reviewer", "implementer", "rubric_sha256", "evidence_sha256", "attempt", "outcome", "findings", "uncertainties", "confidence", "rationale"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "repository": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "full_name"],
+      "properties": {
+        "id": {"type": "integer", "minimum": 1},
+        "full_name": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"}
+      }
+    },
+    "pr_number": {"type": "integer", "minimum": 1},
+    "head_sha": {"$ref": "#/$defs/git_sha"},
+    "base_sha": {"$ref": "#/$defs/git_sha"},
+    "diff_sha256": {"$ref": "#/$defs/sha256"},
+    "review_run_id": {"$ref": "#/$defs/text"},
+    "reviewer": {"$ref": "#/$defs/identity"},
+    "implementer": {"$ref": "#/$defs/identity"},
+    "rubric_sha256": {"$ref": "#/$defs/sha256"},
+    "evidence_sha256": {"$ref": "#/$defs/sha256"},
+    "attempt": {"type": "integer", "minimum": 1, "maximum": 3},
+    "outcome": {"enum": ["approve", "revision-required", "escalate-to-human"]},
+    "findings": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/finding"}},
+    "uncertainties": {"type": "array", "maxItems": 100, "items": {"$ref": "#/$defs/text"}},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "rationale": {"$ref": "#/$defs/text"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"outcome": {"const": "approve"}}},
+      "then": {"properties": {
+        "findings": {"items": {"properties": {"blocking": {"const": false}}}},
+        "uncertainties": {"maxItems": 0}
+      }}
+    },
+    {
+      "if": {"properties": {"outcome": {"const": "revision-required"}}},
+      "then": {"properties": {"findings": {
+        "contains": {"properties": {"blocking": {"const": true}}}, "minContains": 1
+      }}}
+    },
+    {
+      "if": {"properties": {"outcome": {"const": "escalate-to-human"}}},
+      "then": {"properties": {"uncertainties": {"minItems": 1}}}
+    }
+  ],
+  "$defs": {
+    "text": {"type": "string", "minLength": 1, "maxLength": 16000, "pattern": "\\S"},
+    "git_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "identity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["vendor", "model", "run_id"],
+      "properties": {
+        "vendor": {"$ref": "#/$defs/text"},
+        "model": {"$ref": "#/$defs/text"},
+        "run_id": {"$ref": "#/$defs/text"}
+      }
+    },
+    "finding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "severity", "blocking", "path", "line", "requirement", "evidence", "fix_criterion"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^F-[0-9]{3}$"},
+        "severity": {"enum": ["P0", "P1", "P2", "P3"]},
+        "blocking": {"type": "boolean"},
+        "path": {"$ref": "#/$defs/text"},
+        "line": {"type": ["integer", "null"], "minimum": 1},
+        "requirement": {"$ref": "#/$defs/text"},
+        "evidence": {"$ref": "#/$defs/text"},
+        "fix_criterion": {"$ref": "#/$defs/text"}
+      },
+      "allOf": [
+        {"if": {"properties": {"severity": {"enum": ["P0", "P1"]}}}, "then": {"properties": {"blocking": {"const": true}}}},
+        {"if": {"properties": {"severity": {"const": "P3"}}}, "then": {"properties": {"blocking": {"const": false}}}}
+      ]
+    }
+  }
+}
