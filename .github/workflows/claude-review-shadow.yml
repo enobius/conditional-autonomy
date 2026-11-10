@@ -17,7 +17,7 @@ jobs:
     # Never run PR-controlled workflow versions with the owner's credential.
     # Hard stop pending independent review and CLI/live compatibility checks.
     # Removing this guard is a separate reviewed change.
-    if: ${{ false }}
+    if: ${{ false && github.ref == 'refs/heads/main' }}
     # The owner must configure this environment with main-only deployment
     # protection before adding an environment-scoped credential. Naming an
     # environment here does not configure or prove those protections.
@@ -50,9 +50,9 @@ jobs:
           gh api "$compare" > "$RUNNER_TEMP/compare.json"
           # GitHub caps the compare file list. Missing patches can represent
           # binary or truncated content, so do not produce an approval for it.
-          merge_base=$(python -m tools.claude_shadow_workflow verify-compare --compare "$RUNNER_TEMP/compare.json")
-          [[ "$merge_base" =~ ^[0-9a-f]{40}$ ]] || exit 1
           gh api -H 'Accept: application/vnd.github.v3.diff' "$compare" > "$RUNNER_TEMP/pr.diff"
+          merge_base=$(python -m tools.claude_shadow_workflow verify-compare --compare "$RUNNER_TEMP/compare.json" --expected-base "$base" --diff "$RUNNER_TEMP/pr.diff")
+          [[ "$merge_base" =~ ^[0-9a-f]{40}$ ]] || exit 1
           jq --arg sha "$merge_base" '. + {mergeBaseOid: $sha}' "$RUNNER_TEMP/pr-before.json" > "$RUNNER_TEMP/pr-before-bound.json"
       - name: Prepare bounded review prompt
         id: prepared

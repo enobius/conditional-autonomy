@@ -29,7 +29,7 @@ def load_snapshot(path: Path) -> dict:
     return data
 
 
-def load_compare(path: Path) -> str:
+def load_compare(path: Path, *, expected_base: str, diff: bytes) -> str:
     """Fail closed when GitHub's compare file inventory may be incomplete."""
     data = json.loads(path.read_text(encoding='utf-8'), object_pairs_hook=_object,
                       parse_constant=_constant)
@@ -37,11 +37,17 @@ def load_compare(path: Path) -> str:
         raise ReviewVerdictError('invalid compare response')
     files = data.get('files')
     merge = data.get('merge_base_commit')
+    base = data.get('base_commit')
     if (not isinstance(files, list) or not 0 < len(files) < 300 or
-            any(not isinstance(item, dict) or not isinstance(item.get('patch'), str)
+            any(not isinstance(item, dict) or not isinstance(item.get('patch'), str) or
+                not re.search(r'(?m)^@@ ', item['patch'])
                 for item in files) or not isinstance(merge, dict) or
             not isinstance(merge.get('sha'), str) or
-            not re.fullmatch('[0-9a-f]{40}', merge['sha'])):
+            not re.fullmatch('[0-9a-f]{40}', merge['sha']) or
+            not isinstance(expected_base, str) or not re.fullmatch('[0-9a-f]{40}', expected_base) or
+            not isinstance(base, dict) or base.get('sha') != expected_base or
+            not isinstance(diff, bytes) or
+            sum(line.startswith(b'diff --git ') for line in diff.split(b'\n')) != len(files)):
         raise ReviewVerdictError('incomplete compare or invalid merge base')
     return merge['sha']
 
@@ -142,15 +148,16 @@ def main() -> int:
     parser.add_argument('--diff', type=Path)
     parser.add_argument('--before', type=Path)
     parser.add_argument('--compare', type=Path)
+    parser.add_argument('--expected-base')
     parser.add_argument('--after', type=Path)
     parser.add_argument('--prompt', type=Path)
     parser.add_argument('--destination', type=Path)
     args = parser.parse_args()
     try:
         if args.mode == 'verify-compare':
-            if args.compare is None:
+            if args.compare is None or args.expected_base is None or args.diff is None:
                 raise ReviewVerdictError('missing compare input')
-            print(load_compare(args.compare))
+            print(load_compare(args.compare, expected_base=args.expected_base, diff=args.diff.read_bytes()))
         elif args.mode == 'prepare':
             if args.diff is None or args.prompt is None or args.before is None or args.destination is None:
                 raise ReviewVerdictError('missing preparation input')
