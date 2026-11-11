@@ -35,7 +35,11 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install pinned validators
-        run: python -m pip install --target architecture/schemas/.vendor -r architecture/schemas/requirements-schema.txt
+        run: >-
+          python -m pip install --require-hashes --only-binary=:all:
+          --platform manylinux2014_x86_64 --python-version 3.11 --implementation cp
+          --abi cp311 --target architecture/schemas/.vendor
+          -r architecture/schemas/requirements-shadow-runtime.lock
       - name: Fetch selected open PR as untrusted data
         env:
           GH_TOKEN: ${{ github.token }}
