@@ -1,0 +1,150 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>S2-CR-01 Shadow Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap">
+<style>
+/* Layout: a single review record. Two verdicts first, then repair status, then remaining gates, then evidence status. */
+:root {
+  --bg: #f5f6f8; --surface: #ffffff; --fg: #1b2230; --muted: #566072; --line: #d9dee6; --code-bg: #e9edf2;
+  --accent: #27548a;
+  --p0: #a3192d; --p0-bg: #fbe9ec; --p1: #b0480b; --p1-bg: #fcefe3; --p2: #7d6200; --p2-bg: #f8f2d6; --p3: #4d5a6c; --p3-bg: #e9edf2;
+  --pass: #1c6e4a; --pass-bg: #e2f3ea;
+  --display: "IBM Plex Serif", Georgia, serif; --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; --mono: "IBM Plex Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12161d; --surface: #1a2029; --fg: #e6eaf0; --muted: #a0abba; --line: #303946; --code-bg: #272f3b;
+  --accent: #8db7e8;
+  --p0: #ff99a8; --p0-bg: #43202a; --p1: #f6b27f; --p1-bg: #432d1c; --p2: #e6cc6a; --p2-bg: #3b3317; --p3: #b4bfcd; --p3-bg: #2a323e;
+  --pass: #7dd8ab; --pass-bg: #18392b; color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --fg: #e6eaf0; --muted: #a0abba; --line: #303946; --code-bg: #272f3b;
+  --accent: #8db7e8;
+  --p0: #ff99a8; --p0-bg: #43202a; --p1: #f6b27f; --p1-bg: #432d1c; --p2: #e6cc6a; --p2-bg: #3b3317; --p3: #b4bfcd; --p3-bg: #2a323e;
+  --pass: #7dd8ab; --pass-bg: #18392b; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 16px/1.55 var(--body); }
+.wrap { max-width: 860px; margin: 0 auto; padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 40px; }
+.wrap > * { min-width: 0; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; }
+h1 { font-size: 2rem; line-height: 1.2; }
+h2 { font-size: 1.35rem; }
+h3 { font-size: 1.05rem; line-height: 1.35; }
+p { margin: 0; }
+a { color: var(--accent); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code { font: 0.86em var(--mono); background: var(--code-bg); padding: 1px 5px; border-radius: 3px; overflow-wrap: anywhere; }
+section { display: grid; gap: 16px; }
+section > * { min-width: 0; }
+.lede { color: var(--muted); max-width: 65ch; }
+header { display: grid; gap: 12px; }
+.eyebrow { font: 500 0.78rem var(--mono); color: var(--muted); letter-spacing: 0.04em; overflow-wrap: anywhere; }
+.verdicts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 12px; }
+.verdict { display: grid; gap: 8px; padding: 16px 20px; align-content: start; }
+.verdict > * { min-width: 0; }
+.verdict.merge { background: var(--pass-bg); }
+.verdict.merge strong { color: var(--pass); }
+.verdict.enable { background: var(--p1-bg); }
+.verdict.enable strong { color: var(--p1); }
+.verdict .label { font: 500 0.75rem var(--mono); color: var(--muted); letter-spacing: 0.04em; }
+.verdict strong { font: 600 1.25rem/1.25 var(--display); }
+.pill { font: 500 0.78rem var(--mono); padding: 2px 8px; border-radius: 3px; white-space: nowrap; }
+.owner { color: var(--p0); background: var(--p0-bg); }
+.P1 { color: var(--p1); background: var(--p1-bg); }
+.P2, .partial { color: var(--p2); background: var(--p2-bg); }
+.P3 { color: var(--p3); background: var(--p3-bg); }
+.closed { color: var(--pass); background: var(--pass-bg); }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: var(--surface); font-size: 0.94rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+th { font: 500 0.75rem var(--mono); color: var(--muted); letter-spacing: 0.04em; }
+td:first-child { font-variant-numeric: tabular-nums; }
+.list { margin: 0; padding-left: 20px; display: grid; gap: 10px; max-width: 72ch; }
+.note { color: var(--muted); font-size: 0.92rem; max-width: 72ch; }
+@media (max-width: 560px) {
+  h1 { font-size: 1.6rem; }
+}
+</style>
+
+<main class="wrap">
+  <header>
+    <div class="eyebrow">enobius/conditional-autonomy · uncommitted candidate on codex/s2-cr-01-consolidated · base 80eb0c990bd07bf58de9f442be066b4360ec0baa · November 16 test-gap repairs (33 files plus one deletion)</div>
+    <h1>S2-CR-01 shadow workflow: redirect, secret-lifecycle and budget review</h1>
+    <p class="lede">Re-review of the repairs to the two P2 test gaps and the new per-run request budget. This is a prose review, not an authenticated approval. No candidate file was changed, nothing was enabled or installed, no real token was used and no provider call was made. No Docker probe was run.</p>
+    <p class="note">All 33 files match <code>outputs/S2_CR_01_Test_Gap_Repair_Hashes_2026-11-16.json</code>, before and after testing. The recorded deletion of <code>.github/workflows/claude-review-shadow.yml</code> matches the working tree. Eight files changed since the previous review. Testing used a copy on a clean <code>80eb0c9</code> worktree.</p>
+  </header>
+
+  <div class="verdicts">
+    <div class="verdict merge">
+      <span class="label">INTEGRATING THE DISABLED CANDIDATE</span>
+      <strong>Pass</strong>
+      <p>Both P2 test gaps are closed and no new code finding was raised. Every job is hard-disabled, and the policy is <code>enabled: false</code> with a null origin.</p>
+    </div>
+    <div class="verdict enable">
+      <span class="label">ENABLING</span>
+      <strong>Fail</strong>
+      <p>Only platform, remote-verification, live-compatibility and owner gates remain. No code-level P1 or P2 finding from this review is open.</p>
+    </div>
+  </div>
+
+  <section>
+    <h2>Status of the previous findings</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Finding</th><th>Status</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <tr><td>P2-A: the default opener's no-redirect rule was untested</td><td><span class="pill closed">Closed</span></td><td><code>default_opener()</code> is extracted unchanged (<code>tools/shadow_result_download.py:25-26</code>). The new test uses real urllib handlers against two loopback servers, with a canary environment proxy that must see nothing. It also calls the real <code>download()</code>. Its URL mapper patches <code>urllib.request.Request</code>, which urllib's own redirect handler also uses. So a followed redirect would stay on loopback and arrive carrying the GitHub token, and the test would fail. Removing <code>NoRedirect</code>, honoring environment proxies, or bypassing <code>default_opener()</code> are all killed. No test hook was added to production code.</td></tr>
+        <tr><td>P2-B: the proxy credential path had no unit tests</td><td><span class="pill closed">Closed</span></td><td>A fake-Docker test drives the real <code>run()</code> and <code>topology()</code>. It requires the exact read-only mount string, <code>--user 1001:1002</code>, no <code>--env-file</code> and no token in arguments. It also requires the CLI to be removed before the proxy, and the proxy and network before the secret is unlinked, on both the success and creation-failure paths. A separate test rejects UID 0 before any Docker call. A writable mount, a root or forced-root UID, unlinking early, and an env file on the proxy are all killed.</td></tr>
+        <tr><td>P3: no request budget</td><td><span class="pill closed">Closed</span></td><td><code>REQUEST_BUDGET = 4</code>, shared under a lock across clients, keys, endpoints and connections. It is charged after validation and before any upstream connection, with no refunds; excess requests get 429 (<code>tools/shadow_egress_proxy.py:20,86-87,145-151</code>). Removing it, raising it, refunding on error, making <code>count_tokens</code> free, or charging after the upstream call are all killed.</td></tr>
+        <tr><td>P3: claimed ZIP coverage was missing</td><td><span class="pill closed">Closed</span></td><td>New tests cover the encryption flag, unsupported compression, declared and compressed sizes, a length mismatch independent of <code>zipfile</code>, a prefixed signature and a mismatched artifact ID. All of those mutations are killed.</td></tr>
+        <tr><td>P3: leftovers</td><td><span class="pill closed">Closed</span></td><td>The gate filter now names <code>architecture/retired/claude-review-shadow.yml</code>. The old env-file helper is documented as test-only with dummy tokens. The manifest records the deletion.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Test results on the copy</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Check</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td>Guard set (13 modules)</td><td>81/81</td></tr>
+        <tr><td>Full suite</td><td>312/312, matching the handoff</td></tr>
+        <tr><td>Targeted mutations</td><td>37 of 44 killed, up from 23 of 43. The 7 survivors are low-priority and each is backed by another check.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Remaining gates before enabling</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Gate</th><th>Location</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><span class="pill P1">P1</span> Protected environment and trusted required check</td><td><code>.github/workflows/claude-review-isolated.yml:65</code>; <code>main</code> branch protection</td><td>Open. The API lists 0 environments, only <code>stage1-exit-gate</code> is required, and there are no rulesets. The publisher must protect the policy file, workflows and tools, and needs an exception process.</td></tr>
+        <tr><td><span class="pill P1">P1</span> GitHub-hosted verification with a dummy secret</td><td>The whole topology</td><td>Open. Needs isolated gateway mode, embedded DNS, the real artifact ZIP layout and storage redirect over TLS, the Linux tmpfs mount on a real Docker host, and GitHub-token, runtime-token and cache canaries.</td></tr>
+        <tr><td><span class="pill P1">P1</span> Provider compatibility</td><td><code>tools/shadow_egress_proxy.py:18-20,126-151</code></td><td>Open. Real OAuth with the injected token, the CLI accepting the placeholder, the path and header allowlists, and whether CLI retries fit within the 4-attempt budget all need a separately authorized live call.</td></tr>
+        <tr><td><span class="pill owner">Owner</span> Decisions</td><td>Not code</td><td>Confirm or revoke the repository secret; approve the origin, the environment and secret scope, the publisher and the budget; and authorize the first live call.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>Lower-priority issues <span class="pill P3">P3</span></h2>
+    <ul class="list">
+      <li><strong>The secret's tmpfs location isn't pinned by a test.</strong> Writing it to the default temp directory, which is disk on the runner, survives. The <code>/proc/mounts</code> check only confirms that <code>/dev/shm</code> exists. Assert the directory.</li>
+      <li><strong>Other surviving mutations, each backed elsewhere.</strong> <code>mkdir(exist_ok=True)</code> for the result directory (the <code>xb</code> open still refuses an existing file); the proxy's own token and credential-file format checks (the file is written by validated trusted code); an extra forwarded header (the allowlist isn't asserted exactly); the IPv6 network check (Docker inspect still reports it); and hard-link rejection.</li>
+      <li><strong>Count-based budget only.</strong> Four attempts is not a token or spend ceiling, as the handoff says. Set an owner-approved figure before any live call.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Verified versus reported</h2>
+    <ul class="list">
+      <li><strong>Verified in this review:</strong> the 33 hashes and the recorded deletion; reading the eight changed files and their tests; the guard set at 81/81 and the full suite at 312/312 on a copy; 37 of 44 targeted mutations killed; no test hooks in production code; and repository settings from public API responses.</li>
+      <li><strong>Reported, not reproduced:</strong> the real CLI and dummy-proxy Docker integration with one upstream message and placeholder-only authentication; the schema and Stage 1 gate results; and the 72.8-second regression time.</li>
+      <li><strong>Not established by anything yet:</strong> GitHub-hosted behavior, real HTTPS artifact downloads and redirects, the Linux tmpfs mount end to end, real OAuth through the proxy, and CLI retry behavior within the budget.</li>
+    </ul>
+  </section>
+</main>
+
+</body></html>

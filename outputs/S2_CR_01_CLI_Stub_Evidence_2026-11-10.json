@@ -1,0 +1,234 @@
+{
+  "status": "local-protocol-evidence-only",
+  "date": "2026-11-10",
+  "provider_calls": false,
+  "cli_version": "2.1.319",
+  "platform": "linux-x64",
+  "cli_sha256": "dabafec82ca1319fa43d8be36a10fc61b1d11821cb98ad5df04ad95e199b8eed",
+  "archive_sha256": "9b7b53954b8ffb886fafeefe9ef1e0e9e5c15e8aaf2f54d65ba64d0cca795dc7",
+  "probe_sha256": "cab669bc9a6ab8d9ef87c4d0ead0337ec6aca8e06b97a581b83f23a00f4b78f6",
+  "workflow_sha256": "6ad364b0d9ab389e8f309723db86ae376c0dacf818ee2bc484040cf22d8c614b",
+  "container": "python@sha256:a83ba18aef0f865b1a4a611c2cf460fe446f2795673bbb9fe43be570439e3b39",
+  "isolation": {
+    "network": "none",
+    "observed_network_interfaces": [
+      "lo"
+    ],
+    "read_only": true,
+    "user": "65534:65534",
+    "cap_drop": "ALL",
+    "no_new_privileges": true,
+    "credentials": "dummy-local-only",
+    "host_mounts": "binary directory, probe, and disabled workflow only; all read-only"
+  },
+  "exit_code": 0,
+  "cases": [
+    {
+      "turns": 1,
+      "schema": true,
+      "mode": "structured",
+      "exit_code": 0,
+      "result": {
+        "subtype": "success",
+        "is_error": false,
+        "num_turns": 2,
+        "structured_output": {
+          "ok": true
+        },
+        "permission_denials": []
+      },
+      "stderr": "",
+      "requests": [
+        {
+          "path": "/v1/messages?beta=true",
+          "tools": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        }
+      ],
+      "shell_marker_exists": false
+    },
+    {
+      "turns": 2,
+      "schema": true,
+      "mode": "structured",
+      "exit_code": 0,
+      "result": {
+        "subtype": "success",
+        "is_error": false,
+        "num_turns": 2,
+        "structured_output": {
+          "ok": true
+        },
+        "permission_denials": []
+      },
+      "stderr": "",
+      "requests": [
+        {
+          "path": "/v1/messages?beta=true",
+          "tools": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        }
+      ],
+      "shell_marker_exists": false
+    },
+    {
+      "turns": 3,
+      "schema": true,
+      "mode": "structured",
+      "exit_code": 0,
+      "result": {
+        "subtype": "success",
+        "is_error": false,
+        "num_turns": 2,
+        "structured_output": {
+          "ok": true
+        },
+        "permission_denials": []
+      },
+      "stderr": "",
+      "requests": [
+        {
+          "path": "/v1/messages?beta=true",
+          "tools": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        }
+      ],
+      "shell_marker_exists": false
+    },
+    {
+      "turns": 4,
+      "schema": true,
+      "mode": "structured",
+      "exit_code": 0,
+      "result": {
+        "subtype": "success",
+        "is_error": false,
+        "num_turns": 2,
+        "structured_output": {
+          "ok": true
+        },
+        "permission_denials": []
+      },
+      "stderr": "",
+      "requests": [
+        {
+          "path": "/v1/messages?beta=true",
+          "tools": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        }
+      ],
+      "shell_marker_exists": false
+    },
+    {
+      "turns": 3,
+      "schema": false,
+      "mode": "text",
+      "exit_code": 0,
+      "result": {
+        "subtype": "success",
+        "is_error": false,
+        "num_turns": 1,
+        "structured_output": null,
+        "permission_denials": []
+      },
+      "stderr": "",
+      "requests": [
+        {
+          "path": "/v1/messages?beta=true",
+          "tools": [],
+          "tool_results": []
+        }
+      ],
+      "shell_marker_exists": false
+    },
+    {
+      "turns": 4,
+      "schema": true,
+      "mode": "unsolicited-bash",
+      "exit_code": 0,
+      "result": {
+        "subtype": "success",
+        "is_error": false,
+        "num_turns": 3,
+        "structured_output": {
+          "ok": true
+        },
+        "permission_denials": []
+      },
+      "stderr": "",
+      "requests": [
+        {
+          "path": "/v1/messages?beta=true",
+          "tools": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "path": "/v1/messages?beta=true",
+          "tools": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "is_error": true,
+              "content": "<tool_use_error>Error: No such tool available: Bash. Bash is disabled for this session, in subagents as well as here.</tool_use_error>"
+            }
+          ]
+        }
+      ],
+      "shell_marker_exists": false
+    },
+    {
+      "turns": 2,
+      "schema": true,
+      "mode": "workflow-schema",
+      "exit_code": 0,
+      "result": {
+        "subtype": "success",
+        "is_error": false,
+        "num_turns": 2,
+        "structured_output": {
+          "outcome": "approve",
+          "findings": [],
+          "uncertainties": [],
+          "confidence": 0.5,
+          "rationale": "Synthetic local protocol test, not a review."
+        },
+        "permission_denials": []
+      },
+      "stderr": "",
+      "requests": [
+        {
+          "path": "/v1/messages?beta=true",
+          "tools": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        }
+      ],
+      "shell_marker_exists": false
+    }
+  ],
+  "limitations": [
+    "Synthetic loopback responses, not model quality, authentication, or calibrated review.",
+    "CLI invocation only; action/SDK end-to-end integration remains untested.",
+    "Two-turn action compatibility is inferred from the pinned action source, not an executed action.",
+    "A single unsolicited Bash case does not prove absence of every tool or deferred-tool escape."
+  ]
+}
