@@ -1,0 +1,128 @@
+{
+  "status": "uncommitted-disabled-candidate-not-authority",
+  "date": "2026-11-15",
+  "branch": "codex/s2-cr-01-consolidated",
+  "base": "80eb0c990bd07bf58de9f442be066b4360ec0baa",
+  "files": [
+    {
+      "path": ".github/workflows/claude-review-isolated.yml",
+      "sha256": "08a086650e4ed278ef30cf9bdf5b117d49e3ad968486497ff865686d233071b9"
+    },
+    {
+      "path": ".github/shadow-provider-policy.json",
+      "sha256": "298b18823c86b4e92406412b51152b4949dbd90a59a836f95c18ff001d738b42"
+    },
+    {
+      "path": ".github/workflows/claude-review-shadow.yml",
+      "sha256": "596940b5758de86d15cf9c37e9ffa6280c480e18ad93f54cc8795255aac231d4"
+    },
+    {
+      "path": ".github/workflows/shadow-review-guard.yml",
+      "sha256": "6aa404df7ccd4b933a1e19f8a72e5d3d4fd08051479a46c3282f81a90b4ee7c0"
+    },
+    {
+      "path": ".github/workflows/runtime-invariant-gate.yml",
+      "sha256": "7916f389d2dd801294420d2db9f1850473e2b35233554ec10fe67ced97da8546"
+    },
+    {
+      "path": ".github/workflows/stage1-exit-gate.yml",
+      "sha256": "a97df6350bf063e760cd05999a3ddff6e3cb4bb808b3f202c106c33b2ae4617d"
+    },
+    {
+      "path": "tools/claude_shadow_workflow.py",
+      "sha256": "bb15a58bbaab062ad3678ada5c2f7a99274e9f2f599c50694f8155f6830bf107"
+    },
+    {
+      "path": "tools/fetch_shadow_pr.sh",
+      "sha256": "01a6b55c3805d5b34b92142e8ff03baf5ceb584965d3221b8f5fe36ce3af03b5"
+    },
+    {
+      "path": "tools/install_claude_shadow.py",
+      "sha256": "01ec440fb8b247cbf4ae4ca6026c5d636dcc3ce7e6b488508a9906cb62db25ab"
+    },
+    {
+      "path": "tools/run_claude_shadow.py",
+      "sha256": "71f38ed25debc42f20639d5b92b91b22b474a50ccf5bd922c14351b7eb56702a"
+    },
+    {
+      "path": "tools/shadow_artifact_binding.py",
+      "sha256": "f4b3b355c7d9fa0b79e158f64dec1fa72d5963d5e29199222833cb16f24198bf"
+    },
+    {
+      "path": "tools/shadow_container.py",
+      "sha256": "43b7ff98738842becaf8f205d15efd9e161a63382c879cca3bee0703ca7d99db"
+    },
+    {
+      "path": "tools/shadow_container_entry.py",
+      "sha256": "280cd654057c7011bc77ee3f746795cd9fca9309709addba7bb5b49807fcd306"
+    },
+    {
+      "path": "tools/shadow_egress_proxy.py",
+      "sha256": "1857266db442407f6986388db1fd8ec53a88854db928f18f27f1a309c2df1a5a"
+    },
+    {
+      "path": "tools/shadow_jobs.py",
+      "sha256": "6f3447407d9726a11f3d37d1d662ca50d6d91541179fa23556a8d454f7cb1791"
+    },
+    {
+      "path": "tools/shadow_network_run.py",
+      "sha256": "57baa96d1c1ef4fc6f0b1e022ff5e0aac068943c0c99c8305248badb8d2507c3"
+    },
+    {
+      "path": "tools/shadow_tool_evidence.py",
+      "sha256": "0e63dee5737d8496366ad0d9098dd54a64e388f49e73dcb769f10e7779589466"
+    },
+    {
+      "path": "tests/test_claude_shadow_workflow.py",
+      "sha256": "e7f3cd215c98f1dff9c4ffe25ab1d6d2c14111dc1b2f5518df98641b5af8811a"
+    },
+    {
+      "path": "tests/test_install_claude_shadow.py",
+      "sha256": "e9c25c5d4a2c4a55cefbc6602c1c42fcfde6f6e963c1fc14c108ca27c1661884"
+    },
+    {
+      "path": "tests/test_run_claude_shadow.py",
+      "sha256": "d2890b1c1f3298c79b190e81307e2d5d60205f0015a4446f95e352a821932bfd"
+    },
+    {
+      "path": "tests/test_shadow_artifact_binding.py",
+      "sha256": "515bb9c876cb3762a11fcd96c3ed572e9d2c7ca7d871e5350fd6cdfd1d8a3764"
+    },
+    {
+      "path": "tests/test_shadow_container.py",
+      "sha256": "23541edfbbc7609d6dceb1a5f291308162e3aac84d8c6da53ba297586a73e6a1"
+    },
+    {
+      "path": "tests/test_shadow_egress_proxy.py",
+      "sha256": "29ce994c39f7bedb671aebe216aaa634936bc9c5dc198bcf114d820f0c3554cc"
+    },
+    {
+      "path": "tests/test_shadow_isolated_workflow.py",
+      "sha256": "f52e78318088051847e38babadcd480e075e010555f21b417303a78ff33231a3"
+    },
+    {
+      "path": "tests/test_shadow_jobs.py",
+      "sha256": "539ba828fe81cdfd94ca2f4d2db419af2683821d0aff6c232c46126605bbc341"
+    },
+    {
+      "path": "tests/test_shadow_network_run.py",
+      "sha256": "0008e91cd1e3d5758b600ff21c923f0dece303bbf00a84d0876da7192dfb3502"
+    },
+    {
+      "path": "tests/test_shadow_tool_evidence.py",
+      "sha256": "99e25e7df09ad4c141f1a613932acc685141ff3652ee6036be84157001afd73d"
+    },
+    {
+      "path": "tests/shadow_proxy_cli_probe.py",
+      "sha256": "f45c8bc3cc78a7c3d9008b31b301f9e1885ce030e3e7ed42468cdc5ca27c33e7"
+    },
+    {
+      "path": "tests/shadow_proxy_network_probe.py",
+      "sha256": "659b88f624cbaabdc766abcf742db302a38737ca5a96e4e9992a3c2fe22ad926"
+    },
+    {
+      "path": "tests/shadow_topology_probe.py",
+      "sha256": "4d8029e0485aa361981cc61c2353c995216d6c6b929da3942df4e3921db4f6cd"
+    }
+  ]
+}

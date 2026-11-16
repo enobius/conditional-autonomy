@@ -1,3 +1,4 @@
+# Retired audit fixture only. Not loaded by GitHub Actions.
 name: Claude review shadow (manual only)
 
 on:
@@ -66,17 +67,20 @@ jobs:
           --diff "$RUNNER_TEMP/pr.diff"
           --prompt outputs/S2_CR_01_Claude_Review_Prompt_DRAFT.md
           --destination "$GITHUB_OUTPUT"
+      - name: Install verified pinned Claude CLI
+        id: claude_binary
+        run: |
+          binary=$(python -m tools.install_claude_shadow)
+          printf 'path=%s\n' "$binary" >> "$GITHUB_OUTPUT"
       - name: Review untrusted diff in shadow mode
-        id: review
-        uses: anthropics/claude-code-action@61a9c274fa7110a66dfafc1bbbced03833eb25fe # v1 commit
-        with:
-          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          github_token: ${{ github.token }}
-          prompt: ${{ steps.prepared.outputs.prompt }}
-          claude_args: >-
-            --model claude-opus-5-5 --max-turns 1 --tools=
-            --disallowedTools "mcp__*"
-            --json-schema '{"type":"object","additionalProperties":false,"required":["outcome","findings","uncertainties","confidence","rationale"],"properties":{"outcome":{"enum":["approve","revision-required","escalate-to-human"]},"findings":{"type":"array","items":{"type":"object"}},"uncertainties":{"type":"array","items":{"type":"string"}},"confidence":{"type":"number"},"rationale":{"type":"string"}}}'
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          CLAUDE_SHADOW_PROMPT: ${{ steps.prepared.outputs.prompt }}
+          CLAUDE_SHADOW_BINARY: ${{ steps.claude_binary.outputs.path }}
+        run: >-
+          python -m tools.run_claude_shadow
+          --binary "$CLAUDE_SHADOW_BINARY"
+          --destination "$RUNNER_TEMP/claude-model-output.json"
       - name: Recheck PR snapshot
         env:
           GH_TOKEN: ${{ github.token }}
@@ -86,13 +90,13 @@ jobs:
           jq --arg sha "$(jq -r .mergeBaseOid "$RUNNER_TEMP/pr-before-bound.json")" '. + {mergeBaseOid: $sha}' "$RUNNER_TEMP/pr-after.json" > "$RUNNER_TEMP/pr-after-bound.json"
       - name: Validate structured shadow result
         env:
-          CLAUDE_SHADOW_RESULT: ${{ steps.review.outputs.structured_output }}
           SHADOW_PR_NUMBER: ${{ inputs.pr_number }}
         run: >-
           python -m tools.claude_shadow_workflow validate
           --before "$RUNNER_TEMP/pr-before-bound.json"
           --after "$RUNNER_TEMP/pr-after-bound.json"
           --diff "$RUNNER_TEMP/pr.diff"
+          --response "$RUNNER_TEMP/claude-model-output.json"
           --destination "$RUNNER_TEMP/claude-shadow-result.json"
       - name: Retain unverified shadow result
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

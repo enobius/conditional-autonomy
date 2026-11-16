@@ -1,0 +1,38 @@
+{
+  "status": "pass-local-synthetic-only",
+  "date": "2026-11-11",
+  "provider_calls": false,
+  "container": "node@sha256:01d566e8d94d8c619591d78652babfccd3c6992a3dffa9ed5ab39e11cf6c70e9",
+  "isolation": {
+    "network": "none",
+    "observed_network_interfaces": ["lo"],
+    "read_only": true,
+    "user": "65534:65534",
+    "cap_drop": "ALL",
+    "no_new_privileges": true,
+    "credential": "dummy-local-only",
+    "mounts": "base-action source and dependencies, CLI directory, probe, loader and disabled workflow; read-only"
+  },
+  "inputs": {
+    "probe_sha256": "da9108e0b03ec7d5f790685c7c2e93a6aa54c1d5aeacbd36e2122ccd76595a6f",
+    "loader_sha256": "3da30910fd7463ff0fcebff1f5189b3815f7a7b1d7dc8cff512f085ebefe2387",
+    "workflow_sha256": "a2b86cb3c3b273fd9fc919a460bd52a7c3dd88a665037ecfbac245c1a714146e",
+    "cli_version": "2.1.319",
+    "cli_sha256": "dabafec82ca1319fa43d8be36a10fc61b1d11821cb98ad5df04ad95e199b8eed",
+    "sdk_version": "0.3.319",
+    "sdk_entrypoint_sha256": "71460e29f72859dbc65a613e3737c834b4afa4b6411716fd7b596f9c5e129b76"
+  },
+  "cases": [
+    {"cap": 1, "reported_turns": 2, "outcome": "expected rejection by action", "stub_requests": 1},
+    {"cap": 2, "reported_turns": 2, "outcome": "accepted; exact synthetic verdict", "stub_requests": 1}
+  ],
+  "advertised_tools": ["DeferredToolPlaceholder", "StructuredOutput"],
+  "exit_code": 0,
+  "limitations": [
+    "The SDK and CLI communicated with a synthetic local protocol stub, not Anthropic.",
+    "The source-based base action ran; the complete outer GitHub Action entrypoint and GitHub-hosted workflow did not.",
+    "SDK entrypoint and selected action source hashes were checked, not every dependency byte or independent origin provenance.",
+    "The action logs an estimated token cost for the synthetic response; it is not a provider charge.",
+    "This test establishes neither reviewer quality nor exhaustive tool isolation, and does not authorize enablement."
+  ]
+}

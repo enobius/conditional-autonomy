@@ -52,7 +52,7 @@ def load_compare(path: Path, *, expected_base: str, diff: bytes) -> str:
     return merge['sha']
 
 
-def prepare(diff_path: Path, snapshot_path: Path, prompt_path: Path, output_path: Path) -> None:
+def prepare(diff_path: Path, snapshot_path: Path, prompt_path: Path, output_path: Path, *, raw_file=False) -> None:
     diff = diff_path.read_bytes()
     if not diff or len(diff) > 200_000:
         raise ReviewVerdictError('PR diff empty or exceeds shadow size limit')
@@ -68,12 +68,12 @@ def prepare(diff_path: Path, snapshot_path: Path, prompt_path: Path, output_path
                'Review only the supplied content; escalate if context is missing.\n'
                f"Base tip: {snapshot['baseRefOid']}\nMerge base: {snapshot['mergeBaseOid']}\nHead: {snapshot['headRefOid']}\n"
                f'Diff SHA256: {digest}\n<{diff_tag}>\n{diff_text}\n</{diff_tag}>')
-    # The action transmits the prompt through individual Linux environment
-    # strings, including a JSON-escaped copy. Leave room for other inputs.
+    # The workflow transmits the prompt through a Linux environment string.
+    # Keep the more conservative escaped-size bound.
     if len(json.dumps(message, ensure_ascii=True).encode('utf-8')) > 100_000:
         raise ReviewVerdictError('escaped prompt exceeds shadow size limit')
-    with output_path.open('a', encoding='utf-8', newline='\n') as output:
-        output.write(f'prompt<<{delimiter}\n{message}\n{delimiter}\n')
+    with output_path.open('x' if raw_file else 'a', encoding='utf-8', newline='\n') as output:
+        output.write(message if raw_file else f'prompt<<{delimiter}\n{message}\n{delimiter}\n')
 
 
 def validate_finding_locations(findings: list, diff: bytes) -> None:
@@ -151,6 +151,8 @@ def main() -> int:
     parser.add_argument('--expected-base')
     parser.add_argument('--after', type=Path)
     parser.add_argument('--prompt', type=Path)
+    parser.add_argument('--response', type=Path)
+    parser.add_argument('--prompt-file-output', action='store_true')
     parser.add_argument('--destination', type=Path)
     args = parser.parse_args()
     try:
@@ -161,11 +163,13 @@ def main() -> int:
         elif args.mode == 'prepare':
             if args.diff is None or args.prompt is None or args.before is None or args.destination is None:
                 raise ReviewVerdictError('missing preparation input')
-            prepare(args.diff, args.before, args.prompt, args.destination)
+            prepare(args.diff, args.before, args.prompt, args.destination, raw_file=args.prompt_file_output)
         else:
-            if args.after is None or args.diff is None or args.before is None or args.destination is None:
+            if args.after is None or args.diff is None or args.before is None or args.destination is None or args.response is None:
                 raise ReviewVerdictError('missing post-review snapshot')
-            validate(os.environ.get('CLAUDE_SHADOW_RESULT', '').encode('utf-8'),
+            with args.response.open('rb') as response:
+                raw = response.read(1_000_001)
+            validate(raw,
                      args.before, args.after, args.diff, args.destination,
                      repository=os.environ.get('GITHUB_REPOSITORY', ''),
                      pr_number=os.environ.get('SHADOW_PR_NUMBER', ''),

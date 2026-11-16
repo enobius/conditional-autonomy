@@ -1,0 +1,358 @@
+{
+  "date": "2026-11-11",
+  "status": "representative-local-matrix-only",
+  "case_count": 13,
+  "container": "python@sha256:a83ba18aef0f865b1a4a611c2cf460fe446f2795673bbb9fe43be570439e3b39",
+  "cli_sha256": "dabafec82ca1319fa43d8be36a10fc61b1d11821cb98ad5df04ad95e199b8eed",
+  "probe_sha256": "95ba484f831171cee92c2ec40afffe25beed6bb7974c2dc1e993768bc7d4993f",
+  "network": "none; loopback only",
+  "provider_calls": false,
+  "credentials": "dummy provider token only",
+  "cases": [
+    {
+      "tool": "Bash",
+      "status": "failed-closed",
+      "marker": false,
+      "requests": [
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "error": true,
+              "content": "<tool_use_error>Error: No such tool available: Bash. Bash is disabled for this session, in subagents as well as here.</tool_use_error>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "Read",
+      "status": "failed-closed",
+      "marker": false,
+      "requests": [
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "error": true,
+              "content": "<tool_use_error>Error: No such tool available: Read. Read is disabled for this session, in subagents as well as here.</tool_use_error>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "Write",
+      "status": "failed-closed",
+      "marker": false,
+      "requests": [
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "error": true,
+              "content": "<tool_use_error>Error: No such tool available: Write. Write is disabled for this session, in subagents as well as here.</tool_use_error>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "Edit",
+      "status": "failed-closed",
+      "marker": false,
+      "requests": [
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "error": true,
+              "content": "<tool_use_error>Error: No such tool available: Edit. Edit is disabled for this session, in subagents as well as here.</tool_use_error>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "Glob",
+      "status": "failed-closed",
+      "marker": false,
+      "requests": [
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "error": true,
+              "content": "<tool_use_error>Error: No such tool available: Glob. Glob is disabled for this session.</tool_use_error>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "Grep",
+      "status": "failed-closed",
+      "marker": false,
+      "requests": [
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "error": true,
+              "content": "<tool_use_error>Error: No such tool available: Grep. Grep is disabled for this session.</tool_use_error>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "WebFetch",
+      "status": "failed-closed",
+      "marker": false,
+      "requests": [
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "error": true,
+              "content": "<tool_use_error>Error: No such tool available: WebFetch. WebFetch is disabled for this session, in subagents as well as here.</tool_use_error>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "WebSearch",
+      "status": "failed-closed",
+      "marker": false,
+      "requests": [
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "error": true,
+              "content": "<tool_use_error>Error: No such tool available: WebSearch. WebSearch is disabled for this session, in subagents as well as here.</tool_use_error>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "NotebookEdit",
+      "status": "failed-closed",
+      "marker": false,
+      "requests": [
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "error": true,
+              "content": "<tool_use_error>Error: No such tool available: NotebookEdit. NotebookEdit is disabled for this session, in subagents as well as here.</tool_use_error>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "Task",
+      "status": "failed-closed",
+      "marker": false,
+      "requests": [
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "error": true,
+              "content": "<tool_use_error>Error: No such tool available: Task. Task is disabled for this session, in subagents as well as here.</tool_use_error>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "Agent",
+      "status": "failed-closed",
+      "marker": false,
+      "requests": [
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "error": true,
+              "content": "<tool_use_error>Error: No such tool available: Agent. Agent is disabled for this session, in subagents as well as here.</tool_use_error>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "DeferredToolPlaceholder",
+      "status": "failed-closed",
+      "marker": false,
+      "requests": [
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "error": true,
+              "content": "<tool_use_error>Error: No such tool available: DeferredToolPlaceholder</tool_use_error>"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": "mcp__github__get_file_contents",
+      "status": "failed-closed",
+      "marker": false,
+      "requests": [
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": []
+        },
+        {
+          "advertised": [
+            "DeferredToolPlaceholder",
+            "StructuredOutput"
+          ],
+          "tool_results": [
+            {
+              "error": true,
+              "content": "<tool_use_error>Error: No such tool available: mcp__github__get_file_contents</tool_use_error>"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "One synthetic argument shape per tool name; not an exhaustive inventory or proof of safety.",
+    "No real provider or GitHub-hosted runner used.",
+    "Read-only non-root container is test isolation, not a production implementation.",
+    "A missing marker only detects the specific marker-writing behaviors, not arbitrary side effects.",
+    "Tool errors are self-reported by CLI and are not a substitute for independent OS isolation."
+  ]
+}

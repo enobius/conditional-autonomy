@@ -38,4 +38,11 @@ jobs:
       - name: Run shadow guard tests
         run: >-
           python -m unittest tests.test_claude_shadow_workflow
-          tests.test_review_verdict tests.test_review_shadow
+          tests.test_review_verdict tests.test_review_shadow tests.test_install_claude_shadow
+          tests.test_run_claude_shadow
+          tests.test_shadow_tool_evidence
+          tests.test_shadow_artifact_binding
+          tests.test_shadow_container
+          tests.test_shadow_egress_proxy
+          tests.test_shadow_isolated_workflow tests.test_shadow_jobs tests.test_shadow_network_run
+          tests.test_shadow_result_download
