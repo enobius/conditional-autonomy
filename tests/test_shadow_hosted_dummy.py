@@ -68,6 +68,8 @@ class HostedDummyTests(unittest.TestCase):
         self.assertNotIn('actions/cache', raw)
         self.assertNotIn('pull_request_target', raw)
         self.assertEqual(workflow['jobs']['artifact-check']['needs'], 'probe')
+        self.assertEqual(sum(step.get('run') == 'python -m tests.shadow_adversarial_host'
+                             for step in workflow['jobs']['probe']['steps']), 1)
         self.assertEqual(set(workflow['jobs']), {'probe', 'artifact-check'})
         for name, job in workflow['jobs'].items():
             self.assertEqual(set(job), {'runs-on', 'timeout-minutes', 'permissions', 'steps'} |
