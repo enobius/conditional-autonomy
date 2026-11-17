@@ -10,10 +10,11 @@ import json
 import os
 from pathlib import Path
 import secrets
+import subprocess
 import sys
 
 from tools import shadow_network_run as network
-from tools.shadow_container import secret_file
+from tools.shadow_container import docker_env, secret_file
 from tools.shadow_result_download import download
 
 
@@ -34,8 +35,11 @@ def probe(directory):
             if not any(m['Destination'] == '/run/shadow-provider.env' and not m['RW']
                        for m in proxy['Mounts']):
                 raise ValueError('missing read-only credential mount')
-            logs = network.execute(['logs', proxy_id])
-            if token.encode() in logs:
+            logs = subprocess.run(['docker', 'logs', proxy_id], capture_output=True,
+                                  env=docker_env(), timeout=30)
+            if logs.returncode:
+                raise ValueError('proxy log collection failed')
+            if any(token.encode() in stream for stream in (logs.stdout, logs.stderr)):
                 raise ValueError('dummy credential exposed in proxy logs')
         # Production topology must have removed the containers/network before
         # secret_file exits. The file stays present until then.

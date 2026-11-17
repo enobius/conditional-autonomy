@@ -4,6 +4,16 @@ on:
   pull_request:
     paths:
       - '.github/workflows/shadow-hosted-dummy.yml'
+      - '.github/workflows/claude-review-isolated.yml'
+      - '.github/shadow-provider-policy.json'
+      - 'tests/**'
+      - 'tools/**'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/shadow-hosted-dummy.yml'
+      - '.github/workflows/claude-review-isolated.yml'
+      - '.github/shadow-provider-policy.json'
       - 'tests/**'
       - 'tools/**'
   workflow_dispatch:
