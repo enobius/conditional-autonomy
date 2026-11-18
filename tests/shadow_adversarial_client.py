@@ -9,6 +9,19 @@ import socket
 import sys
 
 
+def readonly_mount_view(raw):
+    # Report only flags for three known targets; never export host paths or raw mountinfo.
+    required = {'/', '/cli/claude', '/sandbox/tools'}
+    seen = []
+    for row in raw.splitlines():
+        fields = row.split(' ')
+        if len(fields) > 5 and fields[4] in required:
+            if 'ro' not in fields[5].split(','):
+                return False
+            seen.append(fields[4])
+    return sorted(seen) == sorted(required)
+
+
 def inspect_boundary(config):
     names = ['GH_TOKEN', 'GITHUB_TOKEN', 'ACTIONS_RUNTIME_TOKEN',
              'ACTIONS_CACHE_URL', 'ACTIONS_RESULTS_URL', 'GITHUB_ENV', 'GITHUB_OUTPUT']
@@ -42,6 +55,7 @@ def inspect_boundary(config):
             # Refusal proves a route exists, not isolation; fail closed on it.
             routes[name] = exc.errno not in (111, 61, 10061)
     return {'kind': 'hostile-client-v1', 'clean_environment': clean_env,
+            'readonly_mount_view': readonly_mount_view(Path('/proc/self/mountinfo').read_text()),
             'placeholder_only': placeholder, 'host_files_hidden': hidden,
             'writes_blocked': writes_blocked, 'routes_blocked': routes}
 

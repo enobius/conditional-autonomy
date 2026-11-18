@@ -5,7 +5,7 @@ import os
 import unittest
 from unittest.mock import MagicMock, patch
 
-from tests.shadow_adversarial_client import inspect_boundary
+from tests.shadow_adversarial_client import inspect_boundary, readonly_mount_view
 from tests.shadow_adversarial_host import check_report
 
 
@@ -13,6 +13,7 @@ class AdversarialBoundaryTests(unittest.TestCase):
     def setUp(self):
         self.config = {'host': '172.17.0.1', 'port': 12345, 'forbidden_paths': ['/host-canary']}
         self.report = {'kind': 'hostile-client-v1', 'clean_environment': True,
+                       'readonly_mount_view': True,
                        'placeholder_only': True, 'host_files_hidden': True,
                        'writes_blocked': True, 'routes_blocked': {'artifact': True, 'cache': True}}
 
@@ -22,9 +23,32 @@ class AdversarialBoundaryTests(unittest.TestCase):
                 side_effect=files or PermissionError()), patch(
                 'tests.shadow_adversarial_client.socket.create_connection',
                 side_effect=connect or OSError(101, 'no route')) as connection:
-            result = inspect_boundary(self.config)
+            with patch('tests.shadow_adversarial_client.Path.read_text', return_value=self.mounts()):
+                result = inspect_boundary(self.config)
             self.assertEqual(connection.call_count, 2)
             return result
+
+    @staticmethod
+    def mounts():
+        return '\n'.join('1 0 0:1 / ' + p + ' ro - tmpfs tmpfs rw'
+                         for p in ('/', '/cli/claude', '/sandbox/tools'))
+
+    def test_mount_view_fails_closed(self):
+        rows = self.mounts().splitlines()
+        for bad in (rows[1:], rows + rows[:1], [rows[0].replace(' ro ', ' rw '), *rows[1:]]):
+            self.assertFalse(readonly_mount_view('\n'.join(bad)))
+
+    def test_wrong_placeholder_root_write_and_unexpected_read_error(self):
+        with self.assertRaises(ValueError):
+            check_report(json.dumps(self.inspect(extra_env={'CLAUDE_CODE_OAUTH_TOKEN': 'wrong'})))
+        def root_writable(path, mode):
+            if path == '/hostile-marker' and mode == 'xb':
+                return io.BytesIO()
+            raise PermissionError()
+        with self.assertRaises(ValueError):
+            check_report(json.dumps(self.inspect(files=root_writable)))
+        with self.assertRaisesRegex(OSError, 'unexpected'):
+            self.inspect(files=OSError('unexpected'))
 
     def test_denial_report_and_exact_oracle(self):
         result = self.inspect()

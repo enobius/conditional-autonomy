@@ -37,6 +37,25 @@ This stand-in does not call it. The prior synthetic proxy route test remains.
 Actual CLI/OAuth/TLS, protected environment, trusted required-check publisher,
 exception policy and owner origin/request-budget/live-call gates remain open.
 
+## Focused repair after review of 8bb9b3c
+
+Before starting the stand-in, the host checks Docker inspect against the pinned
+image environment plus the three allowed additions, the exact read-only bind
+sources and destinations, tmpfs settings, UID/GID, read-only root, privileges,
+dropped capabilities and isolated network. The client reports only a Boolean
+for three read-only mount targets from mountinfo, not raw mount metadata.
+The host loopback control is now followed by a permitted default-bridge
+container request to the same listener address and port used by the stand-in.
+The host must observe exactly the two control requests and no additional GET.
+
+Fake-Docker tests drive host main with an otherwise successful client report:
+unexpected listener traffic, output containing the dummy canary, failed removal,
+surviving credential, missing bridge control and actual configuration drift
+each have an expected failure. Client tests also cover wrong placeholder,
+root-only write access, unexpected read errors and missing/writable mount flags.
+These checks cover declared Docker configuration and specific observed behavior;
+they do not establish isolation from every host service or live GitHub cache.
+
 Review the new client, host oracle, unit fault injections and workflow wiring.
 Separate merge acceptance from enablement; no merge or enablement is requested
 without independent review and owner authority. No provider secret, repository
