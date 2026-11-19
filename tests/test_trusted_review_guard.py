@@ -27,22 +27,34 @@ class TrustedReviewGuardTests(unittest.TestCase):
         current = replace(self.head, entries=self.base.entries[::-1])
         self.assertEqual(self.run_guard(candidate=current).decision, Decision.NO_PROTECTED_CHANGE)
 
-    def test_path_exemption_is_exact_and_only_for_regular_content_changes(self):
-        policy = replace(self.policy, exempt_paths=(self.notes.path,))
+    def test_policy_does_not_accept_path_exemptions(self):
+        with self.assertRaises(TypeError):
+            replace(self.policy, exempt_paths=(self.notes.path,))
+
+    def test_regular_content_addition_deletion_and_mode_changes_are_protected(self):
         changed = replace(self.notes, oid='4' * 40)
         def check(*entries):
-            return self.run_guard(policy=policy, candidate=replace(self.head, entries=entries))
-        self.assertEqual(check(self.file, changed).decision, Decision.NO_PROTECTED_CHANGE)
-        for entry in (replace(self.notes, mode='100755'), replace(self.notes, mode='120000'),
-                      replace(self.notes, mode='160000'), replace(changed, path='Notes.md'),
-                      replace(changed, path='sub/notes.md')):
+            return self.run_guard(candidate=replace(self.head, entries=entries))
+        for entry in (changed, replace(self.notes, mode='100755'),
+                      replace(self.notes, mode='120000'), replace(self.notes, mode='160000')):
             with self.subTest(entry=entry):
-                self.assertEqual(check(self.file, entry).decision, Decision.PROTECTED_CHANGE)
+                self.assertEqual(check(self.file, entry).protected_changes, (self.notes.path,))
         self.assertEqual(check(self.file).protected_changes, (self.notes.path,))
         self.assertEqual(check(self.file, self.notes, Entry('new.md', '100644', '2' * 40))
                          .protected_changes, ('new.md',))
-        with self.assertRaises(GuardError):
-            self.run_guard(policy=replace(policy, exempt_paths=('**',)))
+
+    def test_target_content_change_stays_protected_with_an_unchanged_symlink(self):
+        # Inventory fixture: an unchanged link to notes.md has the same blob
+        # in both trees. The changed target must still be guarded independently.
+        link = Entry('tools/notes-link', '120000', '5' * 40)
+        old = replace(self.base, entries=(link, self.notes))
+        new = replace(self.head, entries=(link, replace(self.notes, oid='4' * 40)))
+        result = self.run_guard(base=old, candidate=new)
+        self.assertEqual(result.decision, Decision.PROTECTED_CHANGE)
+        self.assertEqual(result.protected_changes, (self.notes.path,))
+        wrong_scope = replace(self.exception, protected_changes=(link.path,))
+        with self.assertRaisesRegex(GuardError, 'exact protected change'):
+            self.run_guard(base=old, candidate=new, owner_exception=wrong_scope)
 
     def test_rename_protects_both_endpoints_even_with_identical_blob(self):
         new = replace(self.file, path='tools/renamed.yml')

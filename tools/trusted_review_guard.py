@@ -43,8 +43,6 @@ class Inventory:
 @dataclass(frozen=True)
 class Policy:
     revision: str
-    # Exact paths only. Everything else is protected unless explicitly listed.
-    exempt_paths: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -151,17 +149,13 @@ def evaluate(subject: Subject, current: Subject, base: Inventory, candidate: Inv
     if type(policy) is not Policy:
         raise GuardError('invalid policy')
     _require_oid(policy.revision)
-    exemptions = _paths(policy.exempt_paths)
     old = _inventory(base, subject.base)
     new = _inventory(candidate, subject.head)
     if subject.head == subject.base and old != new:
         raise GuardError('inconsistent inventories for same object')
-    changed = {p for p in old.keys() | new.keys() if old.get(p) != new.get(p)}
-    # Exemption applies only to modifications of an existing ordinary file;
-    # additions, deletions and type/mode changes always require independent review.
-    exempt = {p for p in changed & exemptions if p in old and p in new and
-              old[p][0] == new[p][0] == '100644'}
-    protected = tuple(sorted(changed - exempt))
+    # Protect every changed leaf. Inventories do not capture how one path
+    # depends on another, so there is no path-exemption mechanism.
+    protected = tuple(sorted(p for p in old.keys() | new.keys() if old.get(p) != new.get(p)))
     if owner_exception is not None:
         if type(owner_exception) is not OwnerException:
             raise GuardError('invalid exception decision')

@@ -13,12 +13,16 @@ observation matches that subject. Renames appear as deletion plus addition;
 mode and type changes cannot be skipped. Invalid or ambiguous inventory
 shape fails closed. No PR file is opened or executed.
 
-Default: **protect every changed path**. No exceptions to this default have
-been configured. A future separately approved policy may exempt exact paths
-from this guard only for content updates to existing ordinary non-executable
-files. Additions, deletions and changes of mode still count as protected.
-Path classification does **not** waive independent review. Confirm any
-allowlist is safe for indirect dependencies before choosing it.
+**Every changed path is protected.** The focused repair removes path exemptions
+entirely: a link or another dependency can be unchanged in Git while a change
+to its target affects it. The guard does not resolve links and never discounts
+a changed leaf based on its name or file type. Future narrowing would require
+a separately reviewed dependency-aware design; it is not configurable here.
+
+The comparison is between the observed base tip and PR head, not a prediction
+or verification of a synthesized merge tree. Base-only edits can appear in
+the protected set. A production integration must define the exact candidate
+it authorizes, and must not treat this result as a merge-tree attestation.
 
 A pre-authenticated external owner decision can cover a protected change only
 when repository, PR, base, head, trusted policy revision and the entire set of
@@ -31,7 +35,9 @@ supplied but mismatched decision raises an error.
 
 - **Provenance and completeness:** the adapter must obtain full inventories
   from trusted Git objects, reject partial/paginated or truncated evidence
-  that cannot be completed, and bind it to the observed PR revisions. A
+  that cannot be completed, and bind it to the observed PR revisions. The
+  controller must independently pin and verify the trusted policy revision;
+  a well-formed object ID is not a trust decision. A
   tuple passed to this function does not itself establish completeness.
 - **Authentication and lifecycle:** obtain exceptions through an external
   authenticated, revocable owner channel, with durable replay/freshness
