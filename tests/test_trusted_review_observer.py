@@ -59,11 +59,7 @@ class ObserverTests(unittest.TestCase):
                 view()
 
     def test_invalid_or_unavailable_read_fails(self):
-        for response in (observer.ReadResponse(302, b'{}'), observer.ReadResponse(304, b'{}'),
-                         observer.ReadResponse(403, b'{}'), observer.ReadResponse(200, b''),
-                         observer.ReadResponse(200, b'x' * (observer._MAX_RESPONSE + 1)),
-                         observer.ReadResponse(200, b'{"number": 4, "number": 4}'),
-                         observer.ReadResponse(200, b'{"value": NaN}'),
+        for response in (observer.ReadResponse(403, b'{}'), observer.ReadResponse(200, b''),
                          observer.ReadResponse(200, b'[]'), observer.ReadResponse(200, b'\xff'),
                          observer.ReadResponse(200, b'{')):
             with self.subTest(status=response.status, size=len(response.body)), self.assertRaises(guard.GuardError):
@@ -72,6 +68,42 @@ class ObserverTests(unittest.TestCase):
         with self.assertRaisesRegex(guard.GuardError, '^authenticated GitHub read failed$') as caught:
             view()
         self.assertTrue(caught.exception.__suppress_context__)
+
+    def observe_response(self, response):
+        # A valid branch response is available, so later checks cannot mask
+        # acceptance of an invalid PR response.
+        get = Mock(side_effect=(response, self.reply(self.branch)))
+        return observer.GitHubObserver(self.repository, 4, get)
+
+    def assert_pr_read_rejected(self, response, error):
+        view = self.observe_response(response)
+        with self.assertRaisesRegex(guard.GuardError, error):
+            view()
+        self.assertEqual(view.get.call_args_list, self.urls[:1])
+
+    def test_redirect_and_not_modified_reject_otherwise_valid_pr(self):
+        valid = self.reply(self.pr)
+        self.assertEqual(self.observe_response(valid)(), self.subject)
+        for status in (302, 304):
+            with self.subTest(status=status):
+                self.assert_pr_read_rejected(replace(valid, status=status), 'observation unavailable')
+
+    def test_size_limit_rejects_valid_json_one_byte_over(self):
+        valid = self.reply(self.pr)
+        at_limit = valid.body.ljust(observer._MAX_RESPONSE, b' ')
+        self.assertEqual(self.observe_response(replace(valid, body=at_limit))(), self.subject)
+        self.assert_pr_read_rejected(replace(valid, body=at_limit + b' '), 'or oversized')
+
+    def test_duplicate_key_rejects_otherwise_valid_pr(self):
+        valid = self.reply(self.pr)
+        duplicate = b'{"number": 4, ' + valid.body[1:]
+        self.assertEqual(json.loads(duplicate), self.pr)
+        self.assert_pr_read_rejected(replace(valid, body=duplicate), 'duplicate key')
+
+    def test_nan_in_ignored_field_rejects_otherwise_valid_pr(self):
+        self.assertEqual(self.observe_response(self.reply(self.pr | {'ignored': 0}))(), self.subject)
+        invalid = self.reply(self.pr | {'ignored': float('nan')})
+        self.assert_pr_read_rejected(invalid, 'invalid numeric constant')
 
     def test_configuration_rejects_invalid_path_segments_and_ids(self):
         for owner, name, rid in [('owner/other', 'repo', 123), ('owner', '..', 123),
@@ -96,6 +128,18 @@ class ObserverTests(unittest.TestCase):
                                                  requested_policy_revision=self.pin)
                 git.assert_not_called()
         view.get.assert_not_called()
+
+    def test_same_id_mirror_requires_matching_owner_and_name(self):
+        for drift in ({'owner': 'other'}, {'name': 'other'}):
+            with self.subTest(drift=drift):
+                view = self.build(self.pr, self.branch)
+                mirror = replace(self.mirror(), repository=replace(self.repository, **drift))
+                with patch.object(observer.adapter, 'LocalGit') as git:
+                    with self.assertRaisesRegex(guard.GuardError, 'observer does not match registered mirror'):
+                        observer.evaluate_registered(mirror, observer=view, subject=self.subject,
+                                                     requested_policy_revision=self.pin)
+                    git.assert_not_called()
+                view.get.assert_not_called()
 
     def test_integration_pins_policy_and_observes_before_and_after_inventory(self):
         for fresh in (True, False):
