@@ -3,6 +3,7 @@ import json
 import os
 import ssl
 import subprocess
+import traceback
 import unittest
 from unittest.mock import Mock, patch
 
@@ -25,6 +26,7 @@ class TransportTests(unittest.TestCase):
                     self.pr_url.replace('/repo/', '/other/'),
                     self.pr_url.replace('/pulls/4', '/issues/4'),
                     self.pr_url.replace('github.com', 'github.com.example.invalid'),
+                    self.pr_url.replace('github.com', 'gitlab.com'),  # Same prefix length.
                     self.pr_url.replace('github.com', 'github.com:443'),
                     self.pr_url.replace('/pulls/4', '/pulls/%34')):
             with self.subTest(url=url), patch.object(transport.subprocess, 'run') as run:
@@ -65,6 +67,10 @@ class TransportTests(unittest.TestCase):
                 with self.assertRaises(transport.GitHubTransportError) as caught:
                     self.get(self.pr_url)
                 self.assertNotIn(self.token.decode(), str(caught.exception))
+                if isinstance(result, Exception):
+                    self.assertTrue(caught.exception.__suppress_context__)
+                    rendered = ''.join(traceback.format_exception(caught.exception))
+                    self.assertNotIn(self.token.decode(), rendered)
                 run.assert_called_once()
 
     def test_invalid_token_cannot_start_worker_or_request(self):
@@ -151,10 +157,33 @@ class TransportTests(unittest.TestCase):
         self.assertEqual((got.repository_id, got.pull_request, got.base, got.head), (123, 4, base, head))
         self.assertEqual([c.args[0][-1] for c in run.call_args_list], [self.pr_path, self.branch_path])
 
-    def test_invalid_path_worker_exits_silently_without_network(self):
-        # Run the actual isolated child, but give it no admissible target.
-        result = subprocess.run(
-            [transport.sys.executable, '-I', '-S', transport.__file__, '/invalid'],
-            input=self.token, capture_output=True, timeout=10, check=False)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertEqual((result.stdout, result.stderr), (b'', b''))
+    def test_worker_rejects_out_of_scope_paths_before_connecting(self):
+        # Run the actual worker entry point in an isolated child. The stub makes
+        # any attempt to construct a connection observable, without networking.
+        wrapper = """
+import http.client
+import runpy
+import sys
+
+def forbidden_connection(*args, **kwargs):
+    raise SystemExit(73)
+
+http.client.HTTPSConnection = forbidden_connection
+sys.argv = sys.argv[1:]
+runpy.run_path(sys.argv[0], run_name='__main__')
+"""
+
+        def invoke(path):
+            return subprocess.run(
+                [transport.sys.executable, '-I', '-S', '-c', wrapper, transport.__file__, path],
+                input=self.token, capture_output=True, timeout=10, check=False)
+
+        # Positive control: a permitted path reaches the stub, and SystemExit
+        # cannot be mistaken for the worker's ordinary rejection.
+        self.assertEqual(invoke(self.pr_path).returncode, 73)
+        for path in ('/repos/owner/repo/unsupported/4', '/repos/owner/../pulls/4',
+                     '/repos/owner/./branches/main'):
+            with self.subTest(path=path):
+                result = invoke(path)
+                self.assertEqual(result.returncode, 1)
+                self.assertEqual((result.stdout, result.stderr), (b'', b''))
