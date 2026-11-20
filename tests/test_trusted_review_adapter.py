@@ -106,6 +106,15 @@ class LocalGitAdapterTests(unittest.TestCase):
             with self.subTest(error=error), self.assertRaisesRegex(guard.GuardError, error):
                 self.run_adapter(subject=subject, observe_current=lambda: subject)
 
+    def test_unsupported_tree_mode_rejects_entire_inventory(self):
+        # Both leaves point to a real blob; only the second leaf's mode is
+        # unsupported. Skipping it would incorrectly return an inventory.
+        blob = bytes.fromhex(self.obj('blob', b'fixture\n'))
+        tree = self.obj('tree', b'100644 valid.md\0' + blob + b'100664 wrong.md\0' + blob)
+        subject = replace(self.subject, head=self.commit(tree))
+        with self.assertRaisesRegex(guard.GuardError, 'unsupported Git tree mode'):
+            self.run_adapter(subject=subject, observe_current=lambda: subject)
+
     def test_replace_refs_and_inherited_git_environment_do_not_change_objects(self):
         self.git_cmd('replace', self.head, self.base)
         try:
@@ -129,3 +138,55 @@ class LocalGitAdapterTests(unittest.TestCase):
         with patch.object(adapter, '_MAX_TREES', 1):
             with self.assertRaisesRegex(guard.GuardError, 'traversal limit'):
                 git.inventory(self.head)
+
+    def test_depth_limit_rejects_nested_inventory(self):
+        git = adapter.LocalGit(self.exe, self.repo / '.git')
+        with patch.object(adapter, '_MAX_DEPTH', 0):
+            with self.assertRaisesRegex(guard.GuardError, 'traversal limit'):
+                git.inventory(self.head)
+
+    def test_tree_bytes_limit_is_cumulative(self):
+        git = adapter.LocalGit(self.exe, self.repo / '.git')
+        root = git.read_metadata_object(git.commit_tree(self.head), 'tree')
+        nested_oid = self.git_cmd('rev-parse', self.head + ':nested').strip().decode()
+        nested = git.read_metadata_object(nested_oid, 'tree')
+        with patch.object(adapter, '_MAX_TREE_BYTES', max(len(root), len(nested))):
+            with self.assertRaisesRegex(guard.GuardError, 'oversized inventory'):
+                git.inventory(self.head)
+
+    def test_leaf_limit_stops_before_returning_inventory(self):
+        git = adapter.LocalGit(self.exe, self.repo / '.git')
+        with patch.object(guard, '_MAX_PATHS', 1):
+            with self.assertRaisesRegex(guard.GuardError, 'inventory entry limit'):
+                git.inventory(self.head)
+
+    def test_overall_deadline_stops_new_git_reads(self):
+        with patch.object(adapter, 'monotonic', side_effect=(0, 0, 61)):
+            git = adapter.LocalGit(self.exe, self.repo / '.git')
+            with patch.object(adapter.subprocess, 'run') as run:
+                with self.assertRaisesRegex(guard.GuardError, 'deadline exceeded'):
+                    git.commit_tree(self.head)
+                run.assert_not_called()
+
+    def test_git_commands_explicitly_disallow_lazy_fetch_and_protocols(self):
+        output = subprocess.CompletedProcess([], 0, stdout=b'sha1\n')
+        with patch.object(adapter.subprocess, 'run', return_value=output) as run:
+            adapter.LocalGit(self.exe, self.repo / '.git')
+        command = run.call_args.args[0]
+        self.assertIn('--no-lazy-fetch', command)
+        pos = command.index('-c')
+        self.assertEqual(command[pos + 1], 'protocol.allow=never')
+
+    def test_repository_object_format_must_be_sha1(self):
+        with patch.object(adapter.LocalGit, '_run', return_value=b'sha256\n'):
+            with self.assertRaisesRegex(guard.GuardError, 'unsupported Git object format'):
+                adapter.LocalGit(self.exe, self.repo / '.git')
+
+    def test_git_executable_and_database_paths_must_be_absolute(self):
+        for executable, database in ((Path('git'), self.repo / '.git'),
+                                     (self.exe, Path('.git'))):
+            with self.subTest(executable=executable, database=database):
+                with patch.object(adapter.subprocess, 'run') as run:
+                    with self.assertRaisesRegex(guard.GuardError, 'must be absolute'):
+                        adapter.LocalGit(executable, database)
+                    run.assert_not_called()
