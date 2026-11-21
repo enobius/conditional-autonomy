@@ -1,0 +1,75 @@
+name: shadow-advisory-rehearsal
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/shadow-advisory-rehearsal.yml'
+      - 'tests/shadow_advisory_rehearsal.py'
+      - 'tests/test_shadow_advisory_rehearsal.py'
+
+permissions: {}
+
+env:
+  PR_NUMBER: ${{ github.event.pull_request.number }}
+  PR_BASE: ${{ github.event.pull_request.base.sha }}
+  PR_HEAD: ${{ github.event.pull_request.head.sha }}
+
+jobs:
+  rehearsal:
+    if: ${{ github.event.pull_request.head.repo.id == github.event.repository.id }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    outputs:
+      artifact_id: ${{ steps.result.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Observe exact PR revision and compare its Git trees
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m tests.shadow_advisory_rehearsal capture --directory "$RUNNER_TEMP/advisory-rehearsal"
+      - name: Pull pinned dummy reviewer image
+        run: docker pull python@sha256:a83ba18aef0f865b1a4a611c2cf460fe446f2795673bbb9fe43be570439e3b39
+      - name: Run dummy reviewer without network or credentials
+        run: python -m tests.shadow_advisory_rehearsal review --directory "$RUNNER_TEMP/advisory-rehearsal"
+      - name: Upload synthetic advisory artifact only
+        id: result
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: advisory-rehearsal-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/advisory-rehearsal/result.json
+          if-no-files-found: error
+          retention-days: 1
+          overwrite: false
+
+  verify-artifact:
+    needs: rehearsal
+    if: ${{ github.event.pull_request.head.repo.id == github.event.repository.id }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Re-observe PR and independently verify the exact artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESULT_ARTIFACT_ID: ${{ needs.rehearsal.outputs.artifact_id }}
+        run: python -m tests.shadow_advisory_rehearsal verify
