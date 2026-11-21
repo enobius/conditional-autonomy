@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import subprocess
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -64,7 +65,7 @@ class AdvisoryRehearsalTests(unittest.TestCase):
     def test_dummy_gets_only_input_and_no_network_or_host_mounts(self):
         canary = {'UNRELATED_HOST_ONLY': 'dummy'}
         run_result = subprocess.CompletedProcess([], 0, rehearsal.dummy_output(self.raw), b'')
-        with patch.dict(rehearsal.os.environ, canary, clear=True), patch.object(
+        with patch.object(rehearsal, 'os', SimpleNamespace(environ=canary)), patch.object(
                 rehearsal.subprocess, 'run', return_value=run_result) as run:
             self.assertEqual(rehearsal.invoke_dummy(self.raw), run_result.stdout)
         argv = run.call_args.args[0]
@@ -80,7 +81,7 @@ class AdvisoryRehearsalTests(unittest.TestCase):
         self.assertNotIn('UNRELATED_HOST_ONLY', run.call_args.kwargs['env'])
         self.assertEqual(run.call_args.kwargs['input'], self.raw)
         self.assertEqual(run.call_args.kwargs['timeout'], 45)
-        with patch.dict(rehearsal.os.environ, {'GH_TOKEN': 'dummy'}, clear=True), patch.object(
+        with patch.object(rehearsal, 'os', SimpleNamespace(environ={'GH_TOKEN': 'dummy'})), patch.object(
                 rehearsal.subprocess, 'run') as run:
             with self.assertRaisesRegex(ValueError, 'credential variable'):
                 rehearsal.invoke_dummy(self.raw)
@@ -93,7 +94,7 @@ class AdvisoryRehearsalTests(unittest.TestCase):
             ('stderr', subprocess.CompletedProcess([], 0, correct, b'unexpected diagnostic')),
             ('stdout', subprocess.CompletedProcess([], 0, b'{}', b'')),
         ):
-            with self.subTest(check=name), patch.dict(rehearsal.os.environ, {}, clear=True), patch.object(
+            with self.subTest(check=name), patch.object(rehearsal, 'os', SimpleNamespace(environ={})), patch.object(
                     rehearsal.subprocess, 'run', return_value=result) as run:
                 with self.assertRaisesRegex(ValueError, 'dummy reviewer failed or returned unbound output'):
                     rehearsal.invoke_dummy(self.raw)
