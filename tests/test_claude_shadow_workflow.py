@@ -13,7 +13,7 @@ if _VENDOR.exists():
 import yaml
 
 from runtime.conditional_autonomy.review_verdict import ReviewVerdictError
-from tools.claude_shadow_workflow import load_compare, load_snapshot, prepare, validate, validate_finding_locations
+from tools.claude_shadow_workflow import load_compare, load_pilot_pr, load_snapshot, prepare, validate, validate_finding_locations
 
 METADATA = {'repository': 'example/repo', 'pr_number': '12', 'run_id': '123'}
 
@@ -136,6 +136,51 @@ def assert_guard_keys(test, workflow):
 
 
 class ShadowWorkflowTests(unittest.TestCase):
+    def test_pilot_refuses_unapproved_pr_fork_and_revision_drift(self):
+        expected = {'expected_pr': '17', 'expected_base': 'a' * 40, 'expected_head': 'b' * 40}
+        snapshot = {'baseRefName': 'main', 'baseRefOid': 'a' * 40, 'headRefOid': 'b' * 40, 'state': 'OPEN'}
+        observed = {**snapshot, 'number': 17, 'isCrossRepository': False}
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'observed.json'
+            path.write_text(json.dumps(observed), encoding='utf-8')
+            self.assertEqual(load_pilot_pr(path, **expected), snapshot)
+            for field, value in (('expected_pr', '017'), ('expected_pr', '18'),
+                                 ('expected_base', '0' * 40), ('expected_base', 'b' * 40),
+                                 ('expected_head', 'B' * 40), ('expected_head', 'c' * 40)):
+                with self.subTest(pin=field, value=value), self.assertRaises(ReviewVerdictError):
+                    load_pilot_pr(path, **(expected | {field: value}))
+            for field, value in (('number', 18), ('number', '17'), ('isCrossRepository', True),
+                                 ('isCrossRepository', 0), ('state', 'CLOSED'), ('baseRefName', 'dev'),
+                                 ('baseRefOid', 'c' * 40), ('headRefOid', 'c' * 40)):
+                path.write_text(json.dumps(observed | {field: value}), encoding='utf-8')
+                with self.subTest(observed=field, value=value), self.assertRaisesRegex(
+                        ReviewVerdictError, 'observation differs'):
+                    load_pilot_pr(path, **expected)
+            del observed['isCrossRepository']
+            path.write_text(json.dumps(observed), encoding='utf-8')
+            with self.assertRaisesRegex(ReviewVerdictError, 'observation differs'):
+                load_pilot_pr(path, **expected)
+
+    def test_pilot_cli_prints_bound_snapshot_only_after_positive_observation(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'observed.json'
+            snapshot = {'baseRefName': 'main', 'baseRefOid': 'a' * 40, 'headRefOid': 'b' * 40, 'state': 'OPEN'}
+            observed = {**snapshot, 'number': 17, 'isCrossRepository': False}
+            path.write_text(json.dumps(observed), encoding='utf-8')
+            check = [sys.executable, '-B', '-m', 'tools.claude_shadow_workflow', 'verify-pilot-pr',
+                     '--before', str(path), '--expected-pr', '17', '--expected-base', 'a' * 40,
+                     '--expected-head', 'b' * 40]
+            before = subprocess.run(check, check=True, capture_output=True, timeout=15)
+            self.assertEqual(before.stdout, b'')
+            after = check + ['--merge-base', 'c' * 40]
+            bound = subprocess.run(after, check=True, capture_output=True, timeout=15)
+            self.assertEqual(json.loads(bound.stdout), snapshot | {'mergeBaseOid': 'c' * 40})
+            invalid = subprocess.run(check + ['--merge-base', '0' * 40], capture_output=True, timeout=15)
+            self.assertEqual((invalid.returncode, invalid.stdout), (1, b''))
+            path.write_text(json.dumps(observed | {'headRefOid': 'd' * 40}), encoding='utf-8')
+            stale = subprocess.run(after, capture_output=True, timeout=15)
+            self.assertEqual((stale.returncode, stale.stdout), (1, b''))
+
     def test_direct_runner_source_is_review_pinned(self):
         # This drift alarm is not a trusted check when PR code controls it.
         source = Path('tools/run_claude_shadow.py').read_text(encoding='utf-8')

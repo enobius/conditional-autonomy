@@ -10,11 +10,19 @@ DOWNLOAD = 'actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093'
 UPLOAD = 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02'
 CHECKOUT = 'actions/checkout@11d5960a326750d5838078e36cf38b85af677262'
 PYTHON = 'actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065'
+DISABLED = ("${{ false && github.repository_id == '1315590853' && github.ref == 'refs/heads/main' "
+            "&& github.run_attempt == '1' }}")
 
 
 def safe(test, workflow):
     test.assertEqual(set(workflow), {'name', 'on', 'permissions', 'jobs'})
     test.assertEqual(set(workflow['on']), {'workflow_dispatch'})
+    dispatch = workflow['on']['workflow_dispatch']
+    test.assertEqual(set(dispatch), {'inputs'})
+    test.assertEqual(set(dispatch['inputs']), {'pr_number', 'base_sha', 'head_sha'})
+    for field in dispatch['inputs'].values():
+        test.assertEqual(set(field), {'description', 'required', 'type'})
+        test.assertEqual((field['required'], field['type']), ('true', 'string'))
     test.assertEqual(workflow['permissions'], {})
     jobs = workflow['jobs']
     test.assertEqual(set(jobs), {'fetch', 'provider', 'validate'})
@@ -28,7 +36,7 @@ def safe(test, workflow):
     for key, job in jobs.items():
         test.assertEqual(set(job), {'if', 'runs-on', 'timeout-minutes', 'permissions', 'steps'} |
                          ({'outputs'} if key == 'fetch' else {'needs', 'environment', 'outputs'} if key == 'provider' else {'needs'}))
-        test.assertEqual(job['if'], "${{ false && github.ref == 'refs/heads/main' }}")
+        test.assertEqual(job['if'], DISABLED)
         test.assertEqual(job['runs-on'], 'ubuntu-24.04')
         test.assertEqual(job['permissions'], {'contents': 'read'} if key == 'provider' else
                          {'contents': 'read', 'pull-requests': 'read', **({'actions': 'read'} if key == 'validate' else {})})
@@ -81,6 +89,14 @@ def safe(test, workflow):
     review = next(s for s in provider if s['name'] == 'Run mandatory private-network container')
     test.assertEqual(review['run'], 'python -m tools.shadow_jobs review --bundle "$RUNNER_TEMP/fetch-input" --binary "$SHADOW_BINARY" --policy .github/shadow-provider-policy.json --destination "$RUNNER_TEMP/provider-output/result.json"')
     test.assertEqual(set(review['env']), {'PR_NUMBER', 'FETCH_MANIFEST_SHA256', 'CLAUDE_CODE_OAUTH_TOKEN', 'SHADOW_BINARY'})
+    for job, name, destination in (('fetch', 'Fetch bounded PR data', 'fetch-input'),
+                                   ('validate', 'Independently re-fetch current PR', 'refetched')):
+        fetch = next(s for s in jobs[job]['steps'] if s['name'] == name)
+        test.assertEqual(fetch['run'], 'bash tools/fetch_shadow_pr.sh')
+        test.assertEqual(fetch['env'], {'GH_TOKEN': '${{ github.token }}', 'PR_NUMBER': '${{ inputs.pr_number }}',
+                                        'SHADOW_BASE_SHA': '${{ inputs.base_sha }}',
+                                        'SHADOW_HEAD_SHA': '${{ inputs.head_sha }}',
+                                        'SHADOW_FETCH_DEST': '${{ runner.temp }}/' + destination})
     test.assertEqual(jobs['validate']['steps'][-2]['run'], 'python -m tools.shadow_jobs validate --bundle "$RUNNER_TEMP/fetch-input" --response-dir "$RUNNER_TEMP/provider-output" --refetched-dir "$RUNNER_TEMP/refetched" --destination "$RUNNER_TEMP/isolated-shadow-result.json"')
 
 
@@ -93,7 +109,7 @@ class IsolatedWorkflowTests(unittest.TestCase):
         # Local drift alarm only, not a trusted check against PR edits to tests.
         canonical = json.dumps(self.workflow(), sort_keys=True, separators=(',', ':')).encode()
         self.assertEqual(hashlib.sha256(canonical).hexdigest(),
-                         '1c7ebfd46174370e925bac2c4c620ed05f5ef5b6d464164ab6a51ed3f389695d')
+                         'db5032e9fac1bdb452709e09168b9360b36249e7ab0aa5777849206570635ad4')
         self.assertEqual(json.loads(Path('.github/shadow-provider-policy.json').read_text()),
                          {'version': 'shadow-provider-policy-1', 'enabled': False, 'origin': None})
 
@@ -108,5 +124,10 @@ class IsolatedWorkflowTests(unittest.TestCase):
         candidate = self.workflow()
         step = next(s for s in candidate['jobs']['validate']['steps'] if s.get('uses') == DOWNLOAD)
         step['with']['artifact-ids'] = '${{ needs.provider.outputs.fetch_id }}'
+        with self.assertRaises(AssertionError):
+            safe(self, candidate)
+        candidate = self.workflow()
+        fetch = next(s for s in candidate['jobs']['validate']['steps'] if s['name'] == 'Independently re-fetch current PR')
+        fetch['env'].pop('SHADOW_HEAD_SHA')
         with self.assertRaises(AssertionError):
             safe(self, candidate)
