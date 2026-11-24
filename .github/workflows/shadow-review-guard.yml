@@ -37,7 +37,7 @@ jobs:
           -r architecture/schemas/requirements-shadow-runtime.lock
       - name: Run shadow guard tests
         run: >-
-          python -m unittest tests.test_claude_shadow_workflow
+          python -m unittest tests.test_claude_shadow_workflow tests.test_fetch_shadow_pr
           tests.test_review_verdict tests.test_review_shadow tests.test_install_claude_shadow
           tests.test_run_claude_shadow
           tests.test_shadow_tool_evidence

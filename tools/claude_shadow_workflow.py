@@ -29,6 +29,26 @@ def load_snapshot(path: Path) -> dict:
     return data
 
 
+def load_pilot_pr(path: Path, *, expected_pr: str, expected_base: str, expected_head: str) -> dict:
+    """Allow only the exact open, same-repository PR selected for this pilot."""
+    if (not isinstance(expected_pr, str) or not re.fullmatch(r'[1-9][0-9]{0,9}', expected_pr) or
+            any(not isinstance(oid, str) or not re.fullmatch(r'[0-9a-f]{40}', oid) or oid == '0' * 40
+                for oid in (expected_base, expected_head)) or expected_base == expected_head):
+        raise ReviewVerdictError('invalid pilot PR pin')
+    snapshot = {'baseRefName': 'main', 'baseRefOid': expected_base,
+                'headRefOid': expected_head, 'state': 'OPEN'}
+    with path.open('rb') as source:
+        raw = source.read(2_001)
+    if len(raw) > 2_000:
+        raise ReviewVerdictError('oversized pilot PR observation')
+    data = json.loads(raw.decode('utf-8'), object_pairs_hook=_object, parse_constant=_constant)
+    if (not isinstance(data, dict) or set(data) != {*snapshot, 'number', 'isCrossRepository'} or
+            type(data['number']) is not int or data['number'] != int(expected_pr) or
+            data['isCrossRepository'] is not False or any(data[key] != value for key, value in snapshot.items())):
+        raise ReviewVerdictError('pilot PR observation differs from exact pin')
+    return snapshot
+
+
 def load_compare(path: Path, *, expected_base: str, diff: bytes) -> str:
     """Fail closed when GitHub's compare file inventory may be incomplete."""
     data = json.loads(path.read_text(encoding='utf-8'), object_pairs_hook=_object,
@@ -144,11 +164,14 @@ def validate(response: bytes, before: Path, after: Path, diff_path: Path, destin
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('prepare', 'validate', 'verify-compare'))
+    parser.add_argument('mode', choices=('prepare', 'validate', 'verify-compare', 'verify-pilot-pr'))
     parser.add_argument('--diff', type=Path)
     parser.add_argument('--before', type=Path)
     parser.add_argument('--compare', type=Path)
+    parser.add_argument('--expected-pr')
     parser.add_argument('--expected-base')
+    parser.add_argument('--expected-head')
+    parser.add_argument('--merge-base')
     parser.add_argument('--after', type=Path)
     parser.add_argument('--prompt', type=Path)
     parser.add_argument('--response', type=Path)
@@ -156,7 +179,16 @@ def main() -> int:
     parser.add_argument('--destination', type=Path)
     args = parser.parse_args()
     try:
-        if args.mode == 'verify-compare':
+        if args.mode == 'verify-pilot-pr':
+            if args.before is None:
+                raise ReviewVerdictError('missing pilot PR observation')
+            snapshot = load_pilot_pr(args.before, expected_pr=args.expected_pr,
+                                     expected_base=args.expected_base, expected_head=args.expected_head)
+            if args.merge_base is not None:
+                if not re.fullmatch(r'[0-9a-f]{40}', args.merge_base) or args.merge_base == '0' * 40:
+                    raise ReviewVerdictError('invalid pilot merge base')
+                print(json.dumps({**snapshot, 'mergeBaseOid': args.merge_base}, sort_keys=True))
+        elif args.mode == 'verify-compare':
             if args.compare is None or args.expected_base is None or args.diff is None:
                 raise ReviewVerdictError('missing compare input')
             print(load_compare(args.compare, expected_base=args.expected_base, diff=args.diff.read_bytes()))
