@@ -113,14 +113,16 @@ def client(peer):
             raise RuntimeError('reviewer reached the upstream network directly')
     except OSError:
         pass
-    tls = ssl.create_default_context(cafile='/test-ca.pem')
+    # Present the allowed SNI but use normal trust roots, not the fixture CA.
+    # The relay accepts the hostname; the client must still reject the peer.
+    tls = ssl.create_default_context()
     try:
         with socket.create_connection((ORIGIN, 443), timeout=5) as raw:
-            with tls.wrap_socket(raw, server_hostname='wrong.invalid'):
-                raise RuntimeError('incorrect TLS identity was accepted')
+            with tls.wrap_socket(raw, server_hostname=ORIGIN):
+                raise RuntimeError('untrusted TLS identity was accepted')
     except ssl.SSLCertVerificationError as error:
-        if 'hostname mismatch' not in error.verify_message.lower():
-            raise RuntimeError('unexpected cause for wrong-host rejection') from error
+        if error.verify_code not in (19, 20, 21):
+            raise RuntimeError('unexpected cause for untrusted CA rejection') from error
     token = load_token(TOKEN_FILE)
     if token != DUMMY:
         raise RuntimeError('only the fixed nonsecret dummy token is allowed')
@@ -155,7 +157,7 @@ def client(peer):
         runner.run('/cli/claude', result, prompt=CLIENT_INPUT.decode(), oauth_token=token, runner_temp=temp)
         if json.loads(result.read_bytes()) != REVIEW:
             raise RuntimeError('unexpected synthetic verdict')
-    print(json.dumps({'native_cli': True, 'synthetic_verdict': True, 'wrong_host_rejected': True,
+    print(json.dumps({'native_cli': True, 'synthetic_verdict': True, 'untrusted_ca_rejected': True,
                       'upstream_direct_blocked': True, 'reviewer_has_no_github_credentials': True}))
 
 
