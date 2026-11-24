@@ -8,6 +8,7 @@ import subprocess
 
 from tools import shadow_artifact_binding as binding
 from tools.claude_shadow_workflow import prepare, validate
+from tools.shadow_native_tls import native_policy, run as native_run
 from tools.shadow_network_run import run as isolated_run, policy
 
 
@@ -31,14 +32,14 @@ def verify_input(directory):
                                     trusted_context=context())
 
 
-def review(directory, binary, policy_path, destination):
+def review(directory, binary, policy_path, destination, *, native=False):
     verify_input(directory)
-    policy(policy_path)  # Disabled policy fails before any provider credential use/resources.
+    (native_policy if native else policy)(policy_path)  # Fail before reading a credential.
     if Path(destination).exists() or Path(destination).is_symlink():
         raise ValueError('result destination exists')
     prompt = binding.read_regular(Path(directory) / 'prompt.txt', 100_000).decode('utf-8')
-    raw = isolated_run(binary, Path(__file__).resolve().parent, prompt,
-                       os.environ['CLAUDE_CODE_OAUTH_TOKEN'], policy_path)
+    raw = (native_run if native else isolated_run)(
+        binary, Path(__file__).resolve().parent, prompt, os.environ['CLAUDE_CODE_OAUTH_TOKEN'], policy_path)
     if not raw or len(raw) > 1_000_000 or not isinstance(binding.parse(raw), dict):
         raise ValueError('invalid isolated output')
     with Path(destination).open('xb') as output:
@@ -63,7 +64,7 @@ def validate_result(directory, response_dir, refetched_dir, destination):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('fetch', 'verify', 'review', 'validate'))
+    parser.add_argument('mode', choices=('fetch', 'verify', 'review', 'native-review', 'validate'))
     parser.add_argument('--bundle', type=Path, required=True)
     parser.add_argument('--prompt-source', type=Path)
     parser.add_argument('--binary', type=Path)
@@ -77,8 +78,8 @@ def main():
             fetch_bundle(args.bundle, args.prompt_source)
         elif args.mode == 'verify':
             verify_input(args.bundle)
-        elif args.mode == 'review':
-            review(args.bundle, args.binary, args.policy, args.destination)
+        elif args.mode in ('review', 'native-review'):
+            review(args.bundle, args.binary, args.policy, args.destination, native=args.mode == 'native-review')
         else:
             validate_result(args.bundle, args.response_dir, args.refetched_dir, args.destination)
     except (OSError, ValueError, KeyError, TypeError, RecursionError, subprocess.SubprocessError) as exc:

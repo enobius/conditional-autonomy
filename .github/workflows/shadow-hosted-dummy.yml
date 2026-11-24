@@ -43,6 +43,10 @@ jobs:
         run: python -m tests.shadow_proxy_network_probe
       - name: Probe hostile CLI stand-in with dummy host canaries
         run: python -m tests.shadow_adversarial_host
+      - name: Rehearse pinned native CLI with dummy OAuth and isolated TLS
+        run: |
+          binary=$(python -m tools.install_claude_shadow)
+          python -m tests.shadow_native_tls_probe --binary "$binary"
       - name: Upload synthetic result only
         id: upload
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

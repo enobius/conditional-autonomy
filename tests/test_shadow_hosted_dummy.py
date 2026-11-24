@@ -70,6 +70,12 @@ class HostedDummyTests(unittest.TestCase):
         self.assertEqual(workflow['jobs']['artifact-check']['needs'], 'probe')
         self.assertEqual(sum(step.get('run') == 'python -m tests.shadow_adversarial_host'
                              for step in workflow['jobs']['probe']['steps']), 1)
+        native = [step for step in workflow['jobs']['probe']['steps']
+                  if step.get('name') == 'Rehearse pinned native CLI with dummy OAuth and isolated TLS']
+        self.assertEqual(len(native), 1)
+        self.assertEqual(set(native[0]), {'name', 'run'})
+        self.assertEqual(native[0]['run'], 'binary=$(python -m tools.install_claude_shadow)\n'
+                         'python -m tests.shadow_native_tls_probe --binary "$binary"\n')
         self.assertEqual(set(workflow['jobs']), {'probe', 'artifact-check'})
         for name, job in workflow['jobs'].items():
             self.assertEqual(set(job), {'runs-on', 'timeout-minutes', 'permissions', 'steps'} |
