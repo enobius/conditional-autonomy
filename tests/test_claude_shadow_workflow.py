@@ -144,12 +144,7 @@ class ShadowWorkflowTests(unittest.TestCase):
             path = Path(temp) / 'observed.json'
             path.write_text(json.dumps(observed), encoding='utf-8')
             self.assertEqual(load_pilot_pr(path, **expected), snapshot)
-            for field, value in (('expected_pr', '017'), ('expected_pr', '18'),
-                                 ('expected_base', '0' * 40), ('expected_base', 'b' * 40),
-                                 ('expected_head', 'B' * 40), ('expected_head', 'c' * 40)):
-                with self.subTest(pin=field, value=value), self.assertRaises(ReviewVerdictError):
-                    load_pilot_pr(path, **(expected | {field: value}))
-            for field, value in (('number', 18), ('number', '17'), ('isCrossRepository', True),
+            for field, value in (('number', 18), ('number', '17'), ('number', 17.0), ('isCrossRepository', True),
                                  ('isCrossRepository', 0), ('state', 'CLOSED'), ('baseRefName', 'dev'),
                                  ('baseRefOid', 'c' * 40), ('headRefOid', 'c' * 40)):
                 path.write_text(json.dumps(observed | {field: value}), encoding='utf-8')
@@ -159,6 +154,40 @@ class ShadowWorkflowTests(unittest.TestCase):
             del observed['isCrossRepository']
             path.write_text(json.dumps(observed), encoding='utf-8')
             with self.assertRaisesRegex(ReviewVerdictError, 'observation differs'):
+                load_pilot_pr(path, **expected)
+
+    def test_pilot_refuses_invalid_pin_even_when_the_observation_matches(self):
+        expected = {'expected_pr': '17', 'expected_base': 'a' * 40, 'expected_head': 'b' * 40}
+        observed = {'baseRefName': 'main', 'baseRefOid': 'a' * 40, 'headRefOid': 'b' * 40,
+                    'state': 'OPEN', 'number': 17, 'isCrossRepository': False}
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'observed.json'
+            for pin, field, value, matching in (
+                ('expected_pr', 'number', '017', 17),
+                ('expected_base', 'baseRefOid', '0' * 40, '0' * 40),
+                ('expected_head', 'headRefOid', '0' * 40, '0' * 40),
+                ('expected_head', 'headRefOid', 'B' * 40, 'B' * 40),
+                ('expected_base', 'baseRefOid', 'b' * 40, 'b' * 40),
+            ):
+                path.write_text(json.dumps(observed | {field: matching}), encoding='utf-8')
+                with self.subTest(pin=pin, value=value), self.assertRaisesRegex(
+                        ReviewVerdictError, 'invalid pilot PR pin'):
+                    load_pilot_pr(path, **(expected | {pin: value}))
+
+    def test_pilot_observation_rejects_oversize_and_duplicate_key(self):
+        expected = {'expected_pr': '17', 'expected_base': 'a' * 40, 'expected_head': 'b' * 40}
+        snapshot = {'baseRefName': 'main', 'baseRefOid': 'a' * 40, 'headRefOid': 'b' * 40, 'state': 'OPEN'}
+        raw = json.dumps({**snapshot, 'number': 17, 'isCrossRepository': False}).encode()
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / 'observed.json'
+            exact = raw.ljust(2000, b' ')
+            path.write_bytes(exact)
+            self.assertEqual(load_pilot_pr(path, **expected), snapshot)
+            path.write_bytes(exact + b' ')
+            with self.assertRaisesRegex(ReviewVerdictError, 'oversized pilot PR observation'):
+                load_pilot_pr(path, **expected)
+            path.write_bytes(raw[:-1] + b', "number": 17}')
+            with self.assertRaisesRegex(ReviewVerdictError, 'duplicate JSON key'):
                 load_pilot_pr(path, **expected)
 
     def test_pilot_cli_prints_bound_snapshot_only_after_positive_observation(self):
@@ -223,7 +252,7 @@ class ShadowWorkflowTests(unittest.TestCase):
         self.assertEqual(steps[1]['with'], {'python-version': '3.11'})
         self.assertEqual(steps[2]['run'], 'python -m pip install --target architecture/schemas/.vendor -r architecture/schemas/requirements-schema.txt -r architecture/schemas/requirements-test.txt')
         self.assertEqual(steps[3]['run'], 'python -m pip install --require-hashes --only-binary=:all: --platform manylinux2014_x86_64 --python-version 3.11 --implementation cp --abi cp311 --target "$RUNNER_TEMP/shadow-lock" -r architecture/schemas/requirements-shadow-runtime.lock')
-        self.assertEqual(steps[4]['run'], 'python -m unittest tests.test_claude_shadow_workflow tests.test_review_verdict tests.test_review_shadow tests.test_install_claude_shadow tests.test_run_claude_shadow tests.test_shadow_tool_evidence tests.test_shadow_artifact_binding tests.test_shadow_container tests.test_shadow_egress_proxy tests.test_shadow_isolated_workflow tests.test_shadow_jobs tests.test_shadow_network_run tests.test_shadow_result_download')
+        self.assertEqual(steps[4]['run'], 'python -m unittest tests.test_claude_shadow_workflow tests.test_fetch_shadow_pr tests.test_review_verdict tests.test_review_shadow tests.test_install_claude_shadow tests.test_run_claude_shadow tests.test_shadow_tool_evidence tests.test_shadow_artifact_binding tests.test_shadow_container tests.test_shadow_egress_proxy tests.test_shadow_isolated_workflow tests.test_shadow_jobs tests.test_shadow_network_run tests.test_shadow_result_download')
 
     def test_runtime_gates_do_not_restore_or_use_pip_caches(self):
         for path in ('.github/workflows/runtime-invariant-gate.yml', '.github/workflows/stage1-exit-gate.yml',
