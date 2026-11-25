@@ -1,0 +1,7 @@
+Synthetic reservation review fixture
+This record and rule are invented and are not executed.
+
+Rule: an unconfirmed reservation stays on hold.
+Record: TEST-0001
+Confirmed: false
+Disposition: approve
