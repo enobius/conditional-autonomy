@@ -1,4 +1,4 @@
-from contextlib import contextmanager, redirect_stderr, redirect_stdout
+from contextlib import contextmanager, nullcontext, redirect_stdout
 import io
 import json
 import os
@@ -8,6 +8,7 @@ import ssl
 import sys
 import tempfile
 import time
+from types import SimpleNamespace
 import unittest
 from unittest.mock import MagicMock, Mock, patch
 
@@ -104,13 +105,40 @@ class NativeTLSBoundaryTests(unittest.TestCase):
             execute.assert_not_called()
 
     def test_entrypoint_rejects_forbidden_environment_before_reading_token(self):
-        for variable in ('ACTIONS_RUNTIME_TOKEN', 'github_token', 'https_proxy', 'NODE_EXTRA_CA_CERTS'):
-            with self.subTest(variable=variable), patch.dict(os.environ, {variable: 'dummy'}, clear=True), \
-                    patch.object(entry, 'load_token') as token, patch.object(entry, 'run') as run, \
-                    redirect_stderr(io.StringIO()):
-                self.assertEqual(entry.main(), 1)
-            token.assert_not_called()
-            run.assert_not_called()
+        prompt = b'Review this synthetic fixture.\n'
+        verdict = b'{"synthetic":true}'
+        for variable in (None, 'ACTIONS_RUNTIME_TOKEN', 'github_token', 'https_proxy',
+                         'NODE_EXTRA_CA_CERTS', 'ANTHROPIC_API_KEY', 'CLAUDE_CODE_OAUTH_TOKEN'):
+            with self.subTest(variable=variable), tempfile.TemporaryDirectory() as directory:
+                source, output, errors = io.BytesIO(prompt), io.BytesIO(), io.StringIO()
+                io_streams = SimpleNamespace(stdin=SimpleNamespace(buffer=source),
+                                             stdout=SimpleNamespace(buffer=output), stderr=errors)
+
+                def fake_run(_binary, destination, **_kwargs):
+                    destination.write_bytes(verdict)
+
+                variables = {'PYTHONPATH': '/sandbox'}
+                if variable is not None:
+                    variables[variable] = 'dummy-forbidden-value'
+                with patch.dict(os.environ, variables, clear=True), patch.object(entry, 'sys', io_streams), \
+                        patch.object(entry, 'tempfile', SimpleNamespace(
+                            TemporaryDirectory=lambda **_: nullcontext(directory))), \
+                        patch.object(entry, 'load_token', return_value='dummy-native-only') as token, \
+                        patch.object(entry, 'run', side_effect=fake_run) as run:
+                    status = entry.main()
+                if variable is None:
+                    self.assertEqual(status, 0, errors.getvalue())
+                    token.assert_called_once_with(TOKEN_FILE)
+                    run.assert_called_once_with('/cli/claude', Path(directory) / 'result.json',
+                                                prompt=prompt.decode(), oauth_token='dummy-native-only',
+                                                runner_temp=directory)
+                    self.assertEqual(output.getvalue(), verdict)
+                else:
+                    self.assertEqual(status, 1)
+                    self.assertEqual(source.tell(), 0, 'rejected environment must stop before reading the prompt')
+                    token.assert_not_called()
+                    run.assert_not_called()
+                    self.assertEqual(output.getvalue(), b'')
 
     def test_topology_rejects_bridge_or_relay_drift_and_always_cleans_up(self):
         suffix = 'a' * 32
