@@ -60,7 +60,7 @@ def safe(test, workflow):
                     test.assertEqual(step['with']['retention-days'], '1')
             for name, value in step.get('env', {}).items():
                 if 'secrets.' in value:
-                    test.assertEqual((key, step['name'], name, value), ('provider', 'Run mandatory private-network container',
+                    test.assertEqual((key, step['name'], name, value), ('provider', 'Run mandatory native TLS reviewer',
                         'CLAUDE_CODE_OAUTH_TOKEN', '${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}'))
                 if name == 'GH_TOKEN':
                     test.assertIn(step['name'], {'Fetch bounded PR data', 'Independently re-fetch current PR',
@@ -86,8 +86,10 @@ def safe(test, workflow):
             test.assertLess(steps.index(ids), steps.index(downloads[0]))
         else:
             test.assertLess(steps.index(check), steps.index(downloads[0]))
-    review = next(s for s in provider if s['name'] == 'Run mandatory private-network container')
-    test.assertEqual(review['run'], 'python -m tools.shadow_jobs review --bundle "$RUNNER_TEMP/fetch-input" --binary "$SHADOW_BINARY" --policy .github/shadow-provider-policy.json --destination "$RUNNER_TEMP/provider-output/result.json"')
+    policy_check = next(s for s in provider if s['name'] == 'Verify original fetch bytes and disabled provider policy')
+    test.assertIn('from tools.shadow_native_tls import native_policy; native_policy(', policy_check['run'])
+    review = next(s for s in provider if s['name'] == 'Run mandatory native TLS reviewer')
+    test.assertEqual(review['run'], 'python -m tools.shadow_jobs native-review --bundle "$RUNNER_TEMP/fetch-input" --binary "$SHADOW_BINARY" --policy .github/shadow-provider-policy.json --destination "$RUNNER_TEMP/provider-output/result.json"')
     test.assertEqual(set(review['env']), {'PR_NUMBER', 'FETCH_MANIFEST_SHA256', 'CLAUDE_CODE_OAUTH_TOKEN', 'SHADOW_BINARY'})
     for job, name, destination in (('fetch', 'Fetch bounded PR data', 'fetch-input'),
                                    ('validate', 'Independently re-fetch current PR', 'refetched')):
@@ -109,7 +111,7 @@ class IsolatedWorkflowTests(unittest.TestCase):
         # Local drift alarm only, not a trusted check against PR edits to tests.
         canonical = json.dumps(self.workflow(), sort_keys=True, separators=(',', ':')).encode()
         self.assertEqual(hashlib.sha256(canonical).hexdigest(),
-                         'db5032e9fac1bdb452709e09168b9360b36249e7ab0aa5777849206570635ad4')
+                         'feaa5d34c04fb1749b3a79a1d9bacb5aee53e030fe3d1d46f05143bef5a8dcfb')
         self.assertEqual(json.loads(Path('.github/shadow-provider-policy.json').read_text()),
                          {'version': 'shadow-provider-policy-1', 'enabled': False, 'origin': None})
 

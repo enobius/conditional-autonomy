@@ -45,4 +45,4 @@ jobs:
           tests.test_shadow_container
           tests.test_shadow_egress_proxy
           tests.test_shadow_isolated_workflow tests.test_shadow_jobs tests.test_shadow_network_run
-          tests.test_shadow_result_download
+          tests.test_shadow_result_download tests.test_shadow_native_tls

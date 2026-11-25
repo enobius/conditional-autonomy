@@ -101,7 +101,7 @@ jobs:
           FETCH_MANIFEST_SHA256: ${{ needs.fetch.outputs.manifest_sha256 }}
         run: |
           python -m tools.shadow_jobs verify --bundle "$RUNNER_TEMP/fetch-input"
-          python -c "from tools.shadow_network_run import policy; policy('.github/shadow-provider-policy.json')"
+          python -c "from tools.shadow_native_tls import native_policy; native_policy('.github/shadow-provider-policy.json')"
       - name: Install verified CLI and pinned container image before credentials
         id: binary
         run: |
@@ -109,14 +109,14 @@ jobs:
           printf 'path=%s\n' "$binary" >> "$GITHUB_OUTPUT"
           docker pull python@sha256:a83ba18aef0f865b1a4a611c2cf460fe446f2795673bbb9fe43be570439e3b39
           mkdir -- "$RUNNER_TEMP/provider-output"
-      - name: Run mandatory private-network container
+      - name: Run mandatory native TLS reviewer
         env:
           PR_NUMBER: ${{ inputs.pr_number }}
           FETCH_MANIFEST_SHA256: ${{ needs.fetch.outputs.manifest_sha256 }}
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           SHADOW_BINARY: ${{ steps.binary.outputs.path }}
         run: >-
-          python -m tools.shadow_jobs review --bundle "$RUNNER_TEMP/fetch-input"
+          python -m tools.shadow_jobs native-review --bundle "$RUNNER_TEMP/fetch-input"
           --binary "$SHADOW_BINARY" --policy .github/shadow-provider-policy.json
           --destination "$RUNNER_TEMP/provider-output/result.json"
       - name: Upload untrusted provider result only
