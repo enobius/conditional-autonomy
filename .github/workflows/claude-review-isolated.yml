@@ -95,12 +95,15 @@ jobs:
           artifact-ids: ${{ needs.fetch.outputs.artifact_id }}
           path: ${{ runner.temp }}/fetch-input
           merge-multiple: true
-      - name: Verify original fetch bytes and disabled provider policy
+      - name: Verify fetch bytes, one-run permit, and disabled provider policy
         env:
           PR_NUMBER: ${{ inputs.pr_number }}
+          SHADOW_BASE_SHA: ${{ inputs.base_sha }}
+          SHADOW_HEAD_SHA: ${{ inputs.head_sha }}
+          SHADOW_PILOT_PERMIT: ${{ vars.CLAUDE_SHADOW_ONE_RUN_PERMIT }}
           FETCH_MANIFEST_SHA256: ${{ needs.fetch.outputs.manifest_sha256 }}
         run: |
-          python -m tools.shadow_jobs verify --bundle "$RUNNER_TEMP/fetch-input"
+          python -m tools.shadow_jobs verify-pilot --bundle "$RUNNER_TEMP/fetch-input"
           python -c "from tools.shadow_native_tls import native_policy; native_policy('.github/shadow-provider-policy.json')"
       - name: Install verified CLI and pinned container image before credentials
         id: binary
@@ -112,6 +115,9 @@ jobs:
       - name: Run mandatory native TLS reviewer
         env:
           PR_NUMBER: ${{ inputs.pr_number }}
+          SHADOW_BASE_SHA: ${{ inputs.base_sha }}
+          SHADOW_HEAD_SHA: ${{ inputs.head_sha }}
+          SHADOW_PILOT_PERMIT: ${{ vars.CLAUDE_SHADOW_ONE_RUN_PERMIT }}
           FETCH_MANIFEST_SHA256: ${{ needs.fetch.outputs.manifest_sha256 }}
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           SHADOW_BINARY: ${{ steps.binary.outputs.path }}
