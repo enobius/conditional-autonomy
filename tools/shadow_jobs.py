@@ -10,6 +10,7 @@ from tools import shadow_artifact_binding as binding
 from tools.claude_shadow_workflow import prepare, validate
 from tools.shadow_native_tls import native_policy, run as native_run
 from tools.shadow_network_run import run as isolated_run, policy
+from tools.shadow_pilot_permit import require_permit
 
 
 def context():
@@ -32,8 +33,13 @@ def verify_input(directory):
                                     trusted_context=context())
 
 
+def verify_pilot(directory):
+    manifest = verify_input(directory)
+    require_permit(os.environ.get('SHADOW_PILOT_PERMIT', ''), manifest, os.environ)
+
+
 def review(directory, binary, policy_path, destination, *, native=False):
-    verify_input(directory)
+    (verify_pilot if native else verify_input)(directory)
     (native_policy if native else policy)(policy_path)  # Fail before reading a credential.
     if Path(destination).exists() or Path(destination).is_symlink():
         raise ValueError('result destination exists')
@@ -64,7 +70,7 @@ def validate_result(directory, response_dir, refetched_dir, destination):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('fetch', 'verify', 'review', 'native-review', 'validate'))
+    parser.add_argument('mode', choices=('fetch', 'verify', 'verify-pilot', 'review', 'native-review', 'validate'))
     parser.add_argument('--bundle', type=Path, required=True)
     parser.add_argument('--prompt-source', type=Path)
     parser.add_argument('--binary', type=Path)
@@ -78,6 +84,8 @@ def main():
             fetch_bundle(args.bundle, args.prompt_source)
         elif args.mode == 'verify':
             verify_input(args.bundle)
+        elif args.mode == 'verify-pilot':
+            verify_pilot(args.bundle)
         elif args.mode in ('review', 'native-review'):
             review(args.bundle, args.binary, args.policy, args.destination, native=args.mode == 'native-review')
         else:
