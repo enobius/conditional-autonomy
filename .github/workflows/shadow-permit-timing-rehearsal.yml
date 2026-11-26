@@ -1,0 +1,35 @@
+name: Claude permit timing rehearsal (no secrets)
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  show-marker:
+    if: ${{ github.repository_id == '1315590853' && github.ref == 'refs/heads/main' && github.actor == 'enobius' && github.run_attempt == '1' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Show the non-secret marker for this run
+        run: |
+          printf 'While the protected job waits, set the claude-shadow-review environment variable CLAUDE_SHADOW_ONE_RUN_PERMIT to:\n'
+          printf 'timing-rehearsal:%s:%s\n' "$GITHUB_RUN_ID" "$GITHUB_SHA"
+
+  check-after-approval:
+    if: ${{ github.repository_id == '1315590853' && github.ref == 'refs/heads/main' && github.actor == 'enobius' && github.run_attempt == '1' }}
+    needs: show-marker
+    environment: claude-shadow-review
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Verify the marker set after dispatch
+        env:
+          SHADOW_PILOT_PERMIT: ${{ vars.CLAUDE_SHADOW_ONE_RUN_PERMIT }}
+        run: |
+          expected="timing-rehearsal:${GITHUB_RUN_ID}:${GITHUB_SHA}"
+          if [[ "$SHADOW_PILOT_PERMIT" != "$expected" ]]; then
+            printf 'FAIL: this job did not see its exact post-dispatch marker.\n' >&2
+            exit 1
+          fi
+          printf 'PASS: the protected job saw the exact post-dispatch marker. No provider or secret was used.\n'
