@@ -198,3 +198,97 @@ class TimingRehearsalTests(unittest.TestCase):
                 self.assertNotIn(marker.encode(), result.stdout + result.stderr)
         with self.assertRaises(ValueError):
             gate.require_permit(marker, {'snapshot': SNAPSHOT, 'files': {'diff.patch': {'sha256': gate.FIXTURE_DIFF}}}, ENV, now=NOW)
+
+
+class OneShotActivationTests(unittest.TestCase):
+    def setUp(self):
+        temp = tempfile.TemporaryDirectory()
+        self.addCleanup(temp.cleanup)
+        self.root = Path(temp.name)
+        self.bundle = self.root / 'bundle'
+        self.fresh = self.root / 'fresh'
+        for directory in (self.bundle, self.fresh):
+            directory.mkdir()
+            (directory / 'snapshot.json').write_bytes(binding.canonical(SNAPSHOT))
+            (directory / 'diff.patch').write_bytes(DIFF)
+        (self.bundle / 'prompt.txt').write_bytes(b'Synthetic fixture only.')
+        self.destination = self.root / 'result.json'
+        self.baseline = self.root / 'policy.json'
+        self.disabled = binding.canonical({'version': 'shadow-provider-policy-1', 'enabled': False, 'origin': None})
+        self.baseline.write_bytes(self.disabled)
+        expiry = (datetime.now(timezone.utc) + timedelta(minutes=10)).strftime('%Y-%m-%dT%H:%M:%SZ')
+        values = ENV | {'RUNNER_TEMP': str(self.root), 'SHADOW_PILOT_ARM_SHA': BASE,
+                        'SHADOW_PILOT_PERMIT': json.dumps(PERMIT | {'expires_at': expiry})}
+        session = patch.dict(os.environ, values, clear=True)
+        session.start()
+        self.addCleanup(session.stop)
+        os.environ['FETCH_MANIFEST_SHA256'] = binding.seal(self.bundle, jobs.context())
+
+    def review(self):
+        jobs.one_shot_review(self.bundle, self.fresh, 'dummy-cli', self.baseline, self.destination)
+
+    def test_exact_armed_permitted_fresh_attempt_gets_only_a_temporary_policy(self):
+        policies = []
+
+        def provider(binary, tools, prompt, token, policy):
+            self.assertEqual((binary, prompt, token), ('dummy-cli', 'Synthetic fixture only.', 'dummy-token'))
+            self.assertEqual(binding.parse(policy.read_bytes()), {'version': 'shadow-provider-policy-1',
+                                                                 'enabled': True, 'origin': 'api.anthropic.com'})
+            self.assertEqual(self.baseline.read_bytes(), self.disabled)
+            policies.append(policy)
+            return b'{}'
+
+        with patch.dict(os.environ, {'CLAUDE_CODE_OAUTH_TOKEN': 'dummy-token'}), \
+                patch.object(jobs, 'native_run', side_effect=provider) as run:
+            jobs.verify_activation(self.bundle, self.fresh, self.baseline)
+            run.assert_not_called()
+            self.review()
+            self.assertEqual(self.destination.read_bytes(), b'{}')
+            self.assertFalse(policies[0].exists())
+            self.destination = self.root / 'second-result.json'
+            with self.assertRaises(FileExistsError):
+                self.review()
+            run.assert_called_once()
+
+    def test_arm_permit_freshness_and_disabled_baseline_fail_before_token_access(self):
+        changed = self.fresh / 'diff.patch'
+        for field, value in (('SHADOW_PILOT_ARM_SHA', ''), ('SHADOW_PILOT_ARM_SHA', HEAD),
+                             ('SHADOW_PILOT_PERMIT', ''), ('GITHUB_RUN_ATTEMPT', '2')):
+            with self.subTest(field=field, value=value), patch.dict(os.environ, {field: value}), \
+                    patch.object(jobs, 'native_run') as run, self.assertRaises(ValueError):
+                self.review()
+            run.assert_not_called()
+        changed.write_bytes(DIFF + b'changed after dispatch')
+        with patch.object(jobs, 'native_run') as run, self.assertRaisesRegex(ValueError, 'independent PR re-fetch differs'):
+            self.review()
+        run.assert_not_called()
+        changed.write_bytes(DIFF)
+        self.baseline.write_bytes(binding.canonical({'version': 'shadow-provider-policy-1',
+                                                    'enabled': True, 'origin': 'api.anthropic.com'}))
+        with patch.object(jobs, 'native_run') as run, self.assertRaisesRegex(ValueError, 'must remain disabled'):
+            self.review()
+        run.assert_not_called()
+        self.assertFalse(any(self.root.glob('claude-shadow-consumed-*')))
+
+    def test_failed_reviewer_does_not_restore_the_attempt(self):
+        with patch.dict(os.environ, {'CLAUDE_CODE_OAUTH_TOKEN': 'dummy-token'}), \
+                patch.object(jobs, 'native_run', side_effect=ValueError('synthetic provider failure')) as run:
+            with self.assertRaisesRegex(ValueError, 'synthetic provider failure'):
+                self.review()
+            with self.assertRaises(FileExistsError):
+                self.review()
+            run.assert_called_once()
+        self.assertEqual(list(self.root.glob('claude-shadow-authorized-*')), [])
+        self.assertFalse(self.destination.exists())
+
+    def test_both_activation_cli_modes_reject_a_missing_arm(self):
+        args = ['--bundle', str(self.bundle), '--refetched-dir', str(self.fresh), '--policy', str(self.baseline)]
+        for mode in ('verify-activation', 'one-shot-review'):
+            invoking = ['shadow_jobs', mode, *args, '--binary', 'dummy-cli', '--destination', str(self.destination)]
+            with self.subTest(mode=mode), patch.object(jobs.sys, 'argv', invoking), \
+                    patch.dict(os.environ, {'SHADOW_PILOT_ARM_SHA': ''}), \
+                    patch.object(jobs, 'native_run') as provider, redirect_stderr(io.StringIO()):
+                self.assertEqual(jobs.main(), 1)
+                provider.assert_not_called()
+        with patch.object(jobs.sys, 'argv', ['shadow_jobs', 'verify-activation', *args]):
+            self.assertEqual(jobs.main(), 0)
